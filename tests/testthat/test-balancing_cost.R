@@ -36,6 +36,7 @@ test_that("raises errors due to incorrect input", {
 
   expect_error(tester(cost_increment = "a"))
   expect_error(tester(cost_increment = -1))
+  expect_error(tester(cost_increment = 0))
   expect_error(tester(cost_increment = Inf))
 
   expect_error(tester(group_by = 1))
@@ -183,6 +184,31 @@ test_that("works with numeric ids, regardless of land_use_data row order", {
     group_by = character(0)
   )
   expect_equal(result, expected_result)
+})
+
+test_that("balances when access equals population, at any max cost", {
+  toy_matrix <- data.table::data.table(
+    from_id = rep(c("a", "b"), each = 2),
+    to_id = rep(c("a", "b"), 2),
+    travel_time = c(0, 25, 25, 0)
+  )
+  toy_land_use <- data.table::data.table(
+    id = c("a", "b"),
+    jobs = c(10, 20),
+    population = c(10, 25)
+  )
+
+  # a reaches exactly as many jobs as people at cost 0. b only balances at
+  # cost 25, which is not a multiple of cost_increment, so it balances at the
+  # next step of the cost grid (30)
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    cost_increment = 10,
+    group_by = character(0)
+  )
+  expect_equal(result$travel_time, c(0, 30))
 })
 
 test_that("fill_missing_ids arg works correctly", {

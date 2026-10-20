@@ -15,21 +15,21 @@ A set of fast and convenient functions to help conducting accessibility analyses
 Please check the vignettes for more on the package usage:
 \itemize{
 \item Introduction to accessibility: calculating accessibility measures. Run
-\code{vignette("accessibility")} or check it on the \href{https://ipeagit.github.io/accessibility/articles/accessibility.html}{website}.
-\item Decay functions. Run \code{vignette("decay_functions", package = "accessibility")} or check it on the \href{https://ipeagit.github.io/accessibility/articles/decay_functions.html}{website}.
+\code{vignette("accessibility")} or check it on the \href{https://ipea.github.io/accessibility/articles/accessibility.html}{website}.
+\item Decay functions. Run \code{vignette("decay_functions", package = "accessibility")} or check it on the \href{https://ipea.github.io/accessibility/articles/decay_functions.html}{website}.
 \item Calculating accessibility inequality and poverty. Run
 \code{vignette("inequality_and_poverty", package = "accessibility")} or check it
 on the
-\href{https://ipeagit.github.io/accessibility/articles/inequality_and_poverty.html}{website}.
+\href{https://ipea.github.io/accessibility/articles/inequality_and_poverty.html}{website}.
 }
 }
 
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/ipeaGIT/accessibility}
-  \item \url{https://ipeagit.github.io/accessibility/}
-  \item Report bugs at \url{https://github.com/ipeaGIT/accessibility/issues}
+  \item \url{https://github.com/ipea/accessibility}
+  \item \url{https://ipea.github.io/accessibility/}
+  \item Report bugs at \url{https://github.com/ipea/accessibility/issues}
 }
 
 }
@@ -38,6 +38,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Daniel Herszenhut \email{dhersz@gmail.com} (\href{https://orcid.org/0000-0001-8066-1105}{ORCID})
   \item Rafael H. M. Pereira \email{rafa.pereira.br@gmail.com} (\href{https://orcid.org/0000-0003-2125-7465}{ORCID})
   \item Anastasia Soukhov
 }

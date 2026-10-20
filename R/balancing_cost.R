@@ -59,7 +59,13 @@ balancing_cost <- function(travel_matrix,
   checkmate::assert_string(opportunity)
   checkmate::assert_string(travel_cost)
   checkmate::assert_string(demand)
-  checkmate::assert_number(cost_increment, lower = 0, finite = TRUE)
+  checkmate::assert_number(cost_increment, finite = TRUE)
+  if (cost_increment <= 0) {
+    stop(
+      "Assertion on 'cost_increment' failed: Value must be greater than 0.",
+      call. = FALSE
+    )
+  }
   checkmate::assert_logical(fill_missing_ids, len = 1, any.missing = FALSE)
   assert_group_by(group_by)
   assert_travel_matrix(travel_matrix, travel_cost, group_by)
@@ -98,7 +104,15 @@ balancing_cost <- function(travel_matrix,
   } else {
     0
   }
-  lookup_costs <- seq.int(0, max_lookup_cost, by = cost_increment)
+
+  # the last cost must be at least the max cost, otherwise origins that only
+  # balance after the last multiple of cost_increment are reported as NA
+
+  lookup_costs <- seq.int(
+    0,
+    ceiling(max_lookup_cost / cost_increment) * cost_increment,
+    by = cost_increment
+  )
 
   # origins with 0 people should always have a balancing time of 0
 
@@ -123,7 +137,7 @@ balancing_cost <- function(travel_matrix,
   for (i in lookup_costs) {
     cum_opps <- calc_cum_cutoff(data, groups, opportunity, travel_cost, i)
 
-    cum_opps[, did_balance := access > lookup_vec[as.character(from_id)]]
+    cum_opps[, did_balance := access >= lookup_vec[as.character(from_id)]]
     balanced <- cum_opps[did_balance == TRUE]
 
     if (nrow(balanced) > 0) {

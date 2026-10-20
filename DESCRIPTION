@@ -24,9 +24,9 @@ Description: A set of fast and convenient functions to help conducting
     metrics (such as the Palma ratio, the concentration and Theil indices and 
     the FGT family of measures).
 License: MIT + file LICENSE
-URL: https://github.com/ipeaGIT/accessibility,
-    https://ipeagit.github.io/accessibility/
-BugReports: https://github.com/ipeaGIT/accessibility/issues
+URL: https://github.com/ipea/accessibility,
+    https://ipea.github.io/accessibility/
+BugReports: https://github.com/ipea/accessibility/issues
 Depends: 
     R (>= 3.5.0)
 Imports:

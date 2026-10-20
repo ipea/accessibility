@@ -280,7 +280,7 @@ results.
 
 ```
 - New function `fun()`, which implements ... proposed in Author et al. (Year).
-- `fun()` has a new argument `arg` ... Closes [#63](https://github.com/ipeaGIT/accessibility/issues/63).
+- `fun()` has a new argument `arg` ... Closes [#63](https://github.com/ipea/accessibility/issues/63).
 - Fixed a bug in `fun()` that ... (#issue).
 ```
 

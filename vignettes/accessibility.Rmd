@@ -40,7 +40,7 @@ install.packages("accessibility")
 
 ```{r, eval = FALSE}
 # install.packages("remotes")
-remotes::install_github("ipeaGIT/accessibility")
+remotes::install_github("ipea/accessibility")
 ```
 
 # Overview of the package
@@ -114,7 +114,7 @@ for demonstration purposes[^1].
 
 [^1]: If you would like to calculate such travel cost matrices yourself, there
 are several computational packages to do that in R, such as
-[r5r](https://github.com/ipeaGIT/r5r),
+[r5r](https://github.com/ipea/r5r),
 [dodgr](https://github.com/UrbanAnalyst/dodgr),
 [gtfsrouter](https://github.com/UrbanAnalyst/gtfsrouter),
 [hereR](https://github.com/munterfi/hereR) and

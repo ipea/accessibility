@@ -2,19 +2,19 @@
   "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
   "@type": "SoftwareSourceCode",
   "identifier": "accessibility",
-  "description": "A set of fast and convenient functions to help conducting accessibility analyses. Given a pre-computed travel cost matrix and a land use dataset (containing the location of jobs, healthcare and population, for example), the package allows one to calculate accessibility levels and accessibility poverty and inequality. The package covers the majority of the most commonly used accessibility measures (such as cumulative opportunities, gravity-based and floating catchment areas methods), as well as the most frequently used inequality and poverty metrics (such as the Palma ratio, the concentration and Theil indices and the FGT family of measures).",
+  "description": "A set of fast and convenient functions to help conducting accessibility analyses. Given a pre-computed travel cost matrix and a land use dataset (containing for example the location of jobs, healthcare and population), the package allows one to calculate accessibility levels, and accessibility poverty and inequality. The package covers the majority of the most commonly used accessibility measures (such as cumulative opportunities, gravity-based and floating catchment areas methods), some cutting edge measures proposed in the literature (e.g. balancing cost and constrained accessibility) as well as the most frequently used inequality and poverty metrics (such as the Palma ratio, the concentration and Theil indices and the FGT family of measures).",
   "name": "accessibility: Transport Accessibility Measures",
-  "relatedLink": ["https://ipeagit.github.io/accessibility/", "https://CRAN.R-project.org/package=accessibility"],
-  "codeRepository": "https://github.com/ipeaGIT/accessibility",
-  "issueTracker": "https://github.com/ipeaGIT/accessibility/issues",
+  "relatedLink": ["https://ipea.github.io/accessibility/", "https://CRAN.R-project.org/package=accessibility"],
+  "codeRepository": "https://github.com/ipea/accessibility",
+  "issueTracker": "https://github.com/ipea/accessibility/issues",
   "license": "https://spdx.org/licenses/MIT",
-  "version": "1.4.0.9000",
+  "version": "1.5.0",
   "programmingLanguage": {
     "@type": "ComputerLanguage",
     "name": "R",
     "url": "https://r-project.org"
   },
-  "runtimePlatform": "R version 4.3.3 (2024-02-29)",
+  "runtimePlatform": "R version 4.5.1 (2025-06-13 ucrt)",
   "provider": {
     "@id": "https://cran.r-project.org",
     "@type": "Organization",
@@ -35,9 +35,19 @@
       "familyName": "Herszenhut",
       "email": "dhersz@gmail.com",
       "@id": "https://orcid.org/0000-0001-8066-1105"
+    },
+    {
+      "@type": "Person",
+      "givenName": "Anastasia",
+      "familyName": "Soukhov"
     }
   ],
   "contributor": [
+    {
+      "@type": "Person",
+      "givenName": "Christopher",
+      "familyName": "Higgins"
+    },
     {
       "@type": "Person",
       "givenName": "Joey",
@@ -219,10 +229,10 @@
     },
     "SystemRequirements": null
   },
-  "fileSize": "3382.26KB",
-  "releaseNotes": "https://github.com/ipeaGIT/accessibility/blob/master/NEWS.md",
-  "readme": "https://github.com/ipeaGIT/accessibility/blob/main/README.md",
-  "contIntegration": ["https://github.com/ipeaGIT/accessibility/actions", "https://app.codecov.io/gh/ipeaGIT/accessibility?branch=main"],
+  "fileSize": "3272.323KB",
+  "releaseNotes": "https://github.com/ipea/accessibility/blob/main/NEWS.md",
+  "readme": "https://github.com/ipea/accessibility/blob/main/README.md",
+  "contIntegration": ["https://github.com/ipea/accessibility/actions", "https://app.codecov.io/gh/ipea/accessibility?branch=main"],
   "developmentStatus": "https://lifecycle.r-lib.org/articles/stages.html",
   "keywords": ["accessibility", "r", "transport", "transport-accessibility"]
 }

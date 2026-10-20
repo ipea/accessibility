@@ -43,7 +43,7 @@ to be poor. This is the correct approach for primal accessibility measures (e.g.
 cumulative accessibility). If `FALSE`, then observations above the poverty line 
 are considered to be poor. This is the correct approach for dual accessibility 
 measures (e.g. travel time to the closest facility). When set to `FALSE`, FGT 1 
-and 2 do not have an upper bound. Closes [#63](https://github.com/ipeaGIT/accessibility/issues/63)
+and 2 do not have an upper bound. Closes [#63](https://github.com/ipea/accessibility/issues/63)
 
 
 

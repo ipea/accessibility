@@ -107,6 +107,17 @@ assert_land_use_data <- function(land_use_data,
     .var.name = "land_use_data"
   )
 
+  # duplicated ids would be silently resolved by the joins with the travel
+  # matrix / accessibility data (only one of the rows would be used)
+
+  if (anyDuplicated(land_use_data$id)) {
+    stop(
+      "'land_use_data' must not contain duplicated ids. Found duplicates: ",
+      paste0("'", unique(land_use_data$id[duplicated(land_use_data$id)]), "'", collapse = ", "),
+      call. = FALSE
+    )
+  }
+
   # if an id is present in travel_matrix but not in land_use_data, merging the
   # datasets will produce NAs, so we warn users about that
 
@@ -166,6 +177,17 @@ assert_sociodemographic_data <- function(sociodemographic_data,
     .var.name = "sociodemographic_data"
   )
 
+  # duplicated ids would be silently resolved by the joins with the travel
+  # matrix / accessibility data (only one of the rows would be used)
+
+  if (anyDuplicated(sociodemographic_data$id)) {
+    stop(
+      "'sociodemographic_data' must not contain duplicated ids. Found duplicates: ",
+      paste0("'", unique(sociodemographic_data$id[duplicated(sociodemographic_data$id)]), "'", collapse = ", "),
+      call. = FALSE
+    )
+  }
+
   # if an id is present in accessibility_data but not in sociodemographic_data,
   # merging the datasets will produce NAs, so we warn users about that
 
@@ -182,7 +204,7 @@ assert_sociodemographic_data <- function(sociodemographic_data,
   # we warn about that too
   # if NAs are found in income column, we check if the correspondent population
   # entries are 0. if not, we throw the warning, otherwise we ignore it. related
-  # to https://github.com/ipeaGIT/accessibility/issues/42
+  # to https://github.com/ipea/accessibility/issues/42
 
   non_income_cols <- c(population, extra_cols)
 

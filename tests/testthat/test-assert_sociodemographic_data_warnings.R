@@ -83,3 +83,11 @@ test_that("warns if cols contain NAs", {
     )
   )
 })
+
+test_that("errors if sociodemographic_data has duplicated ids", {
+  duplicated_sociodem <- rbind(land_use_data, land_use_data[1])
+  expect_error(
+    tester(duplicated_sociodem, population = "population"),
+    regexp = "must not contain duplicated ids"
+  )
+})

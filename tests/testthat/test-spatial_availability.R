@@ -331,6 +331,30 @@ test_that("doesn't return NaN when a destination has null denominators", {
   expect_false(anyNA(result$jobs))
 })
 
+test_that("NA demand in ids not in travel_matrix doesn't affect results", {
+  toy_matrix <- data.table::data.table(
+    from_id = rep(c("a", "b", "c"), each = 3),
+    to_id = rep(c("a", "b", "c"), 3),
+    travel_time = c(0, 10, 20, 10, 0, 30, 20, 30, 0)
+  )
+  toy_land_use <- data.table::data.table(
+    id = c("a", "b", "c"),
+    jobs = c(10, 20, 30),
+    population = c(10, 5, 1)
+  )
+  extra_land_use <- rbind(
+    toy_land_use,
+    data.table::data.table(id = "z", jobs = 5, population = NA)
+  )
+
+  expected <- tester(toy_matrix, toy_land_use, group_by = character(0))
+  result <- suppressWarnings(
+    tester(toy_matrix, extra_land_use, group_by = character(0))
+  )
+  expect_false(anyNA(result$jobs))
+  expect_equal(result, expected)
+})
+
 test_that("results are grouped by decay_function_arg when needed", {
   small_travel_matrix <- travel_matrix[
     from_id %in% c("89a88cdb57bffff", "89a88cdb597ffff") &

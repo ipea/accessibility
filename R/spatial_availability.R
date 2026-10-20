@@ -126,7 +126,11 @@ spatial_availability <- function(travel_matrix,
   )
 
   .demand_colname <- demand
-  total_demand <- sum(land_use_data[[.demand_colname]] ^ alpha)
+
+  # na.rm because ids that are not in travel_matrix may have NA demand. this
+  # sum cancels out in combined_bal_fac anyway
+
+  total_demand <- sum(land_use_data[[.demand_colname]] ^ alpha, na.rm = TRUE)
   data[, demand_bal_fac := (get(.demand_colname) ^ alpha) / total_demand]
 
   # destinations that no one reaches (or that are only reached by origins
