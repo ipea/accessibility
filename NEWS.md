@@ -13,6 +13,20 @@
   which large integer opportunity and population counts overflowed when
   multiplied, returning `NA` (e.g. with long travel time cutoffs or large
   cities).
+- Fixed a bug in `constrained_accessibility(constraint = "doubly")` in which
+  the impedance matrix and the demand and supply totals were aligned by row
+  position instead of by id. Results were only correct when `travel_matrix`
+  listed every origin-destination pair ordered by destination and
+  `land_use_data` was ordered like the travel matrix. Pairs missing from
+  `travel_matrix` are now treated as unreachable, and ids missing from
+  `land_use_data` raise an informative error.
+- Fixed a bug in `theil_t()` in which observations with no access were
+  wrongly handled: without `socioeconomic_groups` they were excluded from the
+  index (but not from the average accessibility), and with
+  `socioeconomic_groups` they made the index `NaN`. They now contribute 0 to
+  the index, following the usual `0 * log(0) = 0` convention. `group_by`
+  levels in which no one has access are now kept in the output with `NA`,
+  instead of being dropped.
 
 # accessibility 1.5.0
 

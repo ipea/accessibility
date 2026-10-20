@@ -8,6 +8,11 @@
 #' decomposed into a between-groups inequaliy component and a within-groups
 #' component.
 #'
+#' Observations with no access contribute 0 to the index, following the usual
+#' convention that `0 * log(0) = 0`. If no one has access to any opportunity
+#' (i.e. the average accessibility is 0), the index is undefined and `NA` is
+#' returned.
+#'
 #' @template accessibility_data
 #' @param sociodemographic_data A data frame. The distribution of
 #'   sociodemographic characteristics of the population in the study area cells.
@@ -146,11 +151,6 @@ theil_t <- function(accessibility_data,
 }
 
 theil_without_groups <- function(data, opportunity, population, group_by) {
-  # we have to filter by opportunity because opportunity = 0 results in
-  # theil_t being NaN (because log(0) is NaN)
-  # TODO: throw warning
-
-  .opp_colname <- opportunity
   .groups <- group_by
 
   data[
@@ -162,8 +162,11 @@ theil_without_groups <- function(data, opportunity, population, group_by) {
     by = .groups
   ]
 
+  # subsetting rows (even if all of them) keeps the result empty when data is
+  # empty and there are no groups
+
   theil_index <- data[
-    get(.opp_colname) > 0,
+    seq_len(.N),
     .(
       theil_t = calc_theil_t(get(..opportunity), avg_access, get(..population))
     ),
@@ -245,7 +248,7 @@ theil_with_groups <- function(data,
         group_tot_pop
       ),
       within_group = sum(
-        group_theil_t * group_tot_access / sum(group_tot_access)
+        within_contribution(group_theil_t, group_tot_access)
       )
     ),
     by = .groups
@@ -266,7 +269,7 @@ theil_with_groups <- function(data,
   within_group <- data.table::copy(summarized_data)
   within_group[
     ,
-    value := group_theil_t * group_tot_access / sum(group_tot_access),
+    value := within_contribution(group_theil_t, group_tot_access),
     by = .groups
   ]
   within_group[
@@ -285,7 +288,14 @@ theil_with_groups <- function(data,
   # decomposed between group
 
   between_group <- data.table::copy(summarized_data)
-  between_group[, value := access_share * log(access_share / pop_share)]
+  between_group[
+    ,
+    value := data.table::fifelse(
+      access_share > 0,
+      access_share * log(access_share / pop_share),
+      0
+    )
+  ]
   between_group[, eval(cols_to_drop) := NULL]
   data.table::setorderv(between_group, .socioecon_groups)
 
@@ -298,7 +308,24 @@ theil_with_groups <- function(data,
   return(output_list)
 }
 
+# observations with no access contribute 0 to the index, following the usual
+# 0 * log(0) = 0 convention. if the average access is 0 the index is undefined,
+# and NA is returned
+
 calc_theil_t <- function(x, avg_x, weight) {
-  stats::weighted.mean(x / avg_x * log(x / avg_x), w = weight)
+  ratio <- x / avg_x
+  terms <- data.table::fifelse(ratio > 0, ratio * log(ratio), 0)
+
+  stats::weighted.mean(terms, w = weight)
+}
+
+
+# socioeconomic groups with no access have an undefined theil index, but their
+# weight in the within-group component is 0, so they contribute 0
+
+within_contribution <- function(group_theil_t, group_tot_access) {
+  access_share <- group_tot_access / sum(group_tot_access)
+
+  data.table::fifelse(access_share > 0, group_theil_t * access_share, 0)
 }
 

@@ -62,6 +62,12 @@ mutually exclusive and completely exhaustive groups, the index can be
 decomposed into a between-groups inequaliy component and a within-groups
 component.
 }
+\details{
+Observations with no access contribute 0 to the index, following the usual
+convention that \code{0 * log(0) = 0}. If no one has access to any opportunity
+(i.e. the average accessibility is 0), the index is undefined and \code{NA} is
+returned.
+}
 \examples{
 \dontshow{if (identical(tolower(Sys.getenv("NOT_CRAN")), "true")) withAutoprint(\{ # examplesIf}
 data_dir <- system.file("extdata", package = "accessibility")
@@ -108,9 +114,9 @@ ti
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-Other inequality: 
-\code{\link{concentration_index}()},
-\code{\link{gini_index}()},
-\code{\link{palma_ratio}()}
+Other inequality:
+\code{\link[=concentration_index]{concentration_index()}},
+\code{\link[=gini_index]{gini_index()}},
+\code{\link[=palma_ratio]{palma_ratio()}}
 }
 \concept{inequality}
