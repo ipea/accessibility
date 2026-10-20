@@ -35,6 +35,15 @@
 - Fixed a bug in `spatial_availability()` in which an `NA` demand in
   `land_use_data` made every result `NA`, even when the id with the `NA` was
   not in `travel_matrix`.
+- Fixed a bug in `constrained_accessibility(constraint = "doubly")` in which
+  a small constant added to the balancing factors distorted the results when
+  impedance weights were very small (e.g. with steep decay functions or long
+  travel costs). The function now also warns when the balancing procedure
+  stops before reaching `error_threshold`.
+- Fixed a bug in `constrained_accessibility()` (`constraint = "total"` or
+  `"singly"`) in which `fill_missing_ids = TRUE` raised an error ("Object
+  'access' not found") when `group_by` left an origin/destination and group
+  combination missing from the results.
 
 ## Minor changes
 

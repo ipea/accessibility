@@ -70,7 +70,14 @@ singly_constrained <- function(travel_matrix,
       )]
     } else {
       access <- data[, .(supply = sum(singly_access)), by = c("from_id", group_by)]
-      if (fill_missing_ids) access <- fill_missing_ids(access, travel_matrix, c("from_id", group_by))
+      if (fill_missing_ids) {
+        access <- fill_missing_ids(
+          access,
+          travel_matrix,
+          c("from_id", group_by),
+          access_col = "supply"
+        )
+      }
     }
 
   } else {
@@ -90,7 +97,14 @@ singly_constrained <- function(travel_matrix,
       )]
     } else {
       access <- data[, .(demand = sum(singly_access)), by = c("to_id", group_by)]
-      if (fill_missing_ids) access <- fill_missing_ids(access, travel_matrix, c("to_id", group_by))
+      if (fill_missing_ids) {
+        access <- fill_missing_ids(
+          access,
+          travel_matrix,
+          c("to_id", group_by),
+          access_col = "demand"
+        )
+      }
     }
   }
 

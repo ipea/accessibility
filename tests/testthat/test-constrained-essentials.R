@@ -304,3 +304,96 @@ test_that("doubly-constrained: errors when land_use_data misses an id", {
     regexp = "must list a non-NA demand"
   )
 })
+
+test_that("doubly-constrained: converges with very small impedance weights", {
+  tm <- make_tm_3x3()
+  tm[, travel_time := travel_time + 60]
+  lu <- make_lu_match20()
+
+  # exp(-0.5 * c) is ~1e-13 to 1e-19 here
+
+  result <- expect_silent(
+    constrained_accessibility(
+      constraint = "doubly",
+      travel_matrix = tm,
+      land_use_data = lu,
+      travel_cost = "travel_time",
+      decay_function = decay_exponential(decay_value = 0.5),
+      demand = "population",
+      supply = "jobs",
+      detailed_results = TRUE
+    )
+  )
+
+  by_origin <- result[, .(flow = sum(flow)), by = from_id]
+  by_destination <- result[, .(flow = sum(flow)), by = to_id]
+  expect_equal(
+    by_origin$flow,
+    lu$population[match(by_origin$from_id, lu$id)],
+    tolerance = 1e-3
+  )
+  expect_equal(
+    by_destination$flow,
+    lu$jobs[match(by_destination$to_id, lu$id)],
+    tolerance = 1e-3
+  )
+})
+
+test_that("doubly-constrained: warns when balancing doesn't converge", {
+  expect_warning(
+    constrained_accessibility(
+      constraint = "doubly",
+      travel_matrix = make_tm_3x3(),
+      land_use_data = make_lu_match20(),
+      travel_cost = "travel_time",
+      decay_function = exp_decay_01,
+      demand = "population",
+      supply = "jobs",
+      max_iterations = 1,
+      detailed_results = TRUE
+    ),
+    regexp = "did not converge"
+  )
+})
+
+test_that("fill_missing_ids fills missing combinations when using group_by", {
+  tm <- make_tm_3x3()
+  lu <- make_lu_match20()
+
+  # bus doesn't serve origin 3, so the (3, bus) combination is missing
+
+  tm_modes <- data.table::rbindlist(
+    list(car = tm, bus = tm[from_id != "3"]),
+    idcol = "mode"
+  )
+
+  run <- function(constraint, travel_matrix, group_by = "mode") {
+    constrained_accessibility(
+      constraint = constraint,
+      travel_matrix = travel_matrix,
+      land_use_data = lu,
+      travel_cost = "travel_time",
+      decay_function = exp_decay_01,
+      demand = "population",
+      supply = "jobs",
+      active = TRUE,
+      group_by = group_by
+    )
+  }
+
+  for (constraint in c("total", "singly")) {
+    result <- run(constraint, tm_modes)
+    expect_identical(nrow(result), 6L)
+    expect_identical(result[from_id == "3" & mode == "bus"]$supply, 0)
+  }
+
+  # singly-constrained car results don't depend on the bus rows
+
+  result <- run("singly", tm_modes)
+  ungrouped <- run("singly", tm, group_by = character(0))
+  car <- result[mode == "car"]
+  expect_equal(
+    car$supply,
+    ungrouped$supply[match(car$from_id, ungrouped$from_id)]
+  )
+})

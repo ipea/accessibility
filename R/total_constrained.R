@@ -125,11 +125,25 @@ total_constrained <- function(travel_matrix,
     if (active) {
       # supply aggregated by origin (from_id)
       access <- data[, .(supply = sum(constrained_opportunity)), by = c("from_id", group_by)]
-      if (fill_missing_ids) access <- fill_missing_ids(access, travel_matrix, c("from_id", group_by))
+      if (fill_missing_ids) {
+        access <- fill_missing_ids(
+          access,
+          travel_matrix,
+          c("from_id", group_by),
+          access_col = "supply"
+        )
+      }
     } else {
       # demand aggregated by destination (to_id)
       access <- data[, .(demand = sum(constrained_opportunity)), by = c("to_id", group_by)]
-      if (fill_missing_ids) access <- fill_missing_ids(access, travel_matrix, c("to_id", group_by))
+      if (fill_missing_ids) {
+        access <- fill_missing_ids(
+          access,
+          travel_matrix,
+          c("to_id", group_by),
+          access_col = "demand"
+        )
+      }
     }
   }
 

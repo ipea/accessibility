@@ -1,4 +1,7 @@
-fill_missing_ids <- function(access_df, travel_matrix, groups) {
+fill_missing_ids <- function(access_df,
+                             travel_matrix,
+                             groups,
+                             access_col = "access") {
   unique_values <- lapply(groups, function(x) unique(travel_matrix[[x]]))
   names(unique_values) <- groups
 
@@ -8,7 +11,12 @@ fill_missing_ids <- function(access_df, travel_matrix, groups) {
   possible_combinations <- do.call(data.table::CJ, unique_values)
 
   if (nrow(access_df) < nrow(possible_combinations)) {
-    access_df <- do_fill_missing_ids(access_df, possible_combinations, groups)
+    access_df <- do_fill_missing_ids(
+      access_df,
+      possible_combinations,
+      groups,
+      access_col = access_col
+    )
   }
 
   return(access_df)

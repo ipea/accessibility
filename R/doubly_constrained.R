@@ -106,14 +106,19 @@ doubly_constrained <- function(travel_matrix,
     iteration_count <- iteration_count + 1
 
     # Update Ai
+    # a null denominator means the zone reaches (or is reached by) no one, so
+    # its factor is 0 and it gets no flow
+
     for (i in seq_along(O)) {
-      Ai[i] <- 1 / (sum(Bj * D * impedance_matrix[i, ]) + 1e-9)
+      denominator <- sum(Bj * D * impedance_matrix[i, ])
+      Ai[i] <- if (denominator > 0) 1 / denominator else 0
     }
 
     # Update Bj
     Bj_new <- numeric(length(D))
     for (j in seq_along(D)) {
-      Bj_new[j] <- 1 / (sum(Ai * O * impedance_matrix[, j]) + 1e-9)
+      denominator <- sum(Ai * O * impedance_matrix[, j])
+      Bj_new[j] <- if (denominator > 0) 1 / denominator else 0
     }
 
     # Compute flows
@@ -131,6 +136,17 @@ doubly_constrained <- function(travel_matrix,
 
     previous_error <- error
     Bj <- Bj_new
+  }
+
+  if (error >= error_threshold) {
+    warning(
+      "Doubly-constrained balancing did not converge (", stop_reason, " after ",
+      iteration_count, " iterations). Final error is ", signif(error, 3),
+      ", above 'error_threshold' (", error_threshold, "), so flows don't ",
+      "fully match the demand and supply totals. Consider increasing ",
+      "'max_iterations' or decreasing 'improvement_threshold'.",
+      call. = FALSE
+    )
   }
 
   # Compute kappa_doubly
