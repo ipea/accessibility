@@ -123,7 +123,7 @@ balancing_cost <- function(travel_matrix,
   for (i in lookup_costs) {
     cum_opps <- calc_cum_cutoff(data, groups, opportunity, travel_cost, i)
 
-    cum_opps[, did_balance := access > lookup_vec[from_id]]
+    cum_opps[, did_balance := access > lookup_vec[as.character(from_id)]]
     balanced <- cum_opps[did_balance == TRUE]
 
     if (nrow(balanced) > 0) {

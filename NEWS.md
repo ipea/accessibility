@@ -1,3 +1,11 @@
+# accessibility (development version)
+
+## Bug fixes
+
+- Fixed a bug in `balancing_cost()` in which numeric ids (e.g. `101`, `102`)
+  were used as positions to look up each origin's population, which resulted
+  in `NA` or wrong balancing costs.
+
 # accessibility 1.5.0
 
 ## New features

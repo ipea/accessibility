@@ -155,6 +155,36 @@ test_that("calculates balancing cost correctly", {
   expect_identical(result, expected_result)
 })
 
+test_that("works with numeric ids, regardless of land_use_data row order", {
+  toy_matrix <- data.table::data.table(
+    from_id = rep(101:103, each = 3),
+    to_id = rep(101:103, 3),
+    travel_time = c(0, 10, 20, 10, 0, 30, 20, 30, 0)
+  )
+  toy_land_use <- data.table::data.table(
+    id = 101:103,
+    jobs = c(10, 20, 30),
+    population = c(5, 15, 50)
+  )
+
+  # 103 has 50 people: reaches 30 jobs at 0, 40 at 20 and 60 at 30
+
+  expected_result <- data.table::data.table(
+    id = 101:103,
+    travel_time = c(0, 0, 30)
+  )
+
+  result <- tester(toy_matrix, toy_land_use, group_by = character(0))
+  expect_equal(result, expected_result)
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use[c(3, 1, 2)],
+    group_by = character(0)
+  )
+  expect_equal(result, expected_result)
+})
+
 test_that("fill_missing_ids arg works correctly", {
   test_matrix <- rbind(
     fast_smaller_matrix,
