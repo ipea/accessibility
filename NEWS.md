@@ -1,5 +1,12 @@
 # accessibility (development version)
 
+## New features
+
+- `cumulative_interval()` has a new argument `fill_missing_ids`. When `TRUE`
+  (the default), origins (or destinations) that cannot reach any opportunity
+  within the interval are included in the output with an accessibility of 0,
+  as in `cumulative_cutoff()`. Previously they were dropped from the output.
+
 ## Bug fixes
 
 - Fixed a bug in `balancing_cost()` in which numeric ids (e.g. `101`, `102`)
@@ -49,6 +56,14 @@
   order of the rows (especially with ordinal variables such as income
   deciles). Tied observations now share the same rank, the midpoint of their
   block in the cumulative population distribution.
+- Fixed a bug in `cumulative_interval()` in which, when several intervals
+  were passed to `interval`, each interval was summarised over the cutoffs of
+  every interval within its range, so its result depended on the other
+  intervals requested (e.g. `c(0, 20)` together with `c(5, 15)`).
+- Fixed a bug in `cumulative_interval()` in which the upper limit of the
+  interval was not considered when the interval width was not a multiple of
+  `interval_increment` (e.g. `interval = c(0, 25)` with
+  `interval_increment = 10`).
 
 ## Minor changes
 

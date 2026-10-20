@@ -13,7 +13,8 @@ cumulative_interval(
   interval_increment = 1,
   summary_function = stats::median,
   group_by = character(0),
-  active = TRUE
+  active = TRUE,
+  fill_missing_ids = TRUE
 )
 }
 \arguments{
@@ -63,6 +64,11 @@ accessibility (the quantity of opportunities that can be reached from
 a given origin). when \code{FALSE}, it calculates passive accessibility (by
 how many people each destination can be reached), which is equivalent
 to the notion of market potential.}
+
+\item{fill_missing_ids}{A \code{logical}. Origins (or destinations, when \code{active}
+is \code{FALSE}) that cannot reach any opportunity within the interval would
+not be included in the output. When \code{TRUE} (the default), the function
+includes them with an accessibility of 0.}
 }
 \value{
 A data frame containing the accessibility estimates for each
@@ -108,7 +114,7 @@ head(df)
 \insertAllCited{}
 }
 \seealso{
-Other cumulative access: 
-\code{\link{cumulative_cutoff}()}
+Other cumulative access:
+\code{\link[=cumulative_cutoff]{cumulative_cutoff()}}
 }
 \concept{cumulative access}

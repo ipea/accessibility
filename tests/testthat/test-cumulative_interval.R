@@ -9,7 +9,8 @@ tester <- function(travel_matrix = smaller_matrix,
                    interval_increment = 1,
                    summary_function = stats::median,
                    group_by = "mode",
-                   active = TRUE) {
+                   active = TRUE,
+                   fill_missing_ids = TRUE) {
   cumulative_interval(
     travel_matrix,
     land_use_data,
@@ -19,7 +20,8 @@ tester <- function(travel_matrix = smaller_matrix,
     interval_increment,
     summary_function,
     group_by,
-    active
+    active,
+    fill_missing_ids
   )
 }
 
@@ -66,6 +68,10 @@ test_that("raises errors due to incorrect input", {
   expect_error(tester(active = 1))
   expect_error(tester(active = c(TRUE, TRUE)))
   expect_error(tester(active = NA))
+
+  expect_error(tester(fill_missing_ids = 1))
+  expect_error(tester(fill_missing_ids = c(TRUE, TRUE)))
+  expect_error(tester(fill_missing_ids = NA))
 
   expect_error(tester(as.list(travel_matrix)))
   expect_error(tester(travel_matrix[, .(oi = from_id, to_id, travel_time)]))
@@ -361,4 +367,100 @@ test_that("works even if travel_matrix and land_use has specific colnames", {
   expect_identical(expected_result, result)
 
   land_use_data[, opportunity := NULL]
+})
+
+test_that("each interval is summarised over its own cutoffs only", {
+  toy_matrix <- data.table::data.table(
+    from_id = rep(c("a", "b", "c"), each = 3),
+    to_id = rep(c("a", "b", "c"), 3),
+    travel_time = c(0, 10, 20, 10, 0, 30, 20, 30, 0)
+  )
+  toy_land_use <- data.table::data.table(
+    id = c("a", "b", "c"),
+    jobs = c(10, 20, 30)
+  )
+
+  toy_tester <- function(interval) {
+    tester(
+      toy_matrix,
+      toy_land_use,
+      interval = interval,
+      interval_increment = 10,
+      summary_function = mean,
+      group_by = character(0)
+    )
+  }
+
+  # [0, 20] uses cutoffs 0, 10 and 20 (a: mean(10, 30, 60) = 33.3) and [5, 15]
+  # uses 5 and 15 (a: mean(10, 30) = 20), whether requested alone or together
+
+  result <- toy_tester(list(c(0, 20), c(5, 15)))
+  expect_identical(result[interval == "[0,20]"]$jobs, c(33L, 26L, 33L))
+  expect_identical(result[interval == "[5,15]"]$jobs, c(20L, 25L, 30L))
+
+  expect_identical(
+    result[interval == "[0,20]"]$jobs,
+    toy_tester(c(0, 20))$jobs
+  )
+  expect_identical(
+    result[interval == "[5,15]"]$jobs,
+    toy_tester(c(5, 15))$jobs
+  )
+})
+
+test_that("fill_missing_ids arg works correctly", {
+  toy_matrix <- data.table::data.table(
+    from_id = c(rep(c("a", "b", "c"), each = 3), "d"),
+    to_id = c(rep(c("a", "b", "c"), 3), "a"),
+    travel_time = c(0, 10, 20, 10, 0, 30, 20, 30, 0, 100)
+  )
+  toy_land_use <- data.table::data.table(
+    id = c("a", "b", "c", "d"),
+    jobs = c(10, 20, 30, 40)
+  )
+
+  toy_tester <- function(...) {
+    tester(
+      toy_matrix,
+      toy_land_use,
+      interval_increment = 10,
+      summary_function = mean,
+      group_by = character(0),
+      ...
+    )
+  }
+
+  # d doesn't reach any opportunity within the interval
+
+  result <- toy_tester(interval = c(0, 20))
+  expect_identical(result$id, c("a", "b", "c", "d"))
+  expect_identical(result$jobs, c(33L, 26L, 33L, 0L))
+
+  result <- toy_tester(interval = c(0, 20), fill_missing_ids = FALSE)
+  expect_identical(result$id, c("a", "b", "c"))
+  expect_identical(result$jobs, c(33L, 26L, 33L))
+})
+
+test_that("the upper limit of the interval is always considered", {
+  toy_matrix <- data.table::data.table(
+    from_id = rep(c("a", "b", "c"), each = 3),
+    to_id = rep(c("a", "b", "c"), 3),
+    travel_time = c(0, 10, 25, 10, 0, 30, 25, 30, 0)
+  )
+  toy_land_use <- data.table::data.table(
+    id = c("a", "b", "c"),
+    jobs = c(10, 20, 30)
+  )
+
+  # cutoffs are 0, 10, 20 and 25. a reaches 10, 30, 30 and 60 jobs
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    interval = c(0, 25),
+    interval_increment = 10,
+    summary_function = mean,
+    group_by = character(0)
+  )
+  expect_identical(result$jobs, c(32L, 27L, 32L))
 })

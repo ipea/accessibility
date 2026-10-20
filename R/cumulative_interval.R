@@ -26,6 +26,10 @@
 #'   to [stats::median()].
 #' @template group_by
 #' @template active
+#' @param fill_missing_ids A `logical`. Origins (or destinations, when `active`
+#'   is `FALSE`) that cannot reach any opportunity within the interval would
+#'   not be included in the output. When `TRUE` (the default), the function
+#'   includes them with an accessibility of 0.
 #'
 #' @template return_accessibility
 #'
@@ -66,10 +70,12 @@ cumulative_interval <- function(travel_matrix,
                                 interval_increment = 1,
                                 summary_function = stats::median,
                                 group_by = character(0),
-                                active = TRUE) {
+                                active = TRUE,
+                                fill_missing_ids = TRUE) {
   checkmate::assert_string(opportunity)
   checkmate::assert_string(travel_cost)
   checkmate::assert_logical(active, len = 1, any.missing = FALSE)
+  checkmate::assert_logical(fill_missing_ids, len = 1, any.missing = FALSE)
   assert_interval_increment(interval_increment)
   assert_summary_function(summary_function)
   assert_group_by(group_by)
@@ -96,11 +102,17 @@ cumulative_interval <- function(travel_matrix,
     land_use_data <- data.table::as.data.table(land_use_data)
   }
 
-  cutoffs <- lapply(
+  # each interval is summarised over its own cutoffs only, which always include
+  # the interval's upper limit (even if it's not a multiple of the increment).
+  # accessibility is calculated once for the union of all cutoffs
+
+  interval_cutoffs <- lapply(
     interval,
-    function(pair) seq.int(pair[1], pair[2], by = interval_increment)
+    function(pair) {
+      unique(c(seq.int(pair[1], pair[2], by = interval_increment), pair[2]))
+    }
   )
-  cutoffs <- unique(unlist(cutoffs))
+  cutoffs <- unique(unlist(interval_cutoffs))
   cutoffs <- cutoffs[order(cutoffs)]
   names(cutoffs) <- as.character(cutoffs)
 
@@ -141,12 +153,12 @@ cumulative_interval <- function(travel_matrix,
   # measure would be miscalculated (e.g. think of median of 1 3 5 and median of
   # 0 1 3 5)
 
-  nrow_more_restrictive <- nrow(access_list[[1]])
-  nrow_less_restrictive <- nrow(access_list[[length(access_list)]])
+  # ids that can't reach any opportunity at any cutoff are filled as well, and
+  # only dropped at the end if fill_missing_ids is FALSE
 
-  if (nrow_more_restrictive < nrow_less_restrictive) {
-    access_list <- fill_access_list(access_list, travel_matrix, groups)
-  }
+  reached_ids <- unique(data.table::rbindlist(access_list)[, ..groups])
+
+  access_list <- fill_access_list(access_list, travel_matrix, groups)
   access_list <- data.table::rbindlist(access_list, idcol = "cutoffs")
   access_list[, cutoffs := as.numeric(cutoffs)]
 
@@ -157,16 +169,22 @@ cumulative_interval <- function(travel_matrix,
   # reach 2, but you can't reach 3)
 
   access_list <- lapply(
-    interval,
-    function(pair) {
+    interval_cutoffs,
+    function(own_cutoffs) {
       access_list[
-        cutoffs >= pair[1] & cutoffs <= pair[2],
+        cutoffs %in% own_cutoffs,
         .(access = as.integer(summary_function(access))),
         by = eval(groups, envir = env)
       ]
     }
   )
   access <- data.table::rbindlist(access_list, idcol = "interval")
+
+  if (!fill_missing_ids) {
+    reached_rows <- access[reached_ids, on = groups, which = TRUE, nomatch = 0]
+    access <- access[sort(reached_rows)]
+  }
+
   data.table::setcolorder(access, c(groups, "interval", "access"))
   data.table::setnames(access, c(group_id, "access"), c("id", opportunity))
 
