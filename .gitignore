@@ -41,3 +41,10 @@ vignettes/*.pdf
 .Renviron
 
 r5/
+
+# Claude Code workflow (only CLAUDE.md + .claude/rules/ are tracked)
+/.claude/*
+!/.claude/rules/
+/MEMORY.md
+/templates/
+/quality_reports/

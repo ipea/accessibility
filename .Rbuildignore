@@ -12,3 +12,8 @@
 ^data-raw$
 ^\.pre-commit-config\.yaml$
 ^testing_constrained\.Rmd$
+^\.claude$
+^CLAUDE\.md$
+^MEMORY\.md$
+^templates$
+^quality_reports$
