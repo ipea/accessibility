@@ -258,3 +258,49 @@ test_that("doesn't overflow with large integer opportunities and population", {
   )
   expect_equal(result$concentration_index, expected_ci)
 })
+
+test_that("observations with tied income share the same rank", {
+  toy_access <- data.table::data.table(
+    id = c("a", "b", "c", "d"),
+    jobs = c(10, 30, 20, 40)
+  )
+  toy_sociodem <- data.table::data.table(
+    id = c("a", "b", "c", "d"),
+    population = c(1, 1, 1, 1),
+    income_per_capita = c(1, 1, 2, 2)
+  )
+
+  # a/b and c/d are tied, so their fractional ranks are 0.25 and 0.75
+
+  access <- c(10, 30, 20, 40)
+  rank <- c(0.25, 0.25, 0.75, 0.75)
+  avg_access <- mean(access)
+  expected_ci <- 2 / avg_access * mean((access - avg_access) * (rank - 0.5))
+  expected_corrected <- expected_ci * 4 * avg_access / (40 - 10)
+
+  for (rows in list(1:4, 4:1, c(2, 1, 4, 3))) {
+    result <- tester(
+      toy_access[rows],
+      toy_sociodem[rows],
+      group_by = character(0)
+    )
+    expect_equal(result$concentration_index, expected_ci)
+
+    result <- tester(
+      toy_access[rows],
+      toy_sociodem[rows],
+      type = "corrected",
+      group_by = character(0)
+    )
+    expect_equal(result$concentration_index, expected_corrected)
+  }
+
+  # without ties, ranks are the usual cumulative midpoints
+
+  toy_sociodem[, income_per_capita := 1:4]
+  rank <- c(0.125, 0.375, 0.625, 0.875)
+  expected_ci <- 2 / avg_access * mean((access - avg_access) * (rank - 0.5))
+
+  result <- tester(toy_access, toy_sociodem, group_by = character(0))
+  expect_equal(result$concentration_index, expected_ci)
+})

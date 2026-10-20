@@ -44,6 +44,11 @@
   `"singly"`) in which `fill_missing_ids = TRUE` raised an error ("Object
   'access' not found") when `group_by` left an origin/destination and group
   combination missing from the results.
+- Fixed a bug in `concentration_index()` in which observations with the same
+  income received different fractional ranks, so the result depended on the
+  order of the rows (especially with ordinal variables such as income
+  deciles). Tied observations now share the same rank, the midpoint of their
+  block in the cumulative population distribution.
 
 ## Minor changes
 

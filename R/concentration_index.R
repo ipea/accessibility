@@ -119,10 +119,20 @@ concentration_index <- function(accessibility_data,
   # fractional rank calculation based on equation 4 of this paper:
   # Eddy van Doorslaer and Xander Koolman, https://doi.org/10.1002/hec.918
 
+  # observations with the same income share the same rank: the midpoint of
+  # their block in the cumulative population distribution. otherwise the result
+  # would depend on the order of the rows
+
   data[, pop_share := get(.pop_colname) / sum(get(.pop_colname)), by = .groups]
+
+  .income_colname <- income
+  data[, .block_share := sum(pop_share), by = c(.groups, income)]
   data[
     ,
-    fractional_rank := c(0, cumsum(pop_share)[-.N]) + pop_share / 2,
+    fractional_rank := {
+      first_in_block <- !duplicated(get(.income_colname))
+      cumsum(.block_share * first_in_block) - .block_share / 2
+    },
     by = .groups
   ]
 
