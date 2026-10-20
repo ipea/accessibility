@@ -49,10 +49,10 @@ decay_logistic <- function(cutoff, sd) {
   # are merged/double counted downstream
 
   if (anyDuplicated(data.frame(cutoff, sd))) {
-    stop(
-      "Assertion on 'cutoff' and 'sd' failed: ",
-      "Must not contain duplicated (cutoff, sd) pairs.",
-      call. = FALSE
+    cli::cli_abort(
+      "Assertion on {.arg cutoff} and {.arg sd} failed: Must not contain
+      duplicated (cutoff, sd) pairs.",
+      call = NULL
     )
   }
 

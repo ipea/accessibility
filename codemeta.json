@@ -8,7 +8,7 @@
   "codeRepository": "https://github.com/ipea/accessibility",
   "issueTracker": "https://github.com/ipea/accessibility/issues",
   "license": "https://spdx.org/licenses/MIT",
-  "version": "1.5.0",
+  "version": "1.5.0.9000",
   "programmingLanguage": {
     "@type": "ComputerLanguage",
     "name": "R",
@@ -182,6 +182,19 @@
     },
     "3": {
       "@type": "SoftwareApplication",
+      "identifier": "cli",
+      "name": "cli",
+      "version": ">= 3.0.0",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=cli"
+    },
+    "4": {
+      "@type": "SoftwareApplication",
       "identifier": "data.table",
       "name": "data.table",
       "provider": {
@@ -192,7 +205,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=data.table"
     },
-    "4": {
+    "5": {
       "@type": "SoftwareApplication",
       "identifier": "Hmisc",
       "name": "Hmisc",
@@ -204,7 +217,7 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=Hmisc"
     },
-    "5": {
+    "6": {
       "@type": "SoftwareApplication",
       "identifier": "Rdpack",
       "name": "Rdpack",
@@ -217,19 +230,32 @@
       },
       "sameAs": "https://CRAN.R-project.org/package=Rdpack"
     },
-    "6": {
+    "7": {
+      "@type": "SoftwareApplication",
+      "identifier": "rlang",
+      "name": "rlang",
+      "version": ">= 1.0.0",
+      "provider": {
+        "@id": "https://cran.r-project.org",
+        "@type": "Organization",
+        "name": "Comprehensive R Archive Network (CRAN)",
+        "url": "https://cran.r-project.org"
+      },
+      "sameAs": "https://CRAN.R-project.org/package=rlang"
+    },
+    "8": {
       "@type": "SoftwareApplication",
       "identifier": "stats",
       "name": "stats"
     },
-    "7": {
+    "9": {
       "@type": "SoftwareApplication",
       "identifier": "utils",
       "name": "utils"
     },
     "SystemRequirements": null
   },
-  "fileSize": "3272.323KB",
+  "fileSize": "3152.565KB",
   "releaseNotes": "https://github.com/ipea/accessibility/blob/main/NEWS.md",
   "readme": "https://github.com/ipea/accessibility/blob/main/README.md",
   "contIntegration": ["https://github.com/ipea/accessibility/actions", "https://app.codecov.io/gh/ipea/accessibility?branch=main"],

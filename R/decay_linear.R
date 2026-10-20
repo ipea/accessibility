@@ -35,9 +35,9 @@ decay_linear <- function(cutoff) {
   # a cutoff of 0 would produce NaN weights when travel cost is 0 (0 / 0)
 
   if (any(cutoff <= 0)) {
-    stop(
-      "Assertion on 'cutoff' failed: Value must be greater than 0.",
-      call. = FALSE
+    cli::cli_abort(
+      "Assertion on {.arg cutoff} failed: Value must be greater than 0.",
+      call = NULL
     )
   }
 

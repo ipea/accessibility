@@ -40,5 +40,10 @@ do_fill_missing_ids <- function(access_df,
     eval(access_col, envir = parent.frame()) := fill_value
   ]
 
+  # merge() returns a table keyed by the merge columns. results are returned
+  # unkeyed, whether missing ids were filled or not
+
+  data.table::setkey(filled_access_df, NULL)
+
   return(filled_access_df[])
 }

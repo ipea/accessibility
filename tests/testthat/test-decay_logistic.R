@@ -59,7 +59,7 @@ test_that("output fn returns empty numeric if receives empty numeric/integer", {
 test_that("raises an error if (cutoff, sd) pairs are duplicated", {
   expect_error(
     tester(c(30, 30), c(5, 5)),
-    regexp = "duplicated .cutoff, sd. pairs"
+    regexp = "duplicated[[:space:]]+.cutoff,[[:space:]]+sd.[[:space:]]+pairs"
   )
   expect_error(tester(c(30, 30), c(5, 10)), NA)
 })

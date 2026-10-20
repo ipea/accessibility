@@ -28,4 +28,5 @@ importFrom(data.table,
   .N,
   .SD
 )
+importFrom(rlang,abort)
 importFrom(utils,globalVariables)

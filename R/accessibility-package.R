@@ -20,6 +20,7 @@
 #' @importFrom data.table := .I .SD %chin% .GRP .N
 #' @importFrom utils globalVariables
 #' @importFrom Rdpack reprompt
+#' @importFrom rlang abort
 #'
 #' @keywords internal
 "_PACKAGE"

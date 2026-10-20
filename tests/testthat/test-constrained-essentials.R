@@ -168,7 +168,9 @@ test_that("doubly-constrained: errors when totals mismatch", {
       supply = "jobs",
       detailed_results = TRUE,
       active = NULL
-    ),     "sum of origins must equal the sum of destinations"
+    ),
+    # cli wraps long messages, so spaces may be line breaks
+    "sum of origins must equal the sum of[[:space:]]+destinations"
   )
 })
 

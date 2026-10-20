@@ -93,11 +93,11 @@ test_that("output fn returns empty numeric if receives empty numeric/integer", {
 test_that("raises an error if (steps, weights) pairs are duplicated", {
   expect_error(
     tester(list(c(10, 20), c(10, 20)), list(c(0.5, 0), c(0.5, 0))),
-    regexp = "duplicated .steps, weights. pairs"
+    regexp = "duplicated[[:space:]]+.steps,[[:space:]]+weights.[[:space:]]+pairs"
   )
   expect_error(
     tester(list(c(10L, 20L), c(10, 20)), list(c(0.5, 0), c(0.5, 0))),
-    regexp = "duplicated .steps, weights. pairs"
+    regexp = "duplicated[[:space:]]+.steps,[[:space:]]+weights.[[:space:]]+pairs"
   )
   expect_error(
     tester(list(c(10, 20), c(10, 20)), list(c(0.5, 0), c(0.6, 0))),

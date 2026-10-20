@@ -134,7 +134,9 @@ some_measure <- function(travel_matrix,
   `data.table::set*()` must act on a table the function owns. Every measure has
   an "input data sets remain unchanged" test.
 - `land_use_data` is only converted, never updated by reference; keep it that
-  way (`merge_by_reference()` reads from it with `i.` prefixes).
+  way (`merge_by_reference()` only reads from it, matching on `id` with
+  `match()`/`chmatch()`; it relies on the `assert_*()` helpers rejecting
+  duplicated ids).
 - data.table auto-indexing may add an `index` attribute to the caller's table
   after `dt[i]`. Tests clear it with `data.table::setindex(x, NULL)` before
   comparing; that is accepted, don't add `copy()` calls to prevent it.
@@ -158,18 +160,19 @@ some_measure <- function(travel_matrix,
 
 ## A4. Messages and errors
 
-- **Today:** base `stop()`/`warning()` with `call. = FALSE` and messages built
-  by string concatenation, quoting argument names in single quotes
-  (`"'land_use_data' is missing ids listed in 'travel_matrix', ..."`). Input
-  type errors come from checkmate. `cli` is **not** a dependency.
-- The newer constrained-measure files (`total_constrained.R`,
-  `doubly_constrained.R`, `constrained_accessibility.R`) use `stop()` without
-  `call. = FALSE`. [NEW] modified code adds `call. = FALSE` to match the rest
-  of the package.
-- Adding `cli` (or `lifecycle`) to Imports needs a plan; never migrate
-  messages as a drive-by.
+- The package's own messages use `cli::cli_abort(<msg>, call = NULL)` and
+  `cli::cli_warn(<msg>)` (cli and rlang are Imports; migrated 2026-10-20).
+  Inline markup: `{.arg x}` for arguments and `df$col` expressions,
+  `{.val {x}}` for values/vectors, `{.code}` for code, `{.cls}` for classes;
+  bullets (`"*"`, `"i"`) instead of `
+`. Runtime values always go through
+  interpolation, never `paste0()` into the template. Input type errors still
+  come from checkmate.
+- cli wraps long messages at the console width, so test `regexp`s that span
+  several words use `[[:space:]]+` between them.
 - **Deprecations:** keep the old argument for at least one CRAN release with a
-  `warning()` naming the replacement, and test it with `expect_warning()`.
+  `cli::cli_warn()` naming the replacement, and test it with
+  `expect_warning()`.
 
 ## A5. Style
 
@@ -312,7 +315,7 @@ Function names in backticks; link issues; credit external contributors.
 | `library()`/`require()` in `R/` | `pkg::fun()` |
 | Writing outside `tempdir()` | Write only to `tempdir()` or user-supplied paths |
 | `<<-` to global env | Return values |
-| `print()`/`cat()` in functions | `message()`/`warning()`, gated on a `verbose` arg where relevant |
+| `print()`/`cat()` in functions | `cli::cli_inform()`/`cli::cli_warn()`, gated on a `verbose` arg where relevant |
 | `options()`/`par()`/threads changed, not restored | `on.exit(..., add = TRUE)` |
 | `T`/`F` | `TRUE`/`FALSE` |
 | Unvalidated enumerated arg | `checkmate::assert_names(x, subset.of = ...)` |
@@ -332,7 +335,7 @@ Function names in backticks; link issues; credit external contributors.
 [ ] output class mirrors travel_matrix (original_class idiom); test proves it
 [ ] output columns/order follow A2; fill_missing_ids where ids can drop
 [ ] values tested against a hand-computed toy example / the cited formula
-[ ] base stop()/warning() with call. = FALSE and quoted arg names
+[ ] cli::cli_abort(call = NULL)/cli::cli_warn() with inline markup
 [ ] style: 2 spaces, <-, 80 cols, return(), file's blank-line style
 [ ] roxygen: shared @template, @family (exact spelling), @return,
     @examplesIf NOT_CRAN, Rdpack citation for the method

@@ -194,7 +194,9 @@ test_that("concentration index is correctly calculated", {
 
   expected_result <- data.table::data.table(
     mode = c("transit", "transit2"),
-    concentration_index = c(-0.1314, -0.8282)
+    # the correction uses the bounds of the whole distribution, not of each
+    # group
+    concentration_index = c(-0.1314, -0.5003)
   )
   expect_identical(result, expected_result)
 })

@@ -75,10 +75,10 @@ assert_travel_matrix <- function(travel_matrix, travel_cost, group_by) {
     cost_values <- travel_matrix[[col]]
 
     if (is.numeric(cost_values) && any(cost_values < 0, na.rm = TRUE)) {
-      stop(
-        "Assertion on 'travel_matrix$", col, "' failed: ",
-        "Travel costs must not be negative.",
-        call. = FALSE
+      cli::cli_abort(
+        "Assertion on {.arg travel_matrix${col}} failed: Travel costs must
+        not be negative.",
+        call = NULL
       )
     }
   }
@@ -128,11 +128,10 @@ assert_land_use_data <- function(land_use_data,
   if (anyDuplicated(land_use_data$id)) {
     duplicated_ids <- unique(land_use_data$id[duplicated(land_use_data$id)])
 
-    stop(
-      "'land_use_data' must not contain duplicated ids. ",
-      "Found duplicates: ",
-      paste0("'", duplicated_ids, "'", collapse = ", "),
-      call. = FALSE
+    cli::cli_abort(
+      "{.arg land_use_data} must not contain duplicated ids. Found
+      duplicates: {.val {duplicated_ids}}.",
+      call = NULL
     )
   }
 
@@ -153,20 +152,19 @@ assert_land_use_data <- function(land_use_data,
   is_text_like <- function(x) is.character(x) || is.factor(x)
 
   if (is_text_like(travel_matrix_ids) != is_text_like(land_use_data$id)) {
-    stop(
-      "The id columns of 'travel_matrix' ('from_id'/'to_id') and ",
-      "'land_use_data' ('id') must be of compatible types. Found '",
-      class(travel_matrix_ids)[1], "' in 'travel_matrix' and '",
-      class(land_use_data$id)[1], "' in 'land_use_data'.",
-      call. = FALSE
+    cli::cli_abort(
+      "The id columns of {.arg travel_matrix} ({.field from_id}/{.field to_id})
+      and {.arg land_use_data} ({.field id}) must be of compatible types.
+      Found {.cls {class(travel_matrix_ids)[1]}} in {.arg travel_matrix} and
+      {.cls {class(land_use_data$id)[1]}} in {.arg land_use_data}.",
+      call = NULL
     )
   }
 
   if (!all(travel_matrix_ids %in% land_use_data$id)) {
-    warning(
-      "'land_use_data' is missing ids listed in 'travel_matrix', which may ",
-      "produce NAs in the final output.",
-      call. = FALSE
+    cli::cli_warn(
+      "{.arg land_use_data} is missing ids listed in {.arg travel_matrix},
+      which may produce NAs in the final output."
     )
   }
 
@@ -180,10 +178,9 @@ assert_land_use_data <- function(land_use_data,
 
   for (col in cols_to_check) {
     if (any(is.na(land_use_data[[col]]))) {
-      warning(
-        "'land_use_data$", col, "' contains NA values, which may produce NAs ",
-        "in the final output.",
-        call. = FALSE
+      cli::cli_warn(
+        "{.arg land_use_data${col}} contains NA values, which may produce NAs
+        in the final output."
       )
     }
   }
@@ -217,11 +214,10 @@ assert_sociodemographic_data <- function(sociodemographic_data,
     ids <- sociodemographic_data$id
     duplicated_ids <- unique(ids[duplicated(ids)])
 
-    stop(
-      "'sociodemographic_data' must not contain duplicated ids. ",
-      "Found duplicates: ",
-      paste0("'", duplicated_ids, "'", collapse = ", "),
-      call. = FALSE
+    cli::cli_abort(
+      "{.arg sociodemographic_data} must not contain duplicated ids. Found
+      duplicates: {.val {duplicated_ids}}.",
+      call = NULL
     )
   }
 
@@ -229,10 +225,9 @@ assert_sociodemographic_data <- function(sociodemographic_data,
   # merging the datasets will produce NAs, so we warn users about that
 
   if (!all(accessibility_data$id %in% sociodemographic_data$id)) {
-    warning(
-      "'sociodemographic_data' is missing ids listed in 'accessibility_data', ",
-      "which may produce NAs in the final output.",
-      call. = FALSE
+    cli::cli_warn(
+      "{.arg sociodemographic_data} is missing ids listed in
+      {.arg accessibility_data}, which may produce NAs in the final output."
     )
   }
 
@@ -247,10 +242,9 @@ assert_sociodemographic_data <- function(sociodemographic_data,
 
   for (col in non_income_cols) {
     if (any(is.na(sociodemographic_data[[col]]))) {
-      warning(
-        "'sociodemographic_data$", col, "' contains NA values, which may ",
-        "produce NAs in the final output.",
-        call. = FALSE
+      cli::cli_warn(
+        "{.arg sociodemographic_data${col}} contains NA values, which may
+        produce NAs in the final output."
       )
     }
   }
@@ -267,11 +261,10 @@ assert_sociodemographic_data <- function(sociodemographic_data,
       should_warn <- ifelse(is.na(should_warn), TRUE, should_warn)
 
       if (should_warn) {
-        warning(
-          "'sociodemographic_data$", income, "' contains NA values whose ",
-          "correspodent 'sociodemographic_data$population' is not 0, which ",
-          "may produce NAs in the final output.",
-          call. = FALSE
+        cli::cli_warn(
+          "{.arg sociodemographic_data${income}} contains NA values whose
+          correspodent {.arg sociodemographic_data$population} is not 0,
+          which may produce NAs in the final output."
         )
       }
     }
@@ -291,21 +284,20 @@ assert_summary_function <- function(summary_function) {
   )
 
   if (inherits(result, "error")) {
-    stop(
-      "Assertion on 'summary_function' failed: Must be a function that ",
-      "takes a numeric vector as input. Instead, failed with message: ",
-      "'", result$message, "'",
-      call. = FALSE
+    cli::cli_abort(
+      "Assertion on {.arg summary_function} failed: Must be a function that
+      takes a numeric vector as input. Instead, failed with message:
+      {.val {conditionMessage(result)}}",
+      call = NULL
     )
   }
 
   if (!is.numeric(result) || length(result) != 1) {
-    stop(
-      "Assertion on 'summary_function' failed: Must be a function that takes ",
-      "a numeric vector as input and returns a single numeric as output. ",
-      "Instead, returned: ",
-      "{", paste0(result, collapse = ","), "}",
-      call. = FALSE
+    cli::cli_abort(
+      "Assertion on {.arg summary_function} failed: Must be a function that
+      takes a numeric vector as input and returns a single numeric as output.
+      Instead, returned: {.val {result}}",
+      call = NULL
     )
   }
 
@@ -323,11 +315,11 @@ assert_decay_function <- function(decay_function) {
   )
 
   if (inherits(result, "error")) {
-    stop(
-      "Assertion on 'decay_function' failed: Must be a function that ",
-      "takes a numeric vector as input. Instead, failed with message: ",
-      "'", result$message, "'",
-      call. = FALSE
+    cli::cli_abort(
+      "Assertion on {.arg decay_function} failed: Must be a function that
+      takes a numeric vector as input. Instead, failed with message:
+      {.val {conditionMessage(result)}}",
+      call = NULL
     )
   }
 
@@ -345,14 +337,15 @@ assert_decay_function <- function(decay_function) {
   right_lengths <- length(result) > 0 && all(elements_length == 100)
 
   if (!(right_numeric || (is.list(result) && right_classes && right_lengths))) {
-    stop(
-      "Assertion on 'decay_function' failed: Must be a function that takes ",
-      "a numeric vector as input and returns either:\n",
-      " - a numeric vector with the same length of input, or;\n",
-      " - a list of numeric vectors whose lengths are the same of input.\n",
-      "Instead, with input 1:100 it returned: ",
-      "{", paste0(result, collapse = ","), "}",
-      call. = FALSE
+    cli::cli_abort(
+      c(
+        "Assertion on {.arg decay_function} failed: Must be a function that
+        takes a numeric vector as input and returns either:",
+        "*" = "a numeric vector with the same length of input, or;",
+        "*" = "a list of numeric vectors whose lengths are the same of input.",
+        "i" = "Instead, with input {.code 1:100} it returned: {.val {result}}"
+      ),
+      call = NULL
     )
   }
 
@@ -365,9 +358,10 @@ assert_interval_increment <- function(interval_increment) {
   checkmate::assert_number(interval_increment, finite = TRUE)
 
   if (interval_increment <= 0) {
-    stop(
-      "Assertion on 'interval_increment' failed: ",
-      "Value must be greater than 0."
+    cli::cli_abort(
+      "Assertion on {.arg interval_increment} failed: Value must be greater
+      than 0.",
+      call = NULL
     )
   }
 
@@ -420,12 +414,15 @@ assert_and_assign_interval <- function(interval) {
     interval <- list(interval)
     names(interval) <- build_interval_name(interval[[1]])
   } else {
-    stop(
-      "Assertion on 'interval' failed: Must be either:\n",
-      " - a numeric vector with 2 elements, indicating the start and end ",
-      "points of the travel cost interval;\n",
-      " - a list of numeric vectors with 2 elements, each one of them ",
-      "indicating the start and end points of a travel cost interval."
+    cli::cli_abort(
+      c(
+        "Assertion on {.arg interval} failed: Must be either:",
+        "*" = "a numeric vector with 2 elements, indicating the start and end
+        points of the travel cost interval;",
+        "*" = "a list of numeric vectors with 2 elements, each one of them
+        indicating the start and end points of a travel cost interval."
+      ),
+      call = NULL
     )
   }
 
@@ -439,11 +436,11 @@ assert_detailed_fill_missing_ids <- function(fill_missing_ids,
   checkmate::assert_logical(fill_missing_ids, len = 1, any.missing = FALSE)
 
   if (detailed_results && !fill_missing_ids) {
-    warning(
-      "Found non-default 'fill_missing_ids' (FALSE) with 'detailed_results = ",
-      "TRUE'. Please note that 'fill_missing_ids' does not affect the ",
-      "detailed spatial availability output.",
-      call. = FALSE
+    cli::cli_warn(
+      "Found non-default {.arg fill_missing_ids} (FALSE) with
+      {.code detailed_results = TRUE}. Please note that
+      {.arg fill_missing_ids} does not affect the detailed spatial
+      availability output."
     )
   }
 

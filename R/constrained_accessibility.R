@@ -293,7 +293,10 @@ constrained_accessibility <- function(travel_matrix,
   }
   # For 'total' and 'singly' we require active to be TRUE or FALSE
   if (is.null(active)) {
-    stop(sprintf("For '%s', active must be TRUE or FALSE.", constraint))
+    cli::cli_abort(
+      "For {.val {constraint}}, active must be TRUE or FALSE.",
+      call = NULL
+    )
   }
 
   # Validate the relevant side (opportunity column) only

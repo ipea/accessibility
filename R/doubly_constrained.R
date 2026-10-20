@@ -68,17 +68,21 @@ doubly_constrained <- function(travel_matrix,
   D <- land_use_data[[supply]][match(destinations, land_use_data$id)]
 
   if (anyNA(O) || anyNA(D)) {
-    stop(
-      "For doubly-constrained, 'land_use_data' must list a non-NA demand for ",
-      "every origin and a non-NA supply for every destination in ",
-      "'travel_matrix'.",
-      call. = FALSE
+    cli::cli_abort(
+      "For doubly-constrained, {.arg land_use_data} must list a non-NA demand
+      for every origin and a non-NA supply for every destination in
+      {.arg travel_matrix}.",
+      call = NULL
     )
   }
 
   # Validate totals match
   if (abs(sum(O) - sum(D)) > 1e-6) {
-    stop("For doubly-constrained, the sum of origins must equal the sum of destinations.")
+    cli::cli_abort(
+      "For doubly-constrained, the sum of origins must equal the sum of
+      destinations.",
+      call = NULL
+    )
   }
 
   # Build impedance matrix
@@ -139,13 +143,12 @@ doubly_constrained <- function(travel_matrix,
   }
 
   if (error >= error_threshold) {
-    warning(
-      "Doubly-constrained balancing did not converge (", stop_reason, " after ",
-      iteration_count, " iterations). Final error is ", signif(error, 3),
-      ", above 'error_threshold' (", error_threshold, "), so flows don't ",
-      "fully match the demand and supply totals. Consider increasing ",
-      "'max_iterations' or decreasing 'improvement_threshold'.",
-      call. = FALSE
+    cli::cli_warn(
+      "Doubly-constrained balancing did not converge ({stop_reason} after
+      {iteration_count} iterations). Final error is {signif(error, 3)}, above
+      {.arg error_threshold} ({error_threshold}), so flows don't fully match
+      the demand and supply totals. Consider increasing
+      {.arg max_iterations} or decreasing {.arg improvement_threshold}."
     )
   }
 
@@ -167,7 +170,10 @@ doubly_constrained <- function(travel_matrix,
   if (detailed_results) {
     return(detailed_dt[])
   } else {
-    warning("Aggregated results equal marginals (O_i or D_j). Interpret with caution.")
+    cli::cli_warn(
+      "Aggregated results equal marginals (O_i or D_j). Interpret with
+      caution."
+    )
     agg <- data.table::rbindlist(list(
       data.table::data.table(id = origins,      flow = O),
       data.table::data.table(id = destinations, flow = D)

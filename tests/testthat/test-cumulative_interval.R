@@ -126,18 +126,18 @@ test_that("result has correct structure", {
   expect_true(ncol(result) == 3)
   expect_is(result$id, "character")
   expect_is(result$mode, "character")
-  expect_is(result$jobs, "integer")
+  expect_is(result$jobs, "numeric")
 
   result <- tester(opportunity = "schools")
   expect_true(ncol(result) == 3)
   expect_is(result$id, "character")
   expect_is(result$mode, "character")
-  expect_is(result$schools, "integer")
+  expect_is(result$schools, "numeric")
 
   suppressWarnings(result <- tester(group_by = character(0)))
   expect_true(ncol(result) == 2)
   expect_is(result$id, "character")
-  expect_is(result$jobs, "integer")
+  expect_is(result$jobs, "numeric")
 
   result <- tester(
     data.table::data.table(
@@ -151,14 +151,14 @@ test_that("result has correct structure", {
   expect_true(nrow(result) == 0)
   expect_is(result$id, "character")
   expect_is(result$mode, "character")
-  expect_is(result$jobs, "integer")
+  expect_is(result$jobs, "numeric")
 
   result <- tester(interval = list(c(10, 30), c(20, 30)))
   expect_true(ncol(result) == 4)
   expect_is(result$id, "character")
   expect_is(result$mode, "character")
   expect_is(result$interval, "character")
-  expect_is(result$jobs, "integer")
+  expect_is(result$jobs, "numeric")
 })
 
 test_that("input data sets remain unchanged", {
@@ -194,7 +194,7 @@ test_that("active and passive accessibility is correctly calculated", {
   expected_result <- data.table::data.table(
     id = rep(selected_ids, 2),
     mode = rep(c("transit", "transit2"), each = 5),
-    jobs = rep(as.integer(c(82, 517, 517, 304, 0)), 2)
+    jobs = rep(c(82, 517, 517, 304, 0), 2)
   )
   expect_identical(result, expected_result)
 
@@ -208,7 +208,7 @@ test_that("active and passive accessibility is correctly calculated", {
   expected_result <- data.table::data.table(
     id = rep(selected_ids, 2),
     mode = rep(c("transit", "transit2"), each = 5),
-    population = rep(as.integer(c(1946, 3457, 2363, 4552, 0)), 2)
+    population = rep(c(1946.5, 3457.5, 2363, 4552, 0), 2)
   )
   expect_identical(result, expected_result)
 
@@ -224,8 +224,8 @@ test_that("active and passive accessibility is correctly calculated", {
     mode = rep(rep(c("transit", "transit2"), each = 5), 2),
     interval = rep(c("[40,45]", "[40,50]"), each = 10),
     jobs = c(
-      rep(as.integer(c(82, 517, 517, 304, 0)), 2),
-      rep(as.integer(c(82, 599, 599, 499, 0)), 2)
+      rep(c(82, 517, 517, 304, 0), 2),
+      rep(c(82, 599, 599, 499, 0), 2)
     )
   )
   expect_identical(result, expected_result)
@@ -242,8 +242,8 @@ test_that("active and passive accessibility is correctly calculated", {
     mode = rep(rep(c("transit", "transit2"), each = 5), 2),
     interval = rep(c("[40,45]", "[40,50]"), each = 10),
     population = c(
-      rep(as.integer(c(1946, 3457, 2363, 4552, 0)), 2),
-      rep(as.integer(c(5404, 4552, 2363, 4552, 0)), 2)
+      rep(c(1946.5, 3457.5, 2363, 4552, 0), 2),
+      rep(c(5404, 4552, 2363, 4552, 0), 2)
     )
   )
   expect_identical(result, expected_result)
@@ -270,7 +270,7 @@ test_that("summarizes the result according to summary function", {
   expected_result <- data.table::data.table(
     id = rep(selected_ids, 2),
     mode = rep(c("transit", "transit2"), each = 5),
-    jobs = rep(as.integer(c(82, 408, 408, 109, 0)), 2)
+    jobs = rep(c(82, 408, 408, 109, 0), 2)
   )
   expect_identical(result, expected_result)
 
@@ -283,7 +283,7 @@ test_that("summarizes the result according to summary function", {
   expected_result <- data.table::data.table(
     id = rep(selected_ids, 2),
     mode = rep(c("transit", "transit2"), each = 5),
-    jobs = rep(as.integer(c(82, 512, 508, 304, 0)), 2)
+    jobs = rep(c(82, 512.5, 508, 304, 0), 2)
   )
   expect_identical(result, expected_result)
 })
@@ -309,7 +309,7 @@ test_that("accessibility is correctly calculated when ids are missing", {
   expected_result <- data.table::data.table(
     id = rep(selected_ids[order(selected_ids)], each = 2),
     mode = rep(c("transit", "transit2"), 5),
-    jobs = rep(as.integer(c(0, 0, 0, 0, 0)), 2)
+    jobs = rep(c(0, 0, 0, 0, 0), 2)
   )
   expect_identical(result, expected_result)
 })
@@ -395,8 +395,8 @@ test_that("each interval is summarised over its own cutoffs only", {
   # uses 5 and 15 (a: mean(10, 30) = 20), whether requested alone or together
 
   result <- toy_tester(list(c(0, 20), c(5, 15)))
-  expect_identical(result[interval == "[0,20]"]$jobs, c(33L, 26L, 33L))
-  expect_identical(result[interval == "[5,15]"]$jobs, c(20L, 25L, 30L))
+  expect_equal(result[interval == "[0,20]"]$jobs, c(100 / 3, 80 / 3, 100 / 3))
+  expect_equal(result[interval == "[5,15]"]$jobs, c(20, 25, 30))
 
   expect_identical(
     result[interval == "[0,20]"]$jobs,
@@ -434,11 +434,11 @@ test_that("fill_missing_ids arg works correctly", {
 
   result <- toy_tester(interval = c(0, 20))
   expect_identical(result$id, c("a", "b", "c", "d"))
-  expect_identical(result$jobs, c(33L, 26L, 33L, 0L))
+  expect_equal(result$jobs, c(100 / 3, 80 / 3, 100 / 3, 0))
 
   result <- toy_tester(interval = c(0, 20), fill_missing_ids = FALSE)
   expect_identical(result$id, c("a", "b", "c"))
-  expect_identical(result$jobs, c(33L, 26L, 33L))
+  expect_equal(result$jobs, c(100 / 3, 80 / 3, 100 / 3))
 })
 
 test_that("the upper limit of the interval is always considered", {
@@ -462,5 +462,5 @@ test_that("the upper limit of the interval is always considered", {
     summary_function = mean,
     group_by = character(0)
   )
-  expect_identical(result$jobs, c(32L, 27L, 32L))
+  expect_equal(result$jobs, c(32.5, 27.5, 32.5))
 })

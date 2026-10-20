@@ -44,7 +44,11 @@ total_constrained <- function(travel_matrix,
   if (active) {
     #active accessibility
     if (is.null(supply) || !is.null(demand)) {
-      stop("For active = TRUE, supply must be specified and demand must be NULL.")
+      cli::cli_abort(
+        "For {.code active = TRUE}, {.arg supply} must be specified and
+        {.arg demand} must be NULL.",
+        call = NULL
+      )
     }
     merge_id <- "to_id"
     group_id <- "from_id"
@@ -56,7 +60,11 @@ total_constrained <- function(travel_matrix,
   } else {
     #passive accessibility
     if (is.null(demand) || !is.null(supply)) {
-      stop("For active = FALSE, demand must be specified and supply must be NULL.")
+      cli::cli_abort(
+        "For {.code active = FALSE}, {.arg demand} must be specified and
+        {.arg supply} must be NULL.",
+        call = NULL
+      )
     }
     merge_id <- "from_id"
     group_id <- "to_id"

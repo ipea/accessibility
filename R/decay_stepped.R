@@ -67,10 +67,10 @@ decay_stepped <- function(steps, weights) {
   )
 
   if (anyDuplicated(step_weight_pairs)) {
-    stop(
-      "Assertion on 'steps' and 'weights' failed: ",
-      "Must not contain duplicated (steps, weights) pairs.",
-      call. = FALSE
+    cli::cli_abort(
+      "Assertion on {.arg steps} and {.arg weights} failed: Must not contain
+      duplicated (steps, weights) pairs.",
+      call = NULL
     )
   }
 
@@ -119,9 +119,10 @@ assert_steps <- function(steps) {
   is_numeric_like <- function(x) is.numeric(x) || is.integer(x)
 
   if (!(is_numeric_like(steps) || is.list(steps))) {
-    stop(
-      "Assertion on 'steps' failed: Must be either a numeric vector or a list ",
-      "of numeric vectors."
+    cli::cli_abort(
+      "Assertion on {.arg steps} failed: Must be either a numeric vector or a
+      list of numeric vectors.",
+      call = NULL
     )
   }
 

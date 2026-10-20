@@ -450,3 +450,23 @@ test_that("raises a clear error if id types are incompatible", {
     NA
   )
 })
+
+test_that("result is not keyed, even when missing ids are filled", {
+  toy_matrix <- data.table::data.table(
+    from_id = c("a", "a", "b"),
+    to_id = c("a", "b", "a"),
+    travel_time = c(0, 10, 50)
+  )
+  toy_land_use <- data.table::data.table(id = c("a", "b"), jobs = c(10, 20))
+
+  # b reaches nothing within 30 minutes, so it's filled with 0
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    cutoff = 30,
+    group_by = character(0)
+  )
+  expect_identical(result$jobs, c(30, 0))
+  expect_null(data.table::key(result))
+})

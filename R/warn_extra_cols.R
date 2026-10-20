@@ -9,14 +9,15 @@ warn_extra_cols <- function(travel_matrix, travel_cost, group_id, groups) {
   }
 
   if (!identical(travel_matrix_extra_cols, character(0))) {
-    warning(
-      "Found columns in 'travel_matrix' not listed in either ",
-      "'travel_cost' or 'group_by': {",
-      paste0("'", travel_matrix_extra_cols, "'", collapse = ","),
-      "}.\n",
-      "This can result in excessive aggregation when calculating ",
-      "accessibility, if these columns serve as group ids in 'travel_matrix'.",
-      call. = FALSE
+    cli::cli_warn(
+      c(
+        "Found columns in {.arg travel_matrix} not listed in either
+        {.arg travel_cost} or {.arg group_by}:
+        {.val {travel_matrix_extra_cols}}.",
+        "i" = "This can result in excessive aggregation when calculating
+        accessibility, if these columns serve as group ids in
+        {.arg travel_matrix}."
+      )
     )
   }
 
@@ -31,15 +32,14 @@ warn_extra_access_cols <- function(accessibility_data, opportunity, group_id) {
   )
 
   if (!identical(extra_cols, character(0))) {
-    warning(
-      "Found columns in 'accessibility_data' not listed in either ",
-      "'opportunity' or 'group_by': {",
-      paste0("'", extra_cols, "'", collapse = ","),
-      "}.\n",
-      "This can result in excessive aggregation when calculating ",
-      "inequality measures, if these columns serve as group ids in ",
-      "'accessibility_data'.",
-      call. = FALSE
+    cli::cli_warn(
+      c(
+        "Found columns in {.arg accessibility_data} not listed in either
+        {.arg opportunity} or {.arg group_by}: {.val {extra_cols}}.",
+        "i" = "This can result in excessive aggregation when calculating
+        inequality measures, if these columns serve as group ids in
+        {.arg accessibility_data}."
+      )
     )
   }
 

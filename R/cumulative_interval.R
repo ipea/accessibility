@@ -162,18 +162,16 @@ cumulative_interval <- function(travel_matrix,
   access_list <- data.table::rbindlist(access_list, idcol = "cutoffs")
   access_list[, cutoffs := as.numeric(cutoffs)]
 
-  # the as.integer() call below makes sure that, even though the summary
-  # function may return doubles, the result is an integer (afterall when using
-  # a cumulative measure you cannot reach half of an opportunity) and that the
-  # float is rounded down to the integer (if you reach 2.8 opportunities you do
-  # reach 2, but you can't reach 3)
+  # the summary is returned as a double: summary functions such as median()
+  # may return integers for some groups and doubles for others, and the summary
+  # of opportunity counts doesn't have to be a whole number
 
   access_list <- lapply(
     interval_cutoffs,
     function(own_cutoffs) {
       access_list[
         cutoffs %in% own_cutoffs,
-        .(access = as.integer(summary_function(access))),
+        .(access = as.numeric(summary_function(access))),
         by = eval(groups, envir = env)
       ]
     }

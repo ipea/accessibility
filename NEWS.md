@@ -7,6 +7,16 @@
   within the interval are included in the output with an accessibility of 0,
   as in `cumulative_cutoff()`. Previously they were dropped from the output.
 
+## Breaking changes
+
+- `cumulative_interval()` now returns the summary of the accessibility levels
+  as a `numeric` without truncation (e.g. the median of 26 and 27
+  opportunities is 26.5). Previously, results were truncated to integers.
+- `concentration_index(type = "corrected")` now calculates the correction
+  factor with the bounds of the whole accessibility distribution, instead of
+  the bounds of each `group_by` group, so groups are corrected on a common
+  scale. Results only change when `group_by` is used.
+
 ## Bug fixes
 
 - Fixed a bug in `balancing_cost()` in which numeric ids (e.g. `101`, `102`)
@@ -105,6 +115,18 @@
   duplicated parameter combinations, which produced duplicated results.
 - `constrained_accessibility()` now checks that `demand` and `supply` are
   single strings.
+- Results of accessibility functions are no longer returned as keyed
+  data.tables when missing ids are filled (previously, they were keyed only in
+  this case).
+- Opportunities, demand, supply, population and income are now matched to
+  the input data by id with `match()` instead of an update join. Accessibility
+  functions are about 1.2 to 3.3 times faster and use about half the memory on
+  large travel matrices, with identical results. If `travel_matrix` already
+  has a column named like the opportunity column, that column is now fully
+  replaced by the values in `land_use_data`.
+- Errors and warnings raised by the package now use `{cli}`, with consistent
+  formatting of argument names and values. Long lists of ids or columns in
+  messages are abbreviated. `{cli}` and `{rlang}` are new dependencies.
 
 ## Notes
 

@@ -161,9 +161,11 @@ concentration_index <- function(accessibility_data,
       by = .groups
     ]
   } else if (type == "corrected") {
+    # the bounds of the accessibility distribution are the same for all groups.
     # max()/min() may result in warnings if nrow(data) == 0
-    data[, upper := suppressWarnings(max(get(.opp_colname))), by = .groups]
-    data[, lower := suppressWarnings(min(get(.opp_colname))), by = .groups]
+
+    data[, upper := suppressWarnings(max(get(.opp_colname)))]
+    data[, lower := suppressWarnings(min(get(.opp_colname)))]
 
     # from Erreygers (2009), comparing equations 27 and 24, we have the
     # following correction factor

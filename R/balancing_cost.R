@@ -61,9 +61,10 @@ balancing_cost <- function(travel_matrix,
   checkmate::assert_string(demand)
   checkmate::assert_number(cost_increment, finite = TRUE)
   if (cost_increment <= 0) {
-    stop(
-      "Assertion on 'cost_increment' failed: Value must be greater than 0.",
-      call. = FALSE
+    cli::cli_abort(
+      "Assertion on {.arg cost_increment} failed: Value must be greater
+      than 0.",
+      call = NULL
     )
   }
   checkmate::assert_logical(fill_missing_ids, len = 1, any.missing = FALSE)
@@ -75,8 +76,6 @@ balancing_cost <- function(travel_matrix,
     opportunity,
     demand = demand
   )
-
-  variable <- 3
 
   # if not a dt, keep original class to assign later when returning result
 

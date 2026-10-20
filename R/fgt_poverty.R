@@ -97,10 +97,10 @@ fgt_poverty <- function(accessibility_data,
   checkmate::assert_number(poverty_line, lower = 0, finite = TRUE)
   checkmate::assert_flag(poor_below_threshold)
   if (!poor_below_threshold && poverty_line == 0) {
-    stop(
-      "Assertion on 'poverty_line' failed: Value must be greater than 0 when ",
-      "'poor_below_threshold' is FALSE.",
-      call. = FALSE
+    cli::cli_abort(
+      "Assertion on {.arg poverty_line} failed: Value must be greater than 0
+      when {.arg poor_below_threshold} is FALSE.",
+      call = NULL
     )
   }
   assert_access_group_by(group_by)

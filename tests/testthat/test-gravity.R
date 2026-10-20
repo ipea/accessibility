@@ -328,7 +328,7 @@ test_that("raises an error if travel_matrix contains negative travel costs", {
 
   expect_error(
     tester(travel_matrix = negative_matrix),
-    regexp = "Travel costs must not be negative"
+    regexp = "Travel costs must not[[:space:]]+be[[:space:]]+negative"
   )
 
   # NA costs are still allowed
