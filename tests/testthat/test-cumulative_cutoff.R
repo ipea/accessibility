@@ -414,3 +414,39 @@ test_that("works with cutoffs with floating point noise and any colname", {
   )
   expect_identical(result$jobs, c(60, 30, 40, 0))
 })
+
+test_that("raises a clear error if id types are incompatible", {
+  int_matrix <- data.table::data.table(
+    from_id = 1:2,
+    to_id = 1:2,
+    travel_time = c(1, 2)
+  )
+  chr_land_use <- data.table::data.table(id = c("1", "2"), jobs = c(1, 2))
+
+  expect_error(
+    tester(int_matrix, chr_land_use, cutoff = 5, group_by = character(0)),
+    regexp = "must be of compatible types"
+  )
+
+  # integer vs double and factor vs character ids join fine, so no error
+
+  dbl_land_use <- data.table::data.table(id = c(1, 2), jobs = c(1, 2))
+  expect_error(
+    tester(int_matrix, dbl_land_use, cutoff = 5, group_by = character(0)),
+    NA
+  )
+
+  chr_matrix <- data.table::data.table(
+    from_id = c("1", "2"),
+    to_id = c("1", "2"),
+    travel_time = c(1, 2)
+  )
+  fct_land_use <- data.table::data.table(
+    id = factor(c("1", "2")),
+    jobs = c(1, 2)
+  )
+  expect_error(
+    tester(chr_matrix, fct_land_use, cutoff = 5, group_by = character(0)),
+    NA
+  )
+})

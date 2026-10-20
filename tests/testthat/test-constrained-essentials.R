@@ -397,3 +397,25 @@ test_that("fill_missing_ids fills missing combinations when using group_by", {
     ungrouped$supply[match(car$from_id, ungrouped$from_id)]
   )
 })
+
+test_that("total-constrained: doesn't add an index to land_use_data", {
+  lu <- make_lu_large()
+
+  # data.table auto-indexing is only triggered with character ids
+
+  tm <- make_tm_3x3()
+  tm[, `:=`(from_id = as.character(from_id), to_id = as.character(to_id))]
+
+  constrained_accessibility(
+    travel_matrix = tm,
+    land_use_data = lu,
+    travel_cost = "travel_time",
+    supply = "jobs",
+    demand = "population",
+    constraint = "total",
+    decay_function = exp_decay_01,
+    active = TRUE
+  )
+
+  expect_true(is.null(attr(lu, "index")))
+})

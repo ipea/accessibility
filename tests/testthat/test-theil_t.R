@@ -199,7 +199,8 @@ test_that("input data sets remain unchanged", {
 
   data.table::setindexv(small_access, NULL)
   expect_equal(original_access_data, small_access)
-  expect_equal(original_sociodem_data, original_sociodem_data)
+  data.table::setindex(sociodem_data, NULL)
+  expect_equal(original_sociodem_data, sociodem_data)
 })
 
 test_that("theil t is correctly calculated", {
@@ -379,7 +380,8 @@ test_that("input data sets remain unchanged", {
   result <- null_tester()
 
   expect_equal(original_access_data, small_access)
-  expect_equal(original_sociodem_data, original_sociodem_data)
+  data.table::setindex(sociodem_data, NULL)
+  expect_equal(original_sociodem_data, sociodem_data)
 })
 
 test_that("theil t is correctly calculated", {

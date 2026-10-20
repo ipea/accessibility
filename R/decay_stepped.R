@@ -56,6 +56,24 @@ decay_stepped <- function(steps, weights) {
   if (!is.list(steps)) steps <- list(steps)
   if (!is.list(weights)) weights <- list(weights)
 
+  # duplicated (steps, weights) pairs would produce duplicated list names,
+  # which are merged/double counted downstream
+
+  step_weight_pairs <- mapply(
+    function(stps, wghts) list(as.numeric(stps), as.numeric(wghts)),
+    steps,
+    weights,
+    SIMPLIFY = FALSE
+  )
+
+  if (anyDuplicated(step_weight_pairs)) {
+    stop(
+      "Assertion on 'steps' and 'weights' failed: ",
+      "Must not contain duplicated (steps, weights) pairs.",
+      call. = FALSE
+    )
+  }
+
   steps <- lapply(steps, function(stps) c(0, stps))
   weights <- lapply(weights, function(wghts) c(1, wghts))
 
@@ -66,7 +84,10 @@ decay_stepped <- function(steps, weights) {
       FUN = function(stps, wghts) {
         vapply(
           travel_cost,
-          function(x) wghts[max(which(x >= stps))],
+          function(x) {
+            if (is.na(x)) return(NA_real_)
+            wghts[max(which(x >= stps))]
+          },
           numeric(1)
         )
       },

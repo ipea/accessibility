@@ -6,7 +6,7 @@
 #'
 #' @param cutoff A `numeric` vector. Indicates the travel cost cutoffs until
 #'   which the weighting factor decays linearly. From this point onward the
-#'   weight is equal to 0.
+#'   weight is equal to 0. Must be greater than 0.
 #'
 #' @template return_decay_function
 #'
@@ -31,6 +31,15 @@ decay_linear <- function(cutoff) {
     min.len = 1,
     unique = TRUE
   )
+
+  # a cutoff of 0 would produce NaN weights when travel cost is 0 (0 / 0)
+
+  if (any(cutoff <= 0)) {
+    stop(
+      "Assertion on 'cutoff' failed: Value must be greater than 0.",
+      call. = FALSE
+    )
+  }
 
   weighting_function <- function(travel_cost) {
     weights_list <- lapply(

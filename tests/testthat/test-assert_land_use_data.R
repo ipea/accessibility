@@ -86,6 +86,8 @@ test_that("warns if either opportunity or demand cols contain NAs", {
 })
 
 test_that("assert_land_use_data() doesn't error with tibbles", {
+  skip_if_not_installed("tibble")
+
   # issue 49 (https://github.com/ipea/accessibility/issues/49)
   # using land_use_data as tibbles would throw errors because this format has
   # stricter subsetting rules

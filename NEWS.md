@@ -83,16 +83,35 @@
   column, the output included rows with `NA` for group combinations that were
   not present in the data. The output is also no longer keyed.
 
+- Fixed a bug in `decay_stepped()` that emitted a warning for each `NA`
+  travel cost (the weight is still `NA`).
+- Fixed a bug in `constrained_accessibility(constraint = "total")` that added
+  a data.table index attribute to the user's `land_use_data`.
+
 ## Minor changes
 
 - Accessibility, inequality and poverty functions now raise an error if
   `land_use_data` or `sociodemographic_data` contain duplicated ids.
   Previously, only one of the duplicated rows was silently used.
+- Accessibility functions now raise an error if a `travel_cost` column of
+  `travel_matrix` contains negative values, which previously produced weights
+  above 1 and inflated accessibility levels.
+- Accessibility functions now raise a clear error when the ids of
+  `travel_matrix` and `land_use_data` have incompatible types (e.g. integer
+  and character), instead of an obscure join error.
+- `decay_linear()` now requires `cutoff` to be greater than 0 (a cutoff of 0
+  produced `NaN` weights).
+- `decay_logistic()` and `decay_stepped()` now raise an error when given
+  duplicated parameter combinations, which produced duplicated results.
+- `constrained_accessibility()` now checks that `demand` and `supply` are
+  single strings.
 
 ## Notes
 
 - Updated the package website and GitHub URLs after the repository moved from
   the `ipeaGIT` to the `ipea` organization.
+- Vignettes and tests now only use the suggested packages `{sf}`,
+  `{ggplot2}` and `{tibble}` when they are installed.
 
 # accessibility 1.5.0
 

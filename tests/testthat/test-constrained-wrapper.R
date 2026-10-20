@@ -137,3 +137,14 @@ test_that("raises errors due to incorrect input", {
     )
   )
 })
+
+test_that("raises a clear error if demand or supply has length > 1", {
+  expect_error(
+    tester(demand = c("population", "population")),
+    regexp = "Must have length 1"
+  )
+  expect_error(
+    tester(supply = c("jobs", "jobs")),
+    regexp = "Must have length 1"
+  )
+})

@@ -95,8 +95,6 @@ First we'll need to load the libraries we'll be using:
 ```{r, message = FALSE, warning = FALSE}
 library(accessibility)
 library(data.table)
-library(ggplot2)
-library(sf)
 ```
 
 ## Data requirements
@@ -343,7 +341,10 @@ If you have the spatial data of your origins/destinations, you can easily merge
 it with the accessibility to create spatial visualizations of the results. The
 example below quickly shows how to create a simple map using `{ggplot2}`.
 
-```{r, eval = requireNamespace(c("sf", "ggplot2"), quietly = TRUE), out.width = "80%", fig.width = 6, fig.height = 6}
+```{r, eval = requireNamespace("sf", quietly = TRUE) && requireNamespace("ggplot2", quietly = TRUE), message = FALSE, out.width = "80%", fig.width = 6, fig.height = 6}
+library(ggplot2)
+library(sf)
+
 grid <- system.file("extdata/grid_bho.rds", package = "accessibility")
 grid <- readRDS(grid)
 

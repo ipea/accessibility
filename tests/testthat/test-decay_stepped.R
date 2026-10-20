@@ -89,3 +89,25 @@ test_that("output fn returns empty numeric if receives empty numeric/integer", {
   expect_identical(output_fn(integer())[[1]], numeric())
   expect_identical(output_fn(numeric())[[1]], numeric())
 })
+
+test_that("raises an error if (steps, weights) pairs are duplicated", {
+  expect_error(
+    tester(list(c(10, 20), c(10, 20)), list(c(0.5, 0), c(0.5, 0))),
+    regexp = "duplicated .steps, weights. pairs"
+  )
+  expect_error(
+    tester(list(c(10L, 20L), c(10, 20)), list(c(0.5, 0), c(0.5, 0))),
+    regexp = "duplicated .steps, weights. pairs"
+  )
+  expect_error(
+    tester(list(c(10, 20), c(10, 20)), list(c(0.5, 0), c(0.6, 0))),
+    NA
+  )
+})
+
+test_that("returns NA without warnings when travel cost is NA", {
+  output_fn <- tester(c(10, 20), c(0.5, 0))
+
+  expect_silent(result <- output_fn(c(NA, 5, 15, 25)))
+  expect_identical(result[[1]], c(NA, 1, 0.5, 0))
+})

@@ -220,3 +220,53 @@ test_that("works even if access_data and sociodem_data has specific colnames", {
   expect_identical(poor_above$FGT1, 1)
   expect_identical(poor_above$FGT2, 1)
 })
+
+test_that("fgt measures match hand-computed values on a toy example", {
+  # access x = (0, 5, 10, 15, 20), population w = (1, 2, 3, 4, 5), total 15,
+  # poverty line z = 10. zone "c" sits exactly on the line and is never poor
+  # (strict inequalities). FGT_a = sum_i w_i * gap_i ^ a * poor_i / sum_i w_i
+  toy_access <- data.table::data.table(
+    id = c("a", "b", "c", "d", "e"),
+    jobs = c(0, 5, 10, 15, 20)
+  )
+  toy_sociodem <- data.table::data.table(
+    id = c("a", "b", "c", "d", "e"),
+    population = c(1, 2, 3, 4, 5)
+  )
+
+  # poor_below_threshold = TRUE: poor if x < z, gap (z - x) / z.
+  # a (gap 1) and b (gap 0.5) are poor
+  result <- tester(
+    toy_access,
+    toy_sociodem,
+    poverty_line = 10,
+    poor_below_threshold = TRUE,
+    group_by = character(0)
+  )
+  expect_equal(
+    result,
+    data.table::data.table(
+      FGT0 = (1 + 2) / 15,
+      FGT1 = (1 * 1 + 2 * 0.5) / 15,
+      FGT2 = (1 * 1 ^ 2 + 2 * 0.5 ^ 2) / 15
+    )
+  )
+
+  # poor_below_threshold = FALSE: poor if x > z, gap (x - z) / z.
+  # d (gap 0.5) and e (gap 1) are poor
+  result <- tester(
+    toy_access,
+    toy_sociodem,
+    poverty_line = 10,
+    poor_below_threshold = FALSE,
+    group_by = character(0)
+  )
+  expect_equal(
+    result,
+    data.table::data.table(
+      FGT0 = (4 + 5) / 15,
+      FGT1 = (4 * 0.5 + 5 * 1) / 15,
+      FGT2 = (4 * 0.5 ^ 2 + 5 * 1 ^ 2) / 15
+    )
+  )
+})

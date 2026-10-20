@@ -45,6 +45,17 @@ decay_logistic <- function(cutoff, sd) {
   assert_logistic_cutoff(cutoff)
   assert_standard_deviation(sd, cutoff)
 
+  # duplicated (cutoff, sd) pairs would produce duplicated list names, which
+  # are merged/double counted downstream
+
+  if (anyDuplicated(data.frame(cutoff, sd))) {
+    stop(
+      "Assertion on 'cutoff' and 'sd' failed: ",
+      "Must not contain duplicated (cutoff, sd) pairs.",
+      call. = FALSE
+    )
+  }
+
   weighting_function <- function(travel_cost) {
     g <- function(cost, median, std_dev) {
       1 + exp(((cost - median) * base::pi) / (std_dev * sqrt(3)))

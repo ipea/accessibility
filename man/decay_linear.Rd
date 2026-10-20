@@ -9,7 +9,7 @@ decay_linear(cutoff)
 \arguments{
 \item{cutoff}{A \code{numeric} vector. Indicates the travel cost cutoffs until
 which the weighting factor decays linearly. From this point onward the
-weight is equal to 0.}
+weight is equal to 0. Must be greater than 0.}
 }
 \value{
 A \code{function} that takes a generic travel cost vector (\code{numeric}) as

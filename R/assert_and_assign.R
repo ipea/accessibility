@@ -68,6 +68,21 @@ assert_travel_matrix <- function(travel_matrix, travel_cost, group_by) {
     .var.name = "travel_matrix"
   )
 
+  # negative travel costs would produce weights higher than 1 in most decay
+  # functions, inflating accessibility levels
+
+  for (col in travel_cost) {
+    cost_values <- travel_matrix[[col]]
+
+    if (is.numeric(cost_values) && any(cost_values < 0, na.rm = TRUE)) {
+      stop(
+        "Assertion on 'travel_matrix$", col, "' failed: ",
+        "Travel costs must not be negative.",
+        call. = FALSE
+      )
+    }
+  }
+
   return(invisible(TRUE))
 }
 
@@ -130,6 +145,21 @@ assert_land_use_data <- function(land_use_data,
     travel_matrix$to_id
   } else {
     travel_matrix$from_id
+  }
+
+  # joining numeric ids to character/factor ids fails with an obscure
+  # data.table error, so we check the id types before warning about missing ids
+
+  is_text_like <- function(x) is.character(x) || is.factor(x)
+
+  if (is_text_like(travel_matrix_ids) != is_text_like(land_use_data$id)) {
+    stop(
+      "The id columns of 'travel_matrix' ('from_id'/'to_id') and ",
+      "'land_use_data' ('id') must be of compatible types. Found '",
+      class(travel_matrix_ids)[1], "' in 'travel_matrix' and '",
+      class(land_use_data$id)[1], "' in 'land_use_data'.",
+      call. = FALSE
+    )
   }
 
   if (!all(travel_matrix_ids %in% land_use_data$id)) {

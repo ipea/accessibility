@@ -265,6 +265,8 @@ constrained_accessibility <- function(travel_matrix,
 
   checkmate::assert_choice(constraint, c("total", "singly", "doubly"))
   checkmate::assert_string(travel_cost)
+  checkmate::assert_string(demand, null.ok = TRUE)
+  checkmate::assert_string(supply, null.ok = TRUE)
   assert_decay_function(decay_function)
   assert_group_by(group_by)
   assert_travel_matrix(travel_matrix, travel_cost, group_by)

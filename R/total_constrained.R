@@ -96,7 +96,10 @@ total_constrained <- function(travel_matrix,
   data[, (kappa_col) := get(weighted_col) / total_weighted_system]
 
   ids_for_total <- unique(data[[merge_id]])                   # e.g., A,B,C when active=TRUE
-  total_opportunities_region <- land_use_data[id %in% ids_for_total, sum(get(opportunity_col), na.rm = TRUE)]
+  total_opportunities_region <- sum(
+    land_use_data[[opportunity_col]][match(ids_for_total, land_use_data$id)],
+    na.rm = TRUE
+  )
 
   data[, constrained_opportunity := get(kappa_col) * total_opportunities_region]
 
