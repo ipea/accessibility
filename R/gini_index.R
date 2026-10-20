@@ -10,7 +10,7 @@
 #'
 #' @template return_inequality
 #'
-#' @family inequality
+#' @family equity
 #'
 #' @examplesIf identical(tolower(Sys.getenv("NOT_CRAN")), "true")
 #' data_dir <- system.file("extdata", package = "accessibility")
@@ -34,11 +34,13 @@
 #' gini
 #'
 #' @export
-gini_index <- function(accessibility_data,
-                       sociodemographic_data,
-                       opportunity,
-                       population,
-                       group_by = character(0)) {
+gini_index <- function(
+  accessibility_data,
+  sociodemographic_data,
+  opportunity,
+  population,
+  group_by = character(0)
+) {
   checkmate::assert_string(opportunity)
   checkmate::assert_string(population)
   assert_access_group_by(group_by)
@@ -81,16 +83,15 @@ gini_index <- function(accessibility_data,
 
   data.table::setorderv(data, cols = c(opportunity, group_by))
 
-  data[
-    ,
+  data[,
     .prop_pop := get(.pop_colname) / sum(get(.pop_colname)),
     by = .groups
   ]
-  data[
-    ,
+  data[,
     .cum_total_access := cumsum(
       as.numeric(get(.pop_colname) * get(.opp_colname))
-    ) / sum(get(.pop_colname) * get(.opp_colname)),
+    ) /
+      sum(get(.pop_colname) * get(.opp_colname)),
     by = .groups
   ]
 
@@ -102,8 +103,7 @@ gini_index <- function(accessibility_data,
   # (otherwise we would have a trapezoid in the first segment, whereas it should
   # always be a triangle)
 
-  data[
-    ,
+  data[,
     .small_edge := data.table::shift(.cum_total_access, fill = 0),
     by = .groups
   ]
@@ -114,13 +114,15 @@ gini_index <- function(accessibility_data,
   if (nrow(data) == 0 && identical(group_by, character(0))) {
     gini <- data.table::data.table(gini_index = numeric(0))
   } else {
-    gini <- data[
-      ,
-      .(gini_index = 1 - 2 * sum(.area_under_curve)), by = .groups
+    gini <- data[,
+      .(gini_index = 1 - 2 * sum(.area_under_curve)),
+      by = .groups
     ]
   }
 
-  if (exists("original_class")) class(gini) <- original_class
+  if (exists("original_class")) {
+    class(gini) <- original_class
+  }
 
   return(gini)
 }

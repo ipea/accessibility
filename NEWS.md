@@ -124,6 +124,9 @@
   large travel matrices, with identical results. If `travel_matrix` already
   has a column named like the opportunity column, that column is now fully
   replaced by the values in `land_use_data`.
+- The functions created by `decay_logistic()` and `decay_stepped()` are now
+  vectorised instead of looping over each travel cost, which makes them about
+  50 and 200 times faster on large travel matrices, with identical results.
 - Errors and warnings raised by the package now use `{cli}`, with consistent
   formatting of argument names and values. Long lists of ids or columns in
   messages are abbreviated. `{cli}` and `{rlang}` are new dependencies.
@@ -144,8 +147,8 @@ constrained accessibility measures proposed in Soukhov et al. (2025).
 
 ## Minor changes
 
-- The function `fgt_poverty()` has a new argument `poor_below_threshold`. when
-set to `TRUE` (default,) the observations below the poverty line are considered 
+- The function `fgt_poverty()` has a new argument `poor_below_threshold`. When
+set to `TRUE` (default) the observations below the poverty line are considered 
 to be poor. This is the correct approach for primal accessibility measures (e.g.
 cumulative accessibility). If `FALSE`, then observations above the poverty line 
 are considered to be poor. This is the correct approach for dual accessibility 
@@ -176,7 +179,7 @@ and 2 do not have an upper bound. Closes [#63](https://github.com/ipea/accessibi
 
 - New parameter `detailed_results` to `spatial_availability()`, used to specify
   whether results should be aggregated by origin-destination pair or by origin.
-  When aggregation by origin-destination pair, the output also includes the
+  When aggregating by origin-destination pair, the output also includes the
   demand, impedance and combined balancing factors used to calculate spatial
   availability.
 
@@ -227,10 +230,10 @@ and 2 do not have an upper bound. Closes [#63](https://github.com/ipea/accessibi
 
 # accessibility 1.0.0
 
-The package has been to tremendous changes. Basically, there's not a single
+The package has been through tremendous changes. Basically, there's not a single
 part of it that remained untouched: documentation, vignettes, function names,
 parameter names, extra functionality, performance improvements, etc. While it
-is impossible to highlight everything that has been done, we'll try to summary
+is impossible to highlight everything that has been done, we'll try to summarize
 some of the key points in the following topics.
 
 ## Breaking changes

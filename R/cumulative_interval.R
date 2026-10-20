@@ -3,7 +3,7 @@
 #' Calculates the average or median number of opportunities that can be reached
 #' considering multiple maximum travel cost thresholds within a given travel
 #' cost interval specified by the user. The time interval cumulative
-#' accessibility measures was originally proposed by
+#' accessibility measure was originally proposed by
 #' \insertCite{tomasiello2023time;textual}{accessibility}.
 #' @template description_generic_cost
 #'
@@ -22,7 +22,7 @@
 #' @param summary_function A function. This function is used to summarize a
 #'   distribution of accessibility estimates within a travel cost interval as a
 #'   single value. Can be any function that takes an arbitrary number of
-#'   numeric values as as input and returns a single number as output. Defaults
+#'   numeric values as input and returns a single number as output. Defaults
 #'   to [stats::median()].
 #' @template group_by
 #' @template active

@@ -1,7 +1,7 @@
 #' Concentration Index
 #'
 #' Calculates the Concentration Index (CI) of a given accessibility
-#' distribution. This measures estimates the extent to which accessibility
+#' distribution. This measure estimates the extent to which accessibility
 #' inequalities are systematically associated with individuals' socioeconomic
 #' levels. CI values can theoretically vary between -1 and +1 (when all
 #' accessibility is concentrated in the most or in the least disadvantaged
@@ -30,7 +30,7 @@
 #'
 #' @template return_inequality
 #'
-#' @family inequality
+#' @family equity
 #'
 #' @references
 #' \insertAllCited{}
@@ -59,13 +59,15 @@
 #' ci
 #'
 #' @export
-concentration_index <- function(accessibility_data,
-                                sociodemographic_data,
-                                opportunity,
-                                population,
-                                income,
-                                type,
-                                group_by = character(0)) {
+concentration_index <- function(
+  accessibility_data,
+  sociodemographic_data,
+  opportunity,
+  population,
+  income,
+  type,
+  group_by = character(0)
+) {
   checkmate::assert_string(opportunity)
   checkmate::assert_string(population)
   checkmate::assert_string(income)
@@ -127,8 +129,7 @@ concentration_index <- function(accessibility_data,
 
   .income_colname <- income
   data[, .block_share := sum(pop_share), by = c(.groups, income)]
-  data[
-    ,
+  data[,
     fractional_rank := {
       first_in_block <- !duplicated(get(.income_colname))
       cumsum(.block_share * first_in_block) - .block_share / 2
@@ -136,8 +137,7 @@ concentration_index <- function(accessibility_data,
     by = .groups
   ]
 
-  data[
-    ,
+  data[,
     avg_access := stats::weighted.mean(
       get(.opp_colname),
       w = get(.pop_colname)
@@ -146,17 +146,17 @@ concentration_index <- function(accessibility_data,
   ]
   data[, diff_from_avg := get(.opp_colname) - avg_access]
 
-  data[
-    ,
-    cont_to_total := (fractional_rank - 0.5) * diff_from_avg * pop_share /
+  data[,
+    cont_to_total := (fractional_rank - 0.5) *
+      diff_from_avg *
+      pop_share /
       avg_access
   ]
 
   if (nrow(data) == 0 && identical(group_by, character(0))) {
     ci <- data.table::data.table(concentration_index = numeric(0))
   } else if (type == "standard") {
-    ci <- data[
-      ,
+    ci <- data[,
       .(concentration_index = 2 * sum(cont_to_total)),
       by = .groups
     ]
@@ -173,8 +173,7 @@ concentration_index <- function(accessibility_data,
     # when access is constant (upper == lower) there is no inequality, and the
     # factor would be Inf (0 * Inf = NaN). it's set to 0 so the index is 0
 
-    data[
-      ,
+    data[,
       correction_factor := data.table::fifelse(
         upper > lower,
         4 * avg_access / (upper - lower),
@@ -182,14 +181,15 @@ concentration_index <- function(accessibility_data,
       )
     ]
 
-    ci <- data[
-      ,
+    ci <- data[,
       .(concentration_index = 2 * sum(cont_to_total * correction_factor)),
       by = .groups
     ]
   }
 
-  if (exists("original_class")) class(ci) <- original_class
+  if (exists("original_class")) {
+    class(ci) <- original_class
+  }
 
   return(ci)
 }

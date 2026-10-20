@@ -223,7 +223,7 @@ head(cum_interval)
 
 `gravity()` calculates gravity-based measures - i.e. measures in which the
 weight of opportunities is gradually discounted as the travel cost increases.
-Of course, several different decay functions can be used to so, each one of
+Of course, several different decay functions can be used to do so, each one of
 them with a range of possible different parameters. In order to accommodate such
 generalization, the function takes the decay function to be used as a
 parameter.
@@ -255,7 +255,7 @@ supports two different methods:
 
 - 2-Step Floating Catchment Area (`"2sfca"`) - the first metric in the FCA
 family, originally proposed by @luo2003measures.
-- Balanced Floating Catchment Area (`"bfca"`) - takes competition affects into
+- Balanced Floating Catchment Area (`"bfca"`) - takes competition effects into
 account while correcting for issues of inflation of demand and service levels.
 Originally proposed by @paez2019demand and named in @pereira2021geographic.
 

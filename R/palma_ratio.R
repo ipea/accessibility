@@ -19,7 +19,7 @@
 #'
 #' @template return_inequality
 #'
-#' @family inequality
+#' @family equity
 #'
 #' @examplesIf identical(tolower(Sys.getenv("NOT_CRAN")), "true")
 #' data_dir <- system.file("extdata", package = "accessibility")
@@ -44,12 +44,14 @@
 #' palma
 #'
 #' @export
-palma_ratio <- function(accessibility_data,
-                        sociodemographic_data,
-                        opportunity,
-                        population,
-                        income,
-                        group_by = character(0)) {
+palma_ratio <- function(
+  accessibility_data,
+  sociodemographic_data,
+  opportunity,
+  population,
+  income,
+  group_by = character(0)
+) {
   checkmate::assert_string(opportunity)
   checkmate::assert_string(population)
   checkmate::assert_string(income)
@@ -159,7 +161,9 @@ palma_ratio <- function(accessibility_data,
 
   data.table::setkeyv(palma, NULL)
 
-  if (exists("original_class")) class(palma) <- original_class
+  if (exists("original_class")) {
+    class(palma) <- original_class
+  }
 
   return(palma[])
 }

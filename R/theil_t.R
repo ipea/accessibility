@@ -5,7 +5,7 @@
 #' levels) to the natural log of *n*, in which *n* is the number of individuals
 #' in the accessibility dataset. If the individuals can be classified into
 #' mutually exclusive and completely exhaustive groups, the index can be
-#' decomposed into a between-groups inequaliy component and a within-groups
+#' decomposed into a between-groups inequality component and a within-groups
 #' component.
 #'
 #' Observations with no access contribute 0 to the index, following the usual
@@ -34,7 +34,7 @@
 #'   between-groups component and another listing the contribution of each group
 #'   to the within-groups component.
 #'
-#' @family inequality
+#' @family equity
 #'
 #' @examplesIf identical(tolower(Sys.getenv("NOT_CRAN")), "true")
 #' data_dir <- system.file("extdata", package = "accessibility")
@@ -80,12 +80,14 @@
 #' ti
 #'
 #' @export
-theil_t <- function(accessibility_data,
-                    sociodemographic_data,
-                    opportunity,
-                    population,
-                    socioeconomic_groups = NULL,
-                    group_by = character(0)) {
+theil_t <- function(
+  accessibility_data,
+  sociodemographic_data,
+  opportunity,
+  population,
+  socioeconomic_groups = NULL,
+  group_by = character(0)
+) {
   checkmate::assert_string(opportunity)
   checkmate::assert_string(population)
   checkmate::assert_string(socioeconomic_groups, null.ok = TRUE)
@@ -153,8 +155,7 @@ theil_t <- function(accessibility_data,
 theil_without_groups <- function(data, opportunity, population, group_by) {
   .groups <- group_by
 
-  data[
-    ,
+  data[,
     avg_access := stats::weighted.mean(
       get(..opportunity),
       w = get(..population)
@@ -176,12 +177,14 @@ theil_without_groups <- function(data, opportunity, population, group_by) {
   return(theil_index)
 }
 
-theil_with_groups <- function(data,
-                              sociodemographic_data,
-                              opportunity,
-                              population,
-                              socioeconomic_groups,
-                              group_by) {
+theil_with_groups <- function(
+  data,
+  sociodemographic_data,
+  opportunity,
+  population,
+  socioeconomic_groups,
+  group_by
+) {
   merge_by_reference(
     data,
     sociodemographic_data,
@@ -192,16 +195,14 @@ theil_with_groups <- function(data,
   .groups <- group_by
   .socioecon_groups <- c(group_by, socioeconomic_groups)
 
-  data[
-    ,
+  data[,
     avg_access := stats::weighted.mean(
       get(..opportunity),
       w = get(..population)
     ),
     by = .groups
   ]
-  data[
-    ,
+  data[,
     group_avg_access := stats::weighted.mean(
       get(..opportunity),
       w = get(..population)
@@ -209,8 +210,7 @@ theil_with_groups <- function(data,
     by = .socioecon_groups
   ]
 
-  summarized_data <- data[
-    ,
+  summarized_data <- data[,
     .(
       group_tot_access = as.numeric(
         sum(get(..opportunity) * get(..population))
@@ -226,8 +226,7 @@ theil_with_groups <- function(data,
     ),
     by = .socioecon_groups
   ]
-  summarized_data[
-    ,
+  summarized_data[,
     `:=`(
       group_avg_access = group_tot_access / group_tot_pop,
       access_share = group_tot_access / sum(group_tot_access),
@@ -239,8 +238,7 @@ theil_with_groups <- function(data,
   # summary, containing total value and total within- and between-groups
   # inequality
 
-  summary <- summarized_data[
-    ,
+  summary <- summarized_data[,
     .(
       between_group = calc_theil_t(
         group_avg_access,
@@ -267,13 +265,11 @@ theil_with_groups <- function(data,
   # decomposed within group
 
   within_group <- data.table::copy(summarized_data)
-  within_group[
-    ,
+  within_group[,
     value := within_contribution(group_theil_t, group_tot_access),
     by = .groups
   ]
-  within_group[
-    ,
+  within_group[,
     share_of_component := value / sum(value),
     by = .groups
   ]
@@ -288,8 +284,7 @@ theil_with_groups <- function(data,
   # decomposed between group
 
   between_group <- data.table::copy(summarized_data)
-  between_group[
-    ,
+  between_group[,
     value := data.table::fifelse(
       access_share > 0,
       access_share * log(access_share / pop_share),
@@ -328,4 +323,3 @@ within_contribution <- function(group_theil_t, group_tot_access) {
 
   data.table::fifelse(access_share > 0, group_theil_t * access_share, 0)
 }
-

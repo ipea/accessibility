@@ -24,7 +24,7 @@ sociodemographic characteristics of the population in the study area cells.
 Must contain the columns \code{id} and any others specified in \code{population}.}
 
 \item{opportunity}{A string. The name of the column in \code{accessibility_data}
-with the accessibility levels to be considerend when calculating
+with the accessibility levels to be considered when calculating
 accessibility poverty.}
 
 \item{population}{A string. The name of the column in \code{sociodemographic_data}
@@ -34,9 +34,9 @@ when calculating poverty.}
 \item{poverty_line}{A \code{numeric}. The poverty line below which individuals are
 considered to be in accessibility poverty.}
 
-\item{poor_below_threshold}{Logic. If \code{TRUE} (default,) the observations below
+\item{poor_below_threshold}{A logical. If \code{TRUE} (default) the observations below
 the poverty line are considered to be poor. This is the correct approach
-for primal accessibility measures (e.g.cumulative accessibility). If
+for primal accessibility measures (e.g. cumulative accessibility). If
 \code{FALSE}, then observations above the poverty line are considered to be
 poor. This is the correct approach for dual accessibility measures (e.g.
 travel time to the closest facility). When set to \code{FALSE}, FGT 1 and 2
@@ -69,7 +69,7 @@ used to calculate it:
 \itemize{
 \item with \eqn{\alpha = 0} (FGT0) the measure captures the \emph{extent} of poverty
 as a simple headcount - i.e. the proportion of people below the poverty line;
-\item with \eqn{\alpha = 1} (FGT1) the measure, also know as the "poverty gap
+\item with \eqn{\alpha = 1} (FGT1) the measure, also known as the "poverty gap
 index", captures the \emph{severity} of poverty as the average percentage distance
 between the poverty line and the accessibility of individuals below the
 poverty line;
@@ -111,3 +111,11 @@ poverty
 \references{
 \insertAllCited{}
 }
+\seealso{
+Other inequality:
+\code{\link[=concentration_index]{concentration_index()}},
+\code{\link[=gini_index]{gini_index()}},
+\code{\link[=palma_ratio]{palma_ratio()}},
+\code{\link[=theil_t]{theil_t()}}
+}
+\concept{inequality}

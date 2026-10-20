@@ -8,7 +8,7 @@
 \description{
 \if{html}{\figure{logo.png}{options: style='float: right' alt='logo' width='120'}}
 
-A set of fast and convenient functions to help conducting accessibility analyses. Given a pre-computed travel cost matrix and a land use dataset (containing for example the location of jobs, healthcare and population), the package allows one to calculate accessibility levels, and accessibility poverty and inequality. The package covers the majority of the most commonly used accessibility measures (such as cumulative opportunities, gravity-based and floating catchment areas methods), some cutting edge measures proposed in the literature (e.g. balancing cost and constrained accessibility) as well as the most frequently used inequality and poverty metrics (such as the Palma ratio, the concentration and Theil indices and the FGT family of measures).
+A set of fast and convenient functions to help conduct accessibility analyses. Given a pre-computed travel cost matrix and a land use dataset (containing for example the location of jobs, healthcare and population), the package allows one to calculate accessibility levels, and accessibility poverty and inequality. The package covers the majority of the most commonly used accessibility measures (such as cumulative opportunities, gravity-based and floating catchment area methods), some cutting edge measures proposed in the literature (e.g. balancing cost and constrained accessibility) as well as the most frequently used inequality and poverty metrics (such as the Palma ratio, the concentration and Theil indices and the FGT family of measures).
 }
 \section{Usage}{
 

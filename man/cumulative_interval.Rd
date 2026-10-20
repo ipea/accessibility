@@ -49,7 +49,7 @@ within the interval. Defaults to 1.}
 \item{summary_function}{A function. This function is used to summarize a
 distribution of accessibility estimates within a travel cost interval as a
 single value. Can be any function that takes an arbitrary number of
-numeric values as as input and returns a single number as output. Defaults
+numeric values as input and returns a single number as output. Defaults
 to \code{\link[stats:median]{stats::median()}}.}
 
 \item{group_by}{A \code{character} vector. When not \code{character(0)} (the default),
@@ -61,7 +61,7 @@ accessibility estimates grouped by origin and by departure time.}
 
 \item{active}{A logical. When \code{TRUE}, the function calculates active
 accessibility (the quantity of opportunities that can be reached from
-a given origin). when \code{FALSE}, it calculates passive accessibility (by
+a given origin). When \code{FALSE}, it calculates passive accessibility (by
 how many people each destination can be reached), which is equivalent
 to the notion of market potential.}
 
@@ -79,7 +79,7 @@ travel matrix.
 Calculates the average or median number of opportunities that can be reached
 considering multiple maximum travel cost thresholds within a given travel
 cost interval specified by the user. The time interval cumulative
-accessibility measures was originally proposed by
+accessibility measure was originally proposed by
 \insertCite{tomasiello2023time;textual}{accessibility}.
 
 This function is generic over any kind of numeric travel cost,

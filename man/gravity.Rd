@@ -34,13 +34,14 @@ the travel cost between origins and destinations. The notion of cost
 here is generic over any kind of numeric travel cost, such as distance,
 time and money.}
 
-\item{decay_function}{A \code{fuction} that converts travel cost into an
+\item{decay_function}{A \code{function} that converts travel cost into an
 impedance factor used to weight opportunities. This function should take a
 \code{numeric} vector and also return a \code{numeric} vector as output, with the
 same length as the input. For convenience, the package currently includes
 the following functions: \code{\link[=decay_binary]{decay_binary()}}, \code{\link[=decay_exponential]{decay_exponential()}},
-\code{\link[=decay_power]{decay_power()}} and \code{\link[=decay_stepped]{decay_stepped()}}. See the documentation of each decay
-function for more details.}
+\code{\link[=decay_linear]{decay_linear()}}, \code{\link[=decay_logistic]{decay_logistic()}}, \code{\link[=decay_power]{decay_power()}} and
+\code{\link[=decay_stepped]{decay_stepped()}}. See the documentation of each decay function for more
+details.}
 
 \item{group_by}{A \code{character} vector. When not \code{character(0)} (the default),
 indicates the \code{travel_matrix} columns that should be used to group the
@@ -51,18 +52,18 @@ accessibility estimates grouped by origin and by departure time.}
 
 \item{active}{A logical. When \code{TRUE}, the function calculates active
 accessibility (the quantity of opportunities that can be reached from
-a given origin). when \code{FALSE}, it calculates passive accessibility (by
+a given origin). When \code{FALSE}, it calculates passive accessibility (by
 how many people each destination can be reached), which is equivalent
 to the notion of market potential.}
 
 \item{fill_missing_ids}{A \code{logical}. When calculating grouped accessibility
-estimates (i.e. when \code{by_col} is not \code{NULL}), some combinations of groups
+estimates (i.e. when \code{group_by} is not empty), some combinations of groups
 and origins may be missing. For example, if a single trip can depart from
 origin \code{A} at 7:15am and reach destination \code{B} within 55 minutes, but no
 trips departing from \code{A} at 7:30am can be completed at all, this second
 combination will not be included in the output. When \code{TRUE} (the default),
 the function identifies which combinations would be left out and fills
-their respective accessibility values with 0, which incurs in a
+their respective accessibility values with 0, which incurs a
 performance penalty.}
 }
 \value{
@@ -102,3 +103,9 @@ df_exp <- gravity(
 head(df_exp)
 \dontshow{\}) # examplesIf}
 }
+\seealso{
+Other accessibility measures:
+\code{\link[=balancing_cost]{balancing_cost()}},
+\code{\link[=cost_to_closest]{cost_to_closest()}}
+}
+\concept{accessibility measures}

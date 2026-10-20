@@ -13,16 +13,16 @@
 #'   others specified in `opportunity`.
 #' @template sociodem_data_without_income
 #' @param opportunity A string. The name of the column in `accessibility_data`
-#'   with the accessibility levels to be considerend when calculating
+#'   with the accessibility levels to be considered when calculating
 #'   accessibility poverty.
 #' @param population A string. The name of the column in `sociodemographic_data`
 #'   with the number of people in each cell. Used to weigh accessibility levels
 #'   when calculating poverty.
 #' @param poverty_line A `numeric`. The poverty line below which individuals are
 #'   considered to be in accessibility poverty.
-#' @param poor_below_threshold Logic. If `TRUE` (default,) the observations below
+#' @param poor_below_threshold A logical. If `TRUE` (default) the observations below
 #'       the poverty line are considered to be poor. This is the correct approach
-#'       for primal accessibility measures (e.g.cumulative accessibility). If
+#'       for primal accessibility measures (e.g. cumulative accessibility). If
 #'       `FALSE`, then observations above the poverty line are considered to be
 #'       poor. This is the correct approach for dual accessibility measures (e.g.
 #'       travel time to the closest facility). When set to `FALSE`, FGT 1 and 2
@@ -44,7 +44,7 @@
 #' - with \eqn{\alpha = 0} (FGT0) the measure captures the *extent* of poverty
 #' as a simple headcount - i.e. the proportion of people below the poverty line;
 #'
-#' - with \eqn{\alpha = 1} (FGT1) the measure, also know as the "poverty gap
+#' - with \eqn{\alpha = 1} (FGT1) the measure, also known as the "poverty gap
 #' index", captures the *severity* of poverty as the average percentage distance
 #' between the poverty line and the accessibility of individuals below the
 #' poverty line;
@@ -60,6 +60,8 @@
 #'
 #' @references
 #' \insertAllCited{}
+#'
+#' @family equity
 #'
 #' @examplesIf identical(tolower(Sys.getenv("NOT_CRAN")), "true")
 #' data_dir <- system.file("extdata", package = "accessibility")
@@ -84,14 +86,15 @@
 #' poverty
 #'
 #' @export
-fgt_poverty <- function(accessibility_data,
-                         sociodemographic_data,
-                         opportunity,
-                         population,
-                         poverty_line,
-                         poor_below_threshold = TRUE,
-                         group_by = character(0)) {
-
+fgt_poverty <- function(
+  accessibility_data,
+  sociodemographic_data,
+  opportunity,
+  population,
+  poverty_line,
+  poor_below_threshold = TRUE,
+  group_by = character(0)
+) {
   checkmate::assert_string(opportunity)
   checkmate::assert_string(population)
   checkmate::assert_number(poverty_line, lower = 0, finite = TRUE)
@@ -137,7 +140,6 @@ fgt_poverty <- function(accessibility_data,
 
   # primal accessibility ---------------------------------------------------------
   if (isTRUE(poor_below_threshold)) {
-
     data[get(.opp_colname) >= poverty_line, c(".fgt0", ".fgt1", ".fgt2") := 0]
 
     data[
@@ -147,9 +149,9 @@ fgt_poverty <- function(accessibility_data,
     data[
       get(.opp_colname) < poverty_line,
       `:=`(
-        .fgt0 = .norm_opp_shortfall ^ 0,
-        .fgt1 = .norm_opp_shortfall ^ 1,
-        .fgt2 = .norm_opp_shortfall ^ 2
+        .fgt0 = .norm_opp_shortfall^0,
+        .fgt1 = .norm_opp_shortfall^1,
+        .fgt2 = .norm_opp_shortfall^2
       )
     ]
   }
@@ -167,13 +169,12 @@ fgt_poverty <- function(accessibility_data,
     data[
       get(.opp_colname) > poverty_line,
       `:=`(
-        .fgt0 = .norm_opp_shortfall ^ 0,
-        .fgt1 = .norm_opp_shortfall ^ 1,
-        .fgt2 = .norm_opp_shortfall ^ 2
+        .fgt0 = .norm_opp_shortfall^0,
+        .fgt1 = .norm_opp_shortfall^1,
+        .fgt2 = .norm_opp_shortfall^2
       )
     ]
   }
-
 
   if (nrow(data) == 0 && identical(group_by, character(0))) {
     fgt <- data.table::data.table(
@@ -182,8 +183,7 @@ fgt_poverty <- function(accessibility_data,
       FGT2 = numeric(0)
     )
   } else {
-    fgt <- data[
-      ,
+    fgt <- data[,
       .(
         FGT0 = stats::weighted.mean(x = .fgt0, w = get(.pop_colname)),
         FGT1 = stats::weighted.mean(x = .fgt1, w = get(.pop_colname)),
@@ -193,7 +193,9 @@ fgt_poverty <- function(accessibility_data,
     ]
   }
 
-  if (exists("original_class")) class(fgt) <- original_class
+  if (exists("original_class")) {
+    class(fgt) <- original_class
+  }
 
   return(fgt[])
 }

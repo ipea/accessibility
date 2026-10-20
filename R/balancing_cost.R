@@ -14,25 +14,32 @@
 #' @template demand
 #' @param cost_increment A number. The cost increment that should be used when
 #'   defining the travel cost distribution from which the potential balancing
-#'   costs will be picked. For example, an increment of 1 tends to suitable for
+#'   costs will be picked. For example, an increment of 1 tends to be suitable for
 #'   travel time distributions, meaning that the function will first check if
 #'   any origins reach their balancing cost with a travel time of 0 minutes,
-#'   then 1 minute, 2 minutes, 3, 4, ..., etc. A increment of 1 might be too big
+#'   then 1 minute, 2 minutes, 3, 4, ..., etc. An increment of 1 might be too big
 #'   for a distribution of monetary costs, on the other hand, which could
 #'   possibly benefit from a smaller increment of 0.05, for example, resulting
 #'   in the function looking for balancing costs first at a cost of 0, then
 #'   0.05, 0.10, ..., etc. Defaults to 1.
 #' @template group_by
-#' @template fill_missing_ids_combinations
+#' @param fill_missing_ids A `logical`. Origins that never reach as many
+#'   opportunities as there are people residing in them, as well as (when
+#'   `group_by` is not empty) combinations of groups and origins missing from
+#'   the travel matrix, would not be included in the output. When `TRUE` (the
+#'   default), the function identifies which combinations would be left out and
+#'   fills their respective balancing costs with `NA`, which incurs a
+#'   performance penalty.
 #'
-#' @template return_accessibility
-#' @return A data frame containing the accessibility estimates for each origin
-#'   in the travel matrix. Origins marked with a `NA` balancing cost never reach
-#'   as many opportunities as there is people residing in them, given the
-#'   specified travel matrix.
+#' @return A data frame containing the balancing cost of each origin in the
+#'   travel matrix. Origins with a `NA` balancing cost never reach as many
+#'   opportunities as there are people residing in them, given the specified
+#'   travel matrix.
 #'
 #' @references
 #' \insertAllCited{}
+#'
+#' @family accessibility measures
 #'
 #' @examplesIf identical(tolower(Sys.getenv("NOT_CRAN")), "true")
 #' data_dir <- system.file("extdata", package = "accessibility")

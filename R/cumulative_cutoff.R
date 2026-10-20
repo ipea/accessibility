@@ -13,7 +13,7 @@
 #' @param cutoff Either a `numeric` vector or a list of `numeric` vectors, one
 #'   for each cost specified in `travel_cost`. The travel cost cutoffs to
 #'   consider when calculating accessibility levels. If a list, the function
-#'   finds every single possible cutoff combination and use them to calculate
+#'   finds every single possible cutoff combination and uses them to calculate
 #'   accessibility (e.g. if one specifies that travel time cutoffs should be 30
 #'   and 60 minutes and that monetary cost cutoffs should be 5 and 10 dollars,
 #'   the output includes accessibility estimates limited at 30 min & 5 dollars,
@@ -26,13 +26,13 @@
 #' @template group_by
 #' @template active
 #' @param fill_missing_ids A `logical`. Calculating cumulative accessibility may
-#'   result in missing ids if the they cannot reach any of the destinations
+#'   result in missing ids if they cannot reach any of the destinations
 #'   within the specified travel cost cutoff. For example, using a travel time
 #'   cutoff of 20 minutes, when estimating the accessibility of origin `A` that
 #'   can only reach destinations with more than 40 minutes results in id `A`
 #'   not being included in the output. When `TRUE` (the default), the function
 #'   identifies which origins would be left out and fills their respective
-#'   accessibility values with 0, which incurs in a performance penalty.
+#'   accessibility values with 0, which incurs a performance penalty.
 #'
 #' @template return_accessibility
 #'

@@ -51,8 +51,8 @@ remotes::install_github("ipea/accessibility")
 
 ## Usage
 
-This section aims to present a very brief overview of some of the packages'
-features. Fore more details please read the vignettes:
+This section aims to present a very brief overview of some of the package's
+features. For more details please read the vignettes:
 
 - [Introduction to **accessibility**: calculating accessibility
   measures](https://ipea.github.io/accessibility/articles/accessibility.html)

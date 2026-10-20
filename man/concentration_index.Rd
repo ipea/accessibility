@@ -25,7 +25,7 @@ Must contain the columns \code{id} and any others specified in \code{population}
 \code{income}.}
 
 \item{opportunity}{A string. The name of the column in \code{accessibility_data}
-with the accessibility levels to be considerend when calculating inequality
+with the accessibility levels to be considered when calculating inequality
 levels.}
 
 \item{population}{A string. The name of the column in \code{sociodemographic_data}
@@ -59,7 +59,7 @@ A data frame containing the inequality estimates for the study area.
 }
 \description{
 Calculates the Concentration Index (CI) of a given accessibility
-distribution. This measures estimates the extent to which accessibility
+distribution. This measure estimates the extent to which accessibility
 inequalities are systematically associated with individuals' socioeconomic
 levels. CI values can theoretically vary between -1 and +1 (when all
 accessibility is concentrated in the most or in the least disadvantaged
@@ -98,6 +98,7 @@ ci
 }
 \seealso{
 Other inequality:
+\code{\link[=fgt_poverty]{fgt_poverty()}},
 \code{\link[=gini_index]{gini_index()}},
 \code{\link[=palma_ratio]{palma_ratio()}},
 \code{\link[=theil_t]{theil_t()}}

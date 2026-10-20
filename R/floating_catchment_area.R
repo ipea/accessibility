@@ -17,7 +17,8 @@
 #' @template group_by
 #' @template fill_missing_ids_combinations
 #'
-#' @template return_accessibility
+#' @return A data frame containing the accessibility estimates for each origin
+#'   in the travel matrix.
 #'
 #' @section Details:
 #' The package currently includes two built-in FCA measures:

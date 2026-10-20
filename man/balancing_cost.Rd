@@ -40,10 +40,10 @@ considered.}
 
 \item{cost_increment}{A number. The cost increment that should be used when
 defining the travel cost distribution from which the potential balancing
-costs will be picked. For example, an increment of 1 tends to suitable for
+costs will be picked. For example, an increment of 1 tends to be suitable for
 travel time distributions, meaning that the function will first check if
 any origins reach their balancing cost with a travel time of 0 minutes,
-then 1 minute, 2 minutes, 3, 4, ..., etc. A increment of 1 might be too big
+then 1 minute, 2 minutes, 3, 4, ..., etc. An increment of 1 might be too big
 for a distribution of monetary costs, on the other hand, which could
 possibly benefit from a smaller increment of 0.05, for example, resulting
 in the function looking for balancing costs first at a cost of 0, then
@@ -56,25 +56,19 @@ departure time column, that specifies the departure time of each entry in
 the data frame, passing \code{"departure_time"} to this parameter results in
 accessibility estimates grouped by origin and by departure time.}
 
-\item{fill_missing_ids}{A \code{logical}. When calculating grouped accessibility
-estimates (i.e. when \code{by_col} is not \code{NULL}), some combinations of groups
-and origins may be missing. For example, if a single trip can depart from
-origin \code{A} at 7:15am and reach destination \code{B} within 55 minutes, but no
-trips departing from \code{A} at 7:30am can be completed at all, this second
-combination will not be included in the output. When \code{TRUE} (the default),
-the function identifies which combinations would be left out and fills
-their respective accessibility values with 0, which incurs in a
+\item{fill_missing_ids}{A \code{logical}. Origins that never reach as many
+opportunities as there are people residing in them, as well as (when
+\code{group_by} is not empty) combinations of groups and origins missing from
+the travel matrix, would not be included in the output. When \code{TRUE} (the
+default), the function identifies which combinations would be left out and
+fills their respective balancing costs with \code{NA}, which incurs a
 performance penalty.}
 }
 \value{
-A data frame containing the accessibility estimates for each
-origin/destination (depending if \code{active} is \code{TRUE} or \code{FALSE}) in the
+A data frame containing the balancing cost of each origin in the
+travel matrix. Origins with a \code{NA} balancing cost never reach as many
+opportunities as there are people residing in them, given the specified
 travel matrix.
-
-A data frame containing the accessibility estimates for each origin
-in the travel matrix. Origins marked with a \code{NA} balancing cost never reach
-as many opportunities as there is people residing in them, given the
-specified travel matrix.
 }
 \description{
 Calculates the balancing cost measure, which is defined as the travel cost
@@ -105,3 +99,9 @@ head(bc)
 \references{
 \insertAllCited{}
 }
+\seealso{
+Other accessibility measures:
+\code{\link[=cost_to_closest]{cost_to_closest()}},
+\code{\link[=gravity]{gravity()}}
+}
+\concept{accessibility measures}

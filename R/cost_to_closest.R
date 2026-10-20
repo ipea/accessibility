@@ -18,12 +18,14 @@
 #'   if they cannot reach the specified amount of opportunities across all
 #'   destinations they can reach. For example, estimating the minimum travel
 #'   time that an origin that can only reach 4 opportunities takes to reach 5
-#'   opportunities resulting in such origin not being included in the output.
+#'   opportunities results in such origin not being included in the output.
 #'   When `TRUE` (the default), the function identifies which ids would be left
-#'   out from the output and fill their respective minimum travel costs with
-#'   `Inf`, which incurs in a performance penalty.
+#'   out from the output and fills their respective minimum travel costs with
+#'   `Inf`, which incurs a performance penalty.
 #'
 #' @template return_accessibility
+#'
+#' @family accessibility measures
 #'
 #' @examplesIf identical(tolower(Sys.getenv("NOT_CRAN")), "true")
 #' data_dir <- system.file("extdata", package = "accessibility")

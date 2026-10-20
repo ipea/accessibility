@@ -40,13 +40,14 @@ time and money.}
 number of opportunity-demanders at each origin (e.g., people) that will be
 considered.}
 
-\item{decay_function}{A \code{fuction} that converts travel cost into an
+\item{decay_function}{A \code{function} that converts travel cost into an
 impedance factor used to weight opportunities. This function should take a
 \code{numeric} vector and also return a \code{numeric} vector as output, with the
 same length as the input. For convenience, the package currently includes
 the following functions: \code{\link[=decay_binary]{decay_binary()}}, \code{\link[=decay_exponential]{decay_exponential()}},
-\code{\link[=decay_power]{decay_power()}} and \code{\link[=decay_stepped]{decay_stepped()}}. See the documentation of each decay
-function for more details.}
+\code{\link[=decay_linear]{decay_linear()}}, \code{\link[=decay_logistic]{decay_logistic()}}, \code{\link[=decay_power]{decay_power()}} and
+\code{\link[=decay_stepped]{decay_stepped()}}. See the documentation of each decay function for more
+details.}
 
 \item{alpha}{A \code{numeric}. A parameter used to modulate the effect of demand
 by population. When less than 1, opportunities are allocated more rapidly
@@ -61,13 +62,13 @@ the data frame, passing \code{"departure_time"} to this parameter results in
 accessibility estimates grouped by origin and by departure time.}
 
 \item{fill_missing_ids}{A \code{logical}. When calculating grouped accessibility
-estimates (i.e. when \code{by_col} is not \code{NULL}), some combinations of groups
+estimates (i.e. when \code{group_by} is not empty), some combinations of groups
 and origins may be missing. For example, if a single trip can depart from
 origin \code{A} at 7:15am and reach destination \code{B} within 55 minutes, but no
 trips departing from \code{A} at 7:30am can be completed at all, this second
 combination will not be included in the output. When \code{TRUE} (the default),
 the function identifies which combinations would be left out and fills
-their respective accessibility values with 0, which incurs in a
+their respective accessibility values with 0, which incurs a
 performance penalty.}
 
 \item{detailed_results}{A \code{logical}. Whether to return spatial availability
@@ -78,12 +79,13 @@ availability. Please note that the argument \code{fill_missing_ids}
 does not affect the output when \code{detailed_results} is \code{TRUE}.}
 }
 \value{
-A data frame containing the accessibility estimates for each
-origin/destination (depending if \code{active} is \code{TRUE} or \code{FALSE}) in the
-travel matrix.
+A data frame containing the spatial availability estimates for
+each origin in the travel matrix. When \code{detailed_results} is \code{TRUE}, the
+estimates are given for each origin-destination pair instead, alongside the
+balancing factors used to calculate them.
 }
 \description{
-Calculates spatial availability, an accessibility measured proposed by
+Calculates spatial availability, an accessibility measure proposed by
 \insertCite{soukhov2023introducing;textual}{accessibility} that takes into
 account competition effects. The accessibility levels that result from using
 this measure are proportional both to the demand in each origin and to the

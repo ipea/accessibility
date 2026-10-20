@@ -439,8 +439,7 @@ assert_detailed_fill_missing_ids <- function(fill_missing_ids,
     cli::cli_warn(
       "Found non-default {.arg fill_missing_ids} (FALSE) with
       {.code detailed_results = TRUE}. Please note that
-      {.arg fill_missing_ids} does not affect the detailed spatial
-      availability output."
+      {.arg fill_missing_ids} does not affect the detailed output."
     )
   }
 

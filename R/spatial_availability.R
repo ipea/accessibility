@@ -1,6 +1,6 @@
 #' Spatial availability
 #'
-#' Calculates spatial availability, an accessibility measured proposed by
+#' Calculates spatial availability, an accessibility measure proposed by
 #' \insertCite{soukhov2023introducing;textual}{accessibility} that takes into
 #' account competition effects. The accessibility levels that result from using
 #' this measure are proportional both to the demand in each origin and to the
@@ -27,7 +27,10 @@
 #'   availability. Please note that the argument `fill_missing_ids`
 #'   does not affect the output when `detailed_results` is `TRUE`.
 #'
-#' @template return_accessibility
+#' @return A data frame containing the spatial availability estimates for
+#'   each origin in the travel matrix. When `detailed_results` is `TRUE`, the
+#'   estimates are given for each origin-destination pair instead, alongside the
+#'   balancing factors used to calculate them.
 #'
 #' @references
 #' \insertAllCited{}

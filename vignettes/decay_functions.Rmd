@@ -24,7 +24,7 @@ larger. For convenience, the package ships with some of the most frequently
 used functions in the accessibility literature, which are discussed below.
 Additionally, users can pass custom functions to convert travel costs into
 weights to be applied to the opportunities, which is discussed further down in
-this the vignette.
+this vignette.
 
 # Currently available decay functions
 
@@ -96,7 +96,7 @@ $\beta$ is the parameter that tells the speed of decay.
 ## Stepped
 
 Similar to the binary function, but can take an arbitrary number of steps. The
-current implementation assumes that values changes at each step, instead of
+current implementation assumes that values change at each step, instead of
 right after it.
 
 $$
@@ -162,8 +162,8 @@ output_fn <- decay_exponential(c(0.2, 0.3))
 output_fn(c(10, 15, 20))
 ```
 
-`decay_stepped()`, as the only decay function that takes more than one argument
-(both `steps` and `weights`) names the output elements after the combination of
+`decay_stepped()`, which takes two arguments that can be lists of vectors
+(both `steps` and `weights`), names the output elements after the combination of
 steps and weights:
 
 ```{r}

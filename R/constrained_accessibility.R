@@ -40,7 +40,7 @@
 #'
 #' Allocates the system-wide total proportionally based on travel impedance
 #' between origins and destinations. This measure uses the logic of a
-#' total ~(or 'unconstrained' by Wilson's terms)~ constraint.
+#' total (or 'unconstrained' by Wilson's terms) constraint.
 #'
 #' Use this measure when the total quantity of **supply** OR **demand** in the
 #' system is known and representing accessibility as a proportion of this total
@@ -156,7 +156,7 @@
 #' to match; otherwise, the model will not converge.
 #'  - `active` must be `NULL`. Since supply must match demand, their units are
 #'  the same and there is no distinction between 'active' and 'passive' notions.
-#' - Only accepts`detailed_results = TRUE`.
+#' - Only accepts `detailed_results = TRUE`.
 #'
 #' ### Interpretation:
 #' - Results include OD-level flows (`flow`) along with balancing factors (`A_i`,
