@@ -60,13 +60,18 @@ decay_logistic <- function(cutoff, sd) {
       1 + exp(((cost - median) * base::pi) / (std_dev * sqrt(3)))
     }
 
-    sd_list <- mapply(
-      median = cutoff,
-      std_dev = sd,
-      FUN = function(median, std_dev) {
-        g(0, median, std_dev) / g(travel_cost, median, std_dev)
-      },
-      SIMPLIFY = FALSE
+    sd_list <- weigh_unique_costs(
+      travel_cost,
+      function(cost) {
+        mapply(
+          median = cutoff,
+          std_dev = sd,
+          FUN = function(median, std_dev) {
+            g(0, median, std_dev) / g(cost, median, std_dev)
+          },
+          SIMPLIFY = FALSE
+        )
+      }
     )
 
     list_names <- paste0("c", cutoff, ";sd", sd)

@@ -127,6 +127,10 @@
 - The functions created by `decay_logistic()` and `decay_stepped()` are now
   vectorised instead of looping over each travel cost, which makes them about
   50 and 200 times faster on large travel matrices, with identical results.
+- The functions created by `decay_exponential()`, `decay_power()` and
+  `decay_logistic()` now calculate each weight once per unique travel cost
+  when costs are repeated (e.g. rounded travel times), which makes them about
+  2 to 6 times faster, with identical results.
 - Errors and warnings raised by the package now use `{cli}`, with consistent
   formatting of argument names and values. Long lists of ids or columns in
   messages are abbreviated. `{cli}` and `{rlang}` are new dependencies.

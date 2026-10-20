@@ -33,9 +33,9 @@ decay_exponential <- function(decay_value) {
   )
 
   weighting_function <- function(travel_cost) {
-    weights_list <- lapply(
-      decay_value,
-      function(x) exp(-x * travel_cost)
+    weights_list <- weigh_unique_costs(
+      travel_cost,
+      function(cost) lapply(decay_value, function(x) exp(-x * cost))
     )
     names(weights_list) <- decay_value
 
