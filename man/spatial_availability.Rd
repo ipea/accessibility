@@ -134,7 +134,7 @@ detailed_df
 \insertAllCited{}
 }
 \seealso{
-Other Constrained accessibility: 
-\code{\link{constrained_accessibility}()}
+Other Constrained accessibility:
+\code{\link[=constrained_accessibility]{constrained_accessibility()}}
 }
 \concept{Constrained accessibility}

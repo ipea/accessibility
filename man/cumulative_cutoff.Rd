@@ -131,7 +131,7 @@ head(df)
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-Other cumulative access: 
-\code{\link{cumulative_interval}()}
+Other cumulative access:
+\code{\link[=cumulative_interval]{cumulative_interval()}}
 }
 \concept{cumulative access}

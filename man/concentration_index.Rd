@@ -97,9 +97,9 @@ ci
 \insertAllCited{}
 }
 \seealso{
-Other inequality: 
-\code{\link{gini_index}()},
-\code{\link{palma_ratio}()},
-\code{\link{theil_t}()}
+Other inequality:
+\code{\link[=gini_index]{gini_index()}},
+\code{\link[=palma_ratio]{palma_ratio()}},
+\code{\link[=theil_t]{theil_t()}}
 }
 \concept{inequality}

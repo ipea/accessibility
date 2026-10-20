@@ -55,11 +55,11 @@ weighting_function(c(0, 30, 45, 60))
 \insertAllCited{}
 }
 \seealso{
-Other decay functions: 
-\code{\link{decay_binary}()},
-\code{\link{decay_exponential}()},
-\code{\link{decay_linear}()},
-\code{\link{decay_power}()},
-\code{\link{decay_stepped}()}
+Other decay functions:
+\code{\link[=decay_binary]{decay_binary()}},
+\code{\link[=decay_exponential]{decay_exponential()}},
+\code{\link[=decay_linear]{decay_linear()}},
+\code{\link[=decay_power]{decay_power()}},
+\code{\link[=decay_stepped]{decay_stepped()}}
 }
 \concept{decay functions}

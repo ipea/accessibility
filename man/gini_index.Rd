@@ -67,9 +67,9 @@ gini
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-Other inequality: 
-\code{\link{concentration_index}()},
-\code{\link{palma_ratio}()},
-\code{\link{theil_t}()}
+Other inequality:
+\code{\link[=concentration_index]{concentration_index()}},
+\code{\link[=palma_ratio]{palma_ratio()}},
+\code{\link[=theil_t]{theil_t()}}
 }
 \concept{inequality}

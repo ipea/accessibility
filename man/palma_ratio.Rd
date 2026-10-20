@@ -80,9 +80,9 @@ palma
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-Other inequality: 
-\code{\link{concentration_index}()},
-\code{\link{gini_index}()},
-\code{\link{theil_t}()}
+Other inequality:
+\code{\link[=concentration_index]{concentration_index()}},
+\code{\link[=gini_index]{gini_index()}},
+\code{\link[=theil_t]{theil_t()}}
 }
 \concept{inequality}

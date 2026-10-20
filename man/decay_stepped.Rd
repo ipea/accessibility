@@ -64,11 +64,11 @@ weighting_function(c(0, 10, 20, 30, 40))
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-Other decay functions: 
-\code{\link{decay_binary}()},
-\code{\link{decay_exponential}()},
-\code{\link{decay_linear}()},
-\code{\link{decay_logistic}()},
-\code{\link{decay_power}()}
+Other decay functions:
+\code{\link[=decay_binary]{decay_binary()}},
+\code{\link[=decay_exponential]{decay_exponential()}},
+\code{\link[=decay_linear]{decay_linear()}},
+\code{\link[=decay_logistic]{decay_logistic()}},
+\code{\link[=decay_power]{decay_power()}}
 }
 \concept{decay functions}

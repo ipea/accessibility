@@ -343,7 +343,7 @@ constrained_accessibility(
 \insertAllCited{}
 }
 \seealso{
-Other Constrained accessibility: 
-\code{\link{spatial_availability}()}
+Other Constrained accessibility:
+\code{\link[=spatial_availability]{spatial_availability()}}
 }
 \concept{Constrained accessibility}
