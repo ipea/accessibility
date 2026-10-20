@@ -304,3 +304,27 @@ test_that("observations with tied income share the same rank", {
   result <- tester(toy_access, toy_sociodem, group_by = character(0))
   expect_equal(result$concentration_index, expected_ci)
 })
+
+test_that("returns 0 when access is constant, for both types", {
+  toy_access <- data.table::data.table(
+    id = rep(c("a", "b", "c"), 2),
+    mode = rep(c("car", "walk"), each = 3),
+    jobs = c(5, 5, 5, 1, 2, 6)
+  )
+  toy_sociodem <- data.table::data.table(
+    id = c("a", "b", "c"),
+    population = c(1, 2, 3),
+    income_per_capita = c(1, 2, 3)
+  )
+
+  standard <- tester(toy_access, toy_sociodem)
+  corrected <- tester(toy_access, toy_sociodem, type = "corrected")
+
+  expect_identical(standard[mode == "car"]$concentration_index, 0)
+  expect_identical(corrected[mode == "car"]$concentration_index, 0)
+
+  # the level with some inequality is unaffected by the constant one
+
+  expect_false(anyNA(corrected$concentration_index))
+  expect_true(corrected[mode == "walk"]$concentration_index > 0)
+})

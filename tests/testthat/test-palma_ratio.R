@@ -297,3 +297,43 @@ test_that("handles missing data correctly", {
   suppressWarnings(result <- tester(no_access, group_by = character()))
   expect_identical(result, data.table::data.table(palma_ratio = numeric()))
 })
+
+test_that("result doesn't depend on the scale of the population weights", {
+  access_data <- cumulative_cutoff(
+    travel_matrix,
+    land_use_data,
+    opportunity = "jobs",
+    travel_cost = "travel_time",
+    cutoff = 30,
+    group_by = "mode"
+  )
+  population_shares <- data.table::copy(land_use_data)
+  population_shares[, population := population / sum(population)]
+
+  expected <- tester(access_data)
+  result <- tester(access_data, population_shares)
+  expect_false(anyNA(result$palma_ratio))
+  expect_equal(result, expected)
+})
+
+test_that("only returns the group_by combinations present in the data", {
+  transit_matrix <- travel_matrix[mode == "transit"]
+  transit_matrix[, mode := NULL]
+
+  car_am <- cumulative_cutoff(
+    transit_matrix,
+    land_use_data,
+    opportunity = "jobs",
+    travel_cost = "travel_time",
+    cutoff = 30
+  )
+  car_am[, `:=`(mode = "car", period = "am")]
+
+  bus_pm <- data.table::copy(car_am)
+  bus_pm[, `:=`(mode = "bus", period = "pm")]
+
+  result <- tester(rbind(car_am, bus_pm), group_by = c("mode", "period"))
+  expect_identical(nrow(result), 2L)
+  expect_setequal(paste(result$mode, result$period), c("car am", "bus pm"))
+  expect_null(data.table::key(result))
+})

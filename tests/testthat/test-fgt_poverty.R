@@ -28,6 +28,15 @@ test_that("raises errors due to incorrect input", {
 
   expect_error(tester(poverty_line = "a"))
   expect_error(tester(poverty_line = -1))
+  expect_error(tester(poverty_line = c(10000, 20000)))
+  expect_error(tester(poverty_line = NA_real_))
+  expect_error(tester(poverty_line = Inf))
+  expect_error(
+    tester(poverty_line = 0, poor_below_threshold = FALSE),
+    regexp = "greater than 0"
+  )
+  expect_error(tester(poor_below_threshold = NA))
+  expect_error(tester(poor_below_threshold = c(TRUE, FALSE)))
 
   expect_error(tester(group_by = 1))
   expect_error(tester(group_by = NA))

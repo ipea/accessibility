@@ -69,6 +69,20 @@
   replaced by 0 when filling missing ids. Travel cost columns with
   non-syntactic names (e.g. `"bus fare"`) now also work.
 
+- Fixed a bug in `palma_ratio()` in which the income cutoffs depended on the
+  scale of the population weights, which resulted in `NA` when population was
+  given as shares (e.g. summing to 1).
+- Fixed a bug in `concentration_index(type = "corrected")` in which the index
+  was `NaN` when everyone had the same accessibility. It's now 0, as with
+  `type = "standard"`.
+- `fgt_poverty()` now raises an error if `poverty_line` is not a single finite
+  number (or is 0 when `poor_below_threshold = FALSE`) and if
+  `poor_below_threshold` is not a single `TRUE` or `FALSE`. Previously these
+  inputs silently returned recycled values, `NA` or `Inf`, or a cryptic error.
+- Fixed a bug in `palma_ratio()` in which, with more than one `group_by`
+  column, the output included rows with `NA` for group combinations that were
+  not present in the data. The output is also no longer keyed.
+
 ## Minor changes
 
 - Accessibility, inequality and poverty functions now raise an error if

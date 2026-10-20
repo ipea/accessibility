@@ -94,8 +94,15 @@ fgt_poverty <- function(accessibility_data,
 
   checkmate::assert_string(opportunity)
   checkmate::assert_string(population)
-  checkmate::assert_numeric(poverty_line, lower = 0)
-  checkmate::assert_logical(poor_below_threshold)
+  checkmate::assert_number(poverty_line, lower = 0, finite = TRUE)
+  checkmate::assert_flag(poor_below_threshold)
+  if (!poor_below_threshold && poverty_line == 0) {
+    stop(
+      "Assertion on 'poverty_line' failed: Value must be greater than 0 when ",
+      "'poor_below_threshold' is FALSE.",
+      call. = FALSE
+    )
+  }
   assert_access_group_by(group_by)
   assert_accessibility_data(accessibility_data, opportunity, group_by)
   assert_sociodemographic_data(

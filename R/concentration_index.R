@@ -168,7 +168,17 @@ concentration_index <- function(accessibility_data,
     # from Erreygers (2009), comparing equations 27 and 24, we have the
     # following correction factor
     # https://doi.org/10.1016/j.jhealeco.2008.02.003
-    data[, correction_factor := 4 * avg_access / (upper - lower)]
+    # when access is constant (upper == lower) there is no inequality, and the
+    # factor would be Inf (0 * Inf = NaN). it's set to 0 so the index is 0
+
+    data[
+      ,
+      correction_factor := data.table::fifelse(
+        upper > lower,
+        4 * avg_access / (upper - lower),
+        0
+      )
+    ]
 
     ci <- data[
       ,

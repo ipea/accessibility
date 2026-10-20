@@ -93,7 +93,8 @@ utils::globalVariables(
     "total",
     "share_of_total",
     ".block_share",
-    "..groups"
+    "..groups",
+    "..group_by"
   )
 )
 
