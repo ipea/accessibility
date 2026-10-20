@@ -64,6 +64,10 @@
   interval was not considered when the interval width was not a multiple of
   `interval_increment` (e.g. `interval = c(0, 25)` with
   `interval_increment = 10`).
+- Fixed a bug in `cumulative_cutoff()` in which cutoffs with floating point
+  noise (e.g. created with `seq(0, 0.5, by = 0.1)`) could have their results
+  replaced by 0 when filling missing ids. Travel cost columns with
+  non-syntactic names (e.g. `"bus fare"`) now also work.
 
 ## Minor changes
 

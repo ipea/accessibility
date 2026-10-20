@@ -379,3 +379,38 @@ test_that("works even if travel_matrix and land_use has specific colnames", {
 
   land_use_data[, opportunity := NULL]
 })
+
+test_that("works with cutoffs with floating point noise and any colname", {
+  toy_matrix <- data.table::data.table(
+    from_id = c(rep(c("a", "b", "c"), each = 3), "d"),
+    to_id = c(rep(c("a", "b", "c"), 3), "a"),
+    fare = c(0, 0.2, 0.3, 0.2, 0, 0.4, 0.3, 0.4, 0, 1)
+  )
+  toy_land_use <- data.table::data.table(
+    id = c("a", "b", "c", "d"),
+    jobs = c(10, 20, 30, 40)
+  )
+
+  # seq() cutoffs are not exactly 0.1, 0.2, ... (e.g. the 4th is
+  # 0.30000000000000004). d doesn't reach anyone, so missing ids are filled
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    travel_cost = "fare",
+    cutoff = seq(0, 0.5, by = 0.1),
+    group_by = character(0)
+  )
+  expect_identical(result[id == "a"]$jobs, c(10, 10, 30, 60, 60, 60))
+  expect_identical(result[id == "d"]$jobs, rep(0, 6))
+
+  data.table::setnames(toy_matrix, "fare", "bus fare")
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    travel_cost = "bus fare",
+    cutoff = 0.3,
+    group_by = character(0)
+  )
+  expect_identical(result$jobs, c(60, 30, 40, 0))
+})

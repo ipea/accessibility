@@ -155,16 +155,22 @@ cumulative_cutoff <- function(travel_matrix,
       as.list(cutoff_df),
       SIMPLIFY = FALSE,
       FUN = function(...) {
-        cutoff_args <- unlist(list(...))
-        subset_expr <- paste(
-          names(cutoff_args),
-          cutoff_args,
-          sep = " <= ",
-          collapse = " & "
-        )
-        subset_expr <- parse(text = subset_expr)
+        cutoff_args <- list(...)
 
-        cum_opps <- data[eval(subset_expr)]
+        # the filter and the cutoff columns use the exact cutoff values, which
+        # must match the values used to fill missing ids later. NA costs count
+        # as not reachable
+
+        within_cutoffs <- Reduce(
+          `&`,
+          Map(
+            function(cost, value) data[[cost]] <= value,
+            names(cutoff_args),
+            cutoff_args
+          )
+        )
+
+        cum_opps <- data[within_cutoffs]
 
         if (length(travel_cost) > 1) {
           .od_group <- c(setdiff(groups, group_id), "from_id", "to_id")
@@ -177,19 +183,11 @@ cumulative_cutoff <- function(travel_matrix,
           by = eval(groups, envir = env)
         ]
 
-        cutoff_id_expr <- paste0(
-          "`:=`(",
-          paste(
-            names(cutoff_args),
-            cutoff_args,
-            sep = " = ",
-            collapse = ", "
-          ),
-          ")"
-        )
-        cutoff_id_expr <- parse(text = cutoff_id_expr)
+        for (cost in names(cutoff_args)) {
+          data.table::set(cum_opps, j = cost, value = cutoff_args[[cost]])
+        }
 
-        cum_opps[, eval(cutoff_id_expr)]
+        cum_opps
       }
     )
   )
