@@ -14,8 +14,7 @@
 #'   that approximate binary decay, while higher values tend to linearize the
 #'   decay.
 #'
-#' @return A `function` that takes a generic travel cost vector (`numeric`) as
-#'   input and returns a vector of weights (`numeric`).
+#' @template return_decay_function
 #'
 #' @details When using a function created with `decay_logistic()`, the output is
 #'   named after the combination of cutoffs (`"c"`) and standard deviations
@@ -65,11 +64,7 @@ decay_logistic <- function(cutoff, sd) {
       median = cutoff,
       std_dev = sd,
       FUN = function(median, std_dev) {
-        vapply(
-          travel_cost,
-          function(x) g(0, median, std_dev) / g(x, median, std_dev),
-          numeric(1)
-        )
+        g(0, median, std_dev) / g(travel_cost, median, std_dev)
       },
       SIMPLIFY = FALSE
     )

@@ -16,8 +16,7 @@
 #'   value at the actual step, not right after it. Please see the illustrative
 #'   examples for effects of this assumption on the results.
 #'
-#' @return A `function` that takes a generic travel cost vector (`numeric`) as
-#'   an input and returns a vector of weights (`numeric`).
+#' @template return_decay_function
 #'
 #' @details When both `steps` and `weights` parameters are given `list`s, their
 #'   content are matched element-wise to define each stepped weighting function
@@ -82,14 +81,16 @@ decay_stepped <- function(steps, weights) {
       stps = steps,
       wghts = weights,
       FUN = function(stps, wghts) {
-        vapply(
-          travel_cost,
-          function(x) {
-            if (is.na(x)) return(NA_real_)
-            wghts[max(which(x >= stps))]
-          },
-          numeric(1)
-        )
+        # findInterval() returns the index of the last step lower than or equal
+        # to each cost. negative costs (index 0) get NA, as NA costs do
+
+        step_index <- findInterval(travel_cost, stps)
+        step_index[step_index == 0L] <- NA_integer_
+
+        weights_by_cost <- wghts[step_index]
+        names(weights_by_cost) <- names(travel_cost)
+
+        weights_by_cost
       },
       SIMPLIFY = FALSE
     )
