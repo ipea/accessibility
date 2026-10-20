@@ -281,6 +281,56 @@ test_that("calculates spatial availability correctly", {
   )
 })
 
+test_that("doesn't return NaN when a destination has null denominators", {
+  toy_matrix <- data.table::data.table(
+    from_id = rep(c("a", "b", "c"), each = 3),
+    to_id = rep(c("a", "b", "c"), 3),
+    travel_time = c(0, 10, 20, 10, 0, 30, 20, 30, 0)
+  )
+  toy_land_use <- data.table::data.table(
+    id = c("a", "b", "c"),
+    jobs = c(10, 20, 30),
+    population = c(10, 5, 1)
+  )
+
+  # no one reaches c, so its 30 jobs are not allocated. a and b split the jobs
+  # in a and b proportionally to their population (10:5)
+
+  unreachable_matrix <- data.table::copy(toy_matrix)
+  unreachable_matrix[from_id == "c" & to_id == "c", travel_time := 25]
+
+  result <- tester(
+    unreachable_matrix,
+    toy_land_use,
+    decay_function = decay_binary(15),
+    group_by = character(0)
+  )
+  expect_equal(result$jobs, c(20, 10, 0))
+
+  # b is only reached by itself, and it has no population, so its 20 jobs are
+  # not allocated. a and c only reach themselves
+
+  no_demand_land_use <- data.table::copy(toy_land_use)
+  no_demand_land_use[id == "b", population := 0]
+
+  result <- tester(
+    toy_matrix,
+    no_demand_land_use,
+    decay_function = decay_binary(5),
+    group_by = character(0)
+  )
+  expect_equal(result$jobs, c(10, 0, 30))
+
+  result <- tester(
+    unreachable_matrix,
+    toy_land_use,
+    decay_function = decay_binary(15),
+    group_by = character(0),
+    detailed_results = TRUE
+  )
+  expect_false(anyNA(result$jobs))
+})
+
 test_that("results are grouped by decay_function_arg when needed", {
   small_travel_matrix <- travel_matrix[
     from_id %in% c("89a88cdb57bffff", "89a88cdb597ffff") &

@@ -129,16 +129,26 @@ spatial_availability <- function(travel_matrix,
   total_demand <- sum(land_use_data[[.demand_colname]] ^ alpha)
   data[, demand_bal_fac := (get(.demand_colname) ^ alpha) / total_demand]
 
+  # destinations that no one reaches (or that are only reached by origins
+  # without demand) have null denominators. their opportunities are not
+  # allocated to any origin, so their factors are set to 0 instead of NaN
+
   data[
     ,
-    impedance_bal_fac := opp_weight / sum(opp_weight),
+    impedance_bal_fac := {
+      denominator <- sum(opp_weight)
+      if (isTRUE(denominator == 0)) 0 else opp_weight / denominator
+    },
     by = c("to_id", group_by)
   ]
 
   data[
     ,
-    combined_bal_fac := demand_bal_fac * impedance_bal_fac /
-      sum(demand_bal_fac * impedance_bal_fac),
+    combined_bal_fac := {
+      numerator <- demand_bal_fac * impedance_bal_fac
+      denominator <- sum(numerator)
+      if (isTRUE(denominator == 0)) 0 else numerator / denominator
+    },
     by = c("to_id", group_by)
   ]
 

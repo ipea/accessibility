@@ -69,6 +69,12 @@ gini_index <- function(accessibility_data,
 
   warn_extra_access_cols(accessibility_data, opportunity, group_by)
 
+  # integer opportunities and population counts may overflow when multiplied,
+  # so we convert them to doubles first
+
+  .numeric_cols <- c(opportunity, population)
+  data[, (.numeric_cols) := lapply(.SD, as.numeric), .SDcols = .numeric_cols]
+
   .opp_colname <- opportunity
   .pop_colname <- population
   .groups <- group_by

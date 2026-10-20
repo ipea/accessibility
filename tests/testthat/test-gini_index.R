@@ -171,3 +171,24 @@ test_that("works even if access_data and sociodem_data has specific colnames", {
 
   access_data[, group_by := NULL]
 })
+
+test_that("doesn't overflow with large integer opportunities and population", {
+  # jobs * population exceeds .Machine$integer.max (~2.1e9)
+
+  toy_access <- data.table::data.table(id = c("a", "b"), jobs = c(50000L, 100000L))
+  toy_sociodem <- data.table::data.table(
+    id = c("a", "b"),
+    population = c(50000L, 30000L),
+    income_per_capita = c(1, 2),
+    income_decile = c(1, 2)
+  )
+
+  # population-weighted mean access: (5e4 * 5e4 + 3e4 * 1e5) / 8e4 = 68750
+
+  # pairwise gini: 2 * 5e4 * 3e4 * 5e4 / (2 * 68750 * 8e4^2) = 15 / 88
+
+  result <- expect_silent(
+    tester(toy_access, toy_sociodem, group_by = character(0))
+  )
+  expect_equal(result$gini_index, 15 / 88)
+})

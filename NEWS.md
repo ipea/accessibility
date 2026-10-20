@@ -5,6 +5,14 @@
 - Fixed a bug in `balancing_cost()` in which numeric ids (e.g. `101`, `102`)
   were used as positions to look up each origin's population, which resulted
   in `NA` or wrong balancing costs.
+- Fixed a bug in `spatial_availability()` in which a destination that no one
+  could reach (or that was only reached by origins with no demand) made the
+  results of every origin `NaN`. The opportunities in such destinations are
+  now left unallocated.
+- Fixed a bug in `gini_index()`, `concentration_index()` and `theil_t()` in
+  which large integer opportunity and population counts overflowed when
+  multiplied, returning `NA` (e.g. with long travel time cutoffs or large
+  cities).
 
 # accessibility 1.5.0
 
