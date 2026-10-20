@@ -1,7 +1,7 @@
 ^.*\.Rproj$
 ^\.Rproj\.user$
 ^\.github$
-^tests_rafa$
+^tests/test_rafa$
 ^codecov\.yml$
 ^cran-comments\.md$
 ^CRAN-SUBMISSION$
@@ -11,9 +11,9 @@
 ^codemeta\.json$
 ^data-raw$
 ^\.pre-commit-config\.yaml$
-^testing_constrained\.Rmd$
 ^\.claude$
 ^CLAUDE\.md$
 ^MEMORY\.md$
 ^templates$
 ^quality_reports$
+^man/figures/decay_functions\.png$

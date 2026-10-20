@@ -111,9 +111,12 @@ assert_land_use_data <- function(land_use_data,
   # matrix / accessibility data (only one of the rows would be used)
 
   if (anyDuplicated(land_use_data$id)) {
+    duplicated_ids <- unique(land_use_data$id[duplicated(land_use_data$id)])
+
     stop(
-      "'land_use_data' must not contain duplicated ids. Found duplicates: ",
-      paste0("'", unique(land_use_data$id[duplicated(land_use_data$id)]), "'", collapse = ", "),
+      "'land_use_data' must not contain duplicated ids. ",
+      "Found duplicates: ",
+      paste0("'", duplicated_ids, "'", collapse = ", "),
       call. = FALSE
     )
   }
@@ -181,9 +184,13 @@ assert_sociodemographic_data <- function(sociodemographic_data,
   # matrix / accessibility data (only one of the rows would be used)
 
   if (anyDuplicated(sociodemographic_data$id)) {
+    ids <- sociodemographic_data$id
+    duplicated_ids <- unique(ids[duplicated(ids)])
+
     stop(
-      "'sociodemographic_data' must not contain duplicated ids. Found duplicates: ",
-      paste0("'", unique(sociodemographic_data$id[duplicated(sociodemographic_data$id)]), "'", collapse = ", "),
+      "'sociodemographic_data' must not contain duplicated ids. ",
+      "Found duplicates: ",
+      paste0("'", duplicated_ids, "'", collapse = ", "),
       call. = FALSE
     )
   }

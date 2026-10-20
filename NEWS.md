@@ -27,6 +27,25 @@
   the index, following the usual `0 * log(0) = 0` convention. `group_by`
   levels in which no one has access are now kept in the output with `NA`,
   instead of being dropped.
+- Fixed two bugs in `balancing_cost()`: origins only balanced when they reached
+  more opportunities than people (instead of as many opportunities as people),
+  and origins that balanced at a cost greater than the last multiple of
+  `cost_increment` were reported as `NA`. `cost_increment` must now be greater
+  than 0.
+- Fixed a bug in `spatial_availability()` in which an `NA` demand in
+  `land_use_data` made every result `NA`, even when the id with the `NA` was
+  not in `travel_matrix`.
+
+## Minor changes
+
+- Accessibility, inequality and poverty functions now raise an error if
+  `land_use_data` or `sociodemographic_data` contain duplicated ids.
+  Previously, only one of the duplicated rows was silently used.
+
+## Notes
+
+- Updated the package website and GitHub URLs after the repository moved from
+  the `ipeaGIT` to the `ipea` organization.
 
 # accessibility 1.5.0
 
