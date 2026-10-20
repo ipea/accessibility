@@ -64,8 +64,17 @@ doubly_constrained <- function(travel_matrix,
   # Prepare vectors and impedance matrix
   origins <- unique(data$from_id)
   destinations <- unique(data$to_id)
-  O <- land_use_data[id %in% origins, get(demand)]
-  D <- land_use_data[id %in% destinations, get(supply)]
+  O <- land_use_data[[demand]][match(origins, land_use_data$id)]
+  D <- land_use_data[[supply]][match(destinations, land_use_data$id)]
+
+  if (anyNA(O) || anyNA(D)) {
+    stop(
+      "For doubly-constrained, 'land_use_data' must list a non-NA demand for ",
+      "every origin and a non-NA supply for every destination in ",
+      "'travel_matrix'.",
+      call. = FALSE
+    )
+  }
 
   # Validate totals match
   if (abs(sum(O) - sum(D)) > 1e-6) {
@@ -73,7 +82,18 @@ doubly_constrained <- function(travel_matrix,
   }
 
   # Build impedance matrix
-  impedance_matrix <- matrix(data$opp_weight, nrow = length(origins), ncol = length(destinations), byrow = FALSE)
+  # filled by id, so the result doesn't depend on the row order of
+  # travel_matrix. pairs missing from travel_matrix are unreachable (weight 0)
+
+  impedance_matrix <- matrix(
+    0,
+    nrow = length(origins),
+    ncol = length(destinations),
+    dimnames = list(origins, destinations)
+  )
+  impedance_matrix[
+    cbind(as.character(data$from_id), as.character(data$to_id))
+  ] <- data$opp_weight
 
   # Iterative proportional fitting
   Ai <- rep(1, length(O))

@@ -209,3 +209,98 @@ test_that("doubly-constrained: OD flows match marginals", {
   expect_equal(by_dest$sum_flow,   D, tolerance = 1e-3)
 })
 
+
+test_that("doubly-constrained: results don't depend on row order or sparsity", {
+  ids <- c("1", "2", "3")
+  cost <- matrix(
+    c(0, 10, 25, 15, 0, 5, 30, 20, 0),
+    nrow = 3,
+    byrow = TRUE,
+    dimnames = list(ids, ids)
+  )
+  lu <- make_lu_match20()
+
+  # independent iterative proportional fitting, as reference
+
+  reference_flows <- function(weights) {
+    a <- b <- rep(1, 3)
+    for (k in 1:2000) {
+      a <- 1 / as.vector(weights %*% (b * lu$jobs))
+      b <- 1 / as.vector(t(weights) %*% (a * lu$population))
+    }
+    flows <- outer(a * lu$population, b * lu$jobs) * weights
+    dimnames(flows) <- list(ids, ids)
+    flows
+  }
+
+  run_doubly <- function(tm, land_use = lu) {
+    constrained_accessibility(
+      constraint = "doubly",
+      travel_matrix = tm,
+      land_use_data = land_use,
+      travel_cost = "travel_time",
+      decay_function = exp_decay_01,
+      demand = "population",
+      supply = "jobs",
+      detailed_results = TRUE,
+      error_threshold = 1e-10,
+      improvement_threshold = 0
+    )
+  }
+
+  to_major <- data.table::data.table(
+    expand.grid(from_id = ids, to_id = ids, stringsAsFactors = FALSE)
+  )
+  to_major[, travel_time := cost[cbind(from_id, to_id)]]
+  from_major <- to_major[order(from_id, to_id)]
+  shuffled <- to_major[c(5, 9, 1, 7, 3, 8, 2, 6, 4)]
+
+  expected <- reference_flows(exp(-0.1 * cost))
+  for (tm in list(to_major, from_major, shuffled)) {
+    result <- run_doubly(tm)
+    expect_equal(
+      result$flow,
+      expected[cbind(result$from_id, result$to_id)],
+      tolerance = 1e-6
+    )
+  }
+
+  result <- run_doubly(to_major, lu[c(3, 1, 2)])
+  expect_equal(
+    result$flow,
+    expected[cbind(result$from_id, result$to_id)],
+    tolerance = 1e-6
+  )
+
+  # pairs missing from the travel matrix are unreachable
+
+  sparse_weights <- exp(-0.1 * cost)
+  sparse_weights["1", "3"] <- 0
+  expected <- reference_flows(sparse_weights)
+
+  result <- run_doubly(shuffled[!(from_id == "1" & to_id == "3")])
+  expect_equal(
+    result$flow,
+    expected[cbind(result$from_id, result$to_id)],
+    tolerance = 1e-6
+  )
+  expect_identical(result[from_id == "1" & to_id == "3"]$flow, 0)
+})
+
+test_that("doubly-constrained: errors when land_use_data misses an id", {
+  # the validators also warn about the missing id
+
+  expect_error(
+    suppressWarnings(constrained_accessibility(
+      constraint = "doubly",
+      travel_matrix = make_tm_3x3(),
+      land_use_data = make_lu_match20()[1:2],
+      travel_cost = "travel_time",
+      decay_function = exp_decay_01,
+      demand = "population",
+      supply = "jobs",
+      detailed_results = TRUE
+    )),
+    regexp = "must list a non-NA demand"
+  )
+})
