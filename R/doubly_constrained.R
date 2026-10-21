@@ -96,7 +96,7 @@ doubly_constrained <- function(travel_matrix,
     dimnames = list(origins, destinations)
   )
   impedance_matrix[
-    cbind(as.character(data$from_id), as.character(data$to_id))
+    cbind(match(data$from_id, origins), match(data$to_id, destinations))
   ] <- data$opp_weight
 
   # Iterative proportional fitting
@@ -111,25 +111,23 @@ doubly_constrained <- function(travel_matrix,
 
     # Update Ai
     # a null denominator means the zone reaches (or is reached by) no one, so
-    # its factor is 0 and it gets no flow
+    # its factor is 0 and it gets no flow. the denominators of all zones are
+    # calculated at once with matrix products
 
-    for (i in seq_along(O)) {
-      denominator <- sum(Bj * D * impedance_matrix[i, ])
-      Ai[i] <- if (denominator > 0) 1 / denominator else 0
-    }
+    denominator_i <- drop(impedance_matrix %*% (Bj * D))
+    Ai <- data.table::fifelse(denominator_i > 0, 1 / denominator_i, 0)
 
     # Update Bj
-    Bj_new <- numeric(length(D))
-    for (j in seq_along(D)) {
-      denominator <- sum(Ai * O * impedance_matrix[, j])
-      Bj_new[j] <- if (denominator > 0) 1 / denominator else 0
-    }
-
-    # Compute flows
-    Tij <- outer(Ai * O, Bj_new * D) * impedance_matrix
+    denominator_j <- drop(crossprod(impedance_matrix, Ai * O))
+    Bj_new <- data.table::fifelse(denominator_j > 0, 1 / denominator_j, 0)
 
     # Compute error
-    error <- (sum(abs(O - rowSums(Tij))) + sum(abs(D - colSums(Tij)))) / sum(O)
+    # the row and column sums of the flows (Tij = Ai * O_i * Bj * D_j * f_ij)
+    # are calculated from the factors, without building the flow matrix
+
+    flow_from <- Ai * O * drop(impedance_matrix %*% (Bj_new * D))
+    flow_to <- Bj_new * D * denominator_j
+    error <- (sum(abs(O - flow_from)) + sum(abs(D - flow_to))) / sum(O)
     error_change <- abs(previous_error - error)
 
     if (error < error_threshold || error_change < improvement_threshold || iteration_count >= max_iterations) {
@@ -151,6 +149,9 @@ doubly_constrained <- function(travel_matrix,
       {.arg max_iterations} or decreasing {.arg improvement_threshold}."
     )
   }
+
+  # Compute flows
+  Tij <- outer(Ai * O, Bj * D) * impedance_matrix
 
   # Compute kappa_doubly
 # kappa_ij^D = A_i * B_j * O_i * f(c_ij)

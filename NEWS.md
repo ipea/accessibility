@@ -139,6 +139,11 @@
   (relative differences below 1e-14). `gravity()` with integer opportunities
   and `decay_binary()` no longer fails when accessibility exceeds the largest
   integer.
+- `constrained_accessibility(constraint = "doubly")` is about 2 to 4 times
+  faster and uses much less memory on large travel matrices, because the
+  balancing factors are now calculated with matrix products instead of loops
+  over origins and destinations. Results may differ from previous versions by
+  floating point rounding only.
 - Errors and warnings raised by the package now use `{cli}`, with consistent
   formatting of argument names and values. Long lists of ids or columns in
   messages are abbreviated. `{cli}` and `{rlang}` are new dependencies.
