@@ -23,8 +23,9 @@ pre-computed travel cost matrix and a land use dataset, the package allows one
 to calculate active and passive accessibility levels using multiple
 accessibility metrics, such as cumulative opportunities (using either a travel
 cost cutoff or a travel cost interval), minimum travel cost to closest N
-number of activities, gravitational measures and different floating catchment
-area methods. This vignette briefly overviews the package with a few
+number of activities, gravitational measures, different floating catchment
+area methods, spatial availability, balancing cost and constrained
+accessibility measures. This vignette briefly overviews the package with a few
 reproducible examples.
 
 # Installation
@@ -46,7 +47,7 @@ remotes::install_github("ipea/accessibility")
 # Overview of the package
 
 As of the time of writing this vignette, the **accessibility** package includes
-five different functions to calculate accessibility:
+eight different functions to calculate accessibility:
 
 1. `cost_to_closest()` - calculates the minimum travel cost to the closest
    *n* number of opportunities.
@@ -60,6 +61,14 @@ five different functions to calculate accessibility:
 5. `floating_catchment_area()` - calculates accessibility taking into account
    the effects of competition for opportunities with different floating
    catchment area measures.
+6. `spatial_availability()` - calculates accessibility taking into account
+   competition effects with the spatial availability measure, in which the
+   opportunities are allocated to origins proportionally to their demand and
+   travel cost.
+7. `balancing_cost()` - calculates the travel cost required to reach as many
+   opportunities as the number of people in each origin.
+8. `constrained_accessibility()` - calculates accessibility as potential
+   spatial interaction, using the total, singly or doubly constrained measures.
 
 You may have noticed that we've mentioned a few times that the functions
 calculate accessibility using travel *cost*, and not travel *time*. That's
@@ -68,8 +77,8 @@ increases the impedance from an origin to a destination, such as travel time,
 monetary costs, distances, risk perception, etc., can be considered a generic
 *cost*.
 
-The `gravity()` and `floating_catchment_area()` functions can use
-different decay functions when estimating accessibility levels. These decay
+The `gravity()`, `floating_catchment_area()`, `spatial_availability()` and
+`constrained_accessibility()` functions can use different decay functions when estimating accessibility levels. These decay
 functions effectively weigh the number of opportunities in a destination by a
 factor that depends on the travel cost between the origin and the destination.
 For convenience, the package currently includes the following decay functions:
@@ -79,8 +88,10 @@ For convenience, the package currently includes the following decay functions:
 2. `decay_exponential()` - negative exponential decay function.
 3. `decay_linear()` - linear decay function (weights decay linearly from 1 to 0
    until a specific travel cost cutoff is reached).
-4. `decay_power()` - inverse power decay function.
-5. `decay_stepped()` - stepped decay function (similar to `decay_binary()`, but
+4. `decay_logistic()` - logistic decay function (weights decay following a
+   reversed cumulative logistic curve around a travel cost cutoff).
+5. `decay_power()` - inverse power decay function.
+6. `decay_stepped()` - stepped decay function (similar to `decay_binary()`, but
    can take an arbitrary number of steps, instead of a single one).
 
 The users can also specify their own custom decay functions, if they need to
@@ -193,12 +204,13 @@ head(passive_cum_cutoff)
 ```
 
 The `active` parameter is available in most other accessibility functions as
-well (with the exception of `floating_catchment_area()`), making it very easy
-to calculate both active and passive accessibility.
+well (with the exception of `floating_catchment_area()`,
+`spatial_availability()` and `balancing_cost()`), making it very easy to
+calculate both active and passive accessibility.
 
 ## Interval-based cumulative opportunities
 
-`cumulative_time_interval()` calculates the interval-based cumulative
+`cumulative_interval()` calculates the interval-based cumulative
 opportunities measure. This measure, developed by @tomasiello2023time,
 mitigates the impacts of arbitrary choices of cost cutoffs, one of the main
 disadvantages of the traditional threshold-based cumulative opportunities
@@ -229,7 +241,7 @@ generalization, the function takes the decay function to be used as a
 parameter.
 
 In the example below, we calculate accessibility using a negative exponential
-function with a `decay_value` (usually referred as the \eqn{\beta} in its
+function with a `decay_value` (usually referred to as $\beta$ in its
 formulation) of 0.2. Please see [the vignette on decay
 functions](decay_functions.html) for more information on the decay functions
 shipped with the package and how to use custom functions.
@@ -334,6 +346,48 @@ bal_cost <- balancing_cost(
 )
 head(bal_cost)
 ```
+
+## Constrained accessibility
+
+`constrained_accessibility()` calculates the family of constrained
+accessibility measures proposed by @soukhov2025family, in which accessibility
+is conceptualised as potential spatial interaction. Borrowing the constraints
+of the family of spatial interaction models proposed by @wilson1971family, the
+function covers three cases, specified with the `constraint` parameter:
+
+- `"total"` - allocates the total supply (or demand) of the region according
+  to the travel impedance between origins and destinations;
+- `"singly"` - allocates the supply at each destination (or the demand at each
+  origin) according to the travel impedance and the demand (or supply) on the
+  other side, thus accounting for competition;
+- `"doubly"` - allocates flows so that they match both the demand at each
+  origin and the supply at each destination, which must sum to the same total.
+
+The results of the total and singly constrained measures are expressed in
+units of supply (e.g. jobs) when `active = TRUE` and in units of demand (e.g.
+population) when `active = FALSE`. In the example below, we calculate singly
+constrained accessibility to jobs, considering the population competing for
+them and a negative exponential decay function. Please note that the column
+with the results is named `supply`, after the side being allocated, and not
+after the opportunity column.
+
+```{r}
+constrained <- constrained_accessibility(
+  travel_matrix,
+  land_use_data,
+  travel_cost = "travel_time",
+  demand = "population",
+  supply = "jobs",
+  constraint = "singly",
+  decay_function = decay_exponential(decay_value = 0.1),
+  active = TRUE
+)
+head(constrained)
+```
+
+Summing the results gives back the total number of jobs in the city, and, with
+the same decay function, the results are equal to those of
+`spatial_availability()`.
 
 ## Visualize results
 
