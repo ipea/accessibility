@@ -199,20 +199,22 @@ theil_with_groups
 ## Foster-Greer-Thorbecke (FGT) poverty measures
 
 `fgt_poverty()` calculates the FGT metrics, a family of poverty measures
-originally proposed by @foster1984class that capture the extent and severity of
-poverty within an accessibility distribution. The FGT family is composed of
-three measures that differ based on the $\alpha$ parameter used to calculate
-them (either 0, 1 or 2) and which also changes their interpretation:
+originally proposed by @foster1984class that capture the incidence, depth and
+severity of poverty within an accessibility distribution. The FGT family is
+composed of three measures that differ based on the $\alpha$ parameter used to
+calculate them (either 0, 1 or 2) and which also changes their interpretation:
 
-- with $\alpha = 0$ (FGT0) the measure captures the extent of poverty as a
-  simple headcount - i.e. the proportion of people below the poverty line;
+- with $\alpha = 0$ (FGT0) the measure captures the incidence (or extent) of
+  poverty as a simple headcount - i.e. the proportion of people below the
+  poverty line;
 - with $\alpha = 1$ (FGT1) the measure, also known as the "poverty gap index",
-  captures the severity of poverty as the average percentage distance between
-  the poverty line and the accessibility of individuals below the poverty line;
-- with $\alpha = 2$ (FGT2) the measure simultaneously captures the extent and
-  the severity of poverty by calculating the number of people below the poverty
-  line weighted by the size of the accessibility shortfall relative to the
-  poverty line.
+  captures the depth of poverty as the average shortfall from the poverty line,
+  relative to the poverty line, calculated over the whole population (people
+  above the poverty line have a shortfall of 0);
+- with $\alpha = 2$ (FGT2) the measure, also known as the "squared poverty gap
+  index", captures the severity of poverty. By squaring the shortfalls, it gives
+  more weight to the people furthest below the poverty line, which makes it
+  sensitive to inequality among the poor.
 
 This function includes an additional `poverty_line` parameter, used to define
 the poverty line below which individuals are considered to be in accessibility
