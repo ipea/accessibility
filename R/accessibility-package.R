@@ -99,7 +99,9 @@ utils::globalVariables(
     ".weighted_opportunities",
     ".weighted_demand",
     ".weighted_ppr",
-    ".total_weight"
+    ".total_weight",
+    ".opp",
+    ".cost"
   )
 )
 

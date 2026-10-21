@@ -138,32 +138,38 @@ spatial_availability <- function(travel_matrix,
 
   # destinations that no one reaches (or that are only reached by origins
   # without demand) have null denominators. their opportunities are not
-  # allocated to any origin, so their factors are set to 0 instead of NaN
+  # allocated to any origin, so their factors are set to 0 instead of NaN.
+  # the denominators are calculated in a separate step, so the sums are
+  # optimized by data.table (GForce). the temporary column is dropped after
+  # each use, because the first sum may be an integer and the second a double
 
+  data[, .total_weight := sum(opp_weight), by = c("to_id", group_by)]
   data[
     ,
-    impedance_bal_fac := {
-      denominator <- sum(opp_weight)
-      if (isTRUE(denominator == 0)) 0 else opp_weight / denominator
-    },
-    by = c("to_id", group_by)
+    impedance_bal_fac := data.table::fifelse(
+      !is.na(.total_weight) & .total_weight == 0,
+      0,
+      opp_weight / .total_weight
+    )
   ]
+  data[, .total_weight := NULL]
 
+  data[, combined_bal_fac := demand_bal_fac * impedance_bal_fac]
+  data[, .total_weight := sum(combined_bal_fac), by = c("to_id", group_by)]
   data[
     ,
-    combined_bal_fac := {
-      numerator <- demand_bal_fac * impedance_bal_fac
-      denominator <- sum(numerator)
-      if (isTRUE(denominator == 0)) 0 else numerator / denominator
-    },
-    by = c("to_id", group_by)
+    combined_bal_fac := data.table::fifelse(
+      !is.na(.total_weight) & .total_weight == 0,
+      0,
+      combined_bal_fac / .total_weight
+    )
   ]
+  data[, .total_weight := NULL]
 
   .opportunity_colname <- opportunity
   data[
     ,
-    spatial_availability := combined_bal_fac * get(.opportunity_colname),
-    by = c("to_id", group_by)
+    spatial_availability := combined_bal_fac * get(.opportunity_colname)
   ]
 
   if (detailed_results) {

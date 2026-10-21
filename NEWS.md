@@ -144,6 +144,13 @@
   balancing factors are now calculated with matrix products instead of loops
   over origins and destinations. Results may differ from previous versions by
   floating point rounding only.
+- `spatial_availability()` is about 2 times faster on large travel matrices,
+  because its balancing factors are now calculated with sums optimized by
+  `{data.table}`. Results may differ from previous versions by floating point
+  rounding only.
+- `cost_to_closest()` is about 1.3 to 2.3 times faster, especially with
+  several values of `n`, because the travel matrix is now filtered and sorted
+  only once, with identical results.
 - Errors and warnings raised by the package now use `{cli}`, with consistent
   formatting of argument names and values. Long lists of ids or columns in
   messages are abbreviated. `{cli}` and `{rlang}` are new dependencies.

@@ -104,10 +104,7 @@ cost_to_closest <- function(travel_matrix,
   groups <- c(group_id, group_by)
   warn_extra_cols(travel_matrix, travel_cost, group_id, groups)
 
-  access <- lapply(
-    n,
-    function(.x) calculate_cost(data, groups, opportunity, travel_cost, .x)
-  )
+  access <- calculate_cost(data, groups, opportunity, travel_cost, n)
   names(access) <- n
   access <- data.table::rbindlist(access, idcol = "n")
   access[, n := as.numeric(n)]
@@ -149,32 +146,52 @@ cost_to_closest <- function(travel_matrix,
 }
 
 
-calculate_cost <- function(data, groups, opportunity, travel_cost, .x) {
+calculate_cost <- function(data, groups, opportunity, travel_cost, n) {
   env <- environment()
   .opportunity_colname <- opportunity
-  .cost_colname <- travel_cost
 
-  if (.x == 1) {
-    cost <- data[
-      get(.opportunity_colname) > 0,
-      .(min_cost = suppressWarnings(min(get(.cost_colname)))),
-      by = eval(groups, envir = env)
-    ]
-  } else {
-    opport_cumsum <- data[get(.opportunity_colname) > 0, ]
-    data.table::setorderv(opport_cumsum, c(groups, travel_cost))
-    opport_cumsum[
-      ,
-      cum_opport := cumsum(get(.opportunity_colname)),
-      by = eval(groups, envir = env)
-    ]
+  # only destinations (or origins) with opportunities are relevant. the costs
+  # and opportunities get fixed names, so that min() is optimized by
+  # data.table (GForce)
 
-    cost <- opport_cumsum[
-      cum_opport >= .x,
-      .(min_cost = suppressWarnings(min(get(.cost_colname)))),
-      by = eval(groups, envir = env)
-    ]
+  data <- data[
+    get(.opportunity_colname) > 0,
+    c(groups, opportunity, travel_cost),
+    with = FALSE
+  ]
+  data.table::setnames(data, c(opportunity, travel_cost), c(".opp", ".cost"))
+
+  # n = 1 is calculated before sorting the data, to keep the order of the
+  # results. for larger values of n, the data is sorted and the cumulative
+  # number of opportunities is calculated only once. warnings are suppressed
+  # outside of j (so min() is still optimized), because data.table evaluates
+  # min() on an empty vector when no rows are selected
+
+  if (1 %in% n) {
+    cost_n1 <- suppressWarnings(
+      data[, .(min_cost = min(.cost)), by = eval(groups, envir = env)]
+    )
   }
+
+  if (any(n != 1)) {
+    data.table::setorderv(data, c(groups, ".cost"))
+    data[, cum_opport := cumsum(.opp), by = eval(groups, envir = env)]
+  }
+
+  cost <- lapply(
+    n,
+    function(.x) {
+      if (.x == 1) return(cost_n1)
+
+      suppressWarnings(
+        data[
+          cum_opport >= .x,
+          .(min_cost = min(.cost)),
+          by = eval(groups, envir = env)
+        ]
+      )
+    }
+  )
 
   return(cost)
 }
