@@ -35,7 +35,8 @@ decay_stepped(steps, weights)
 ## Value
 
 A `function` that takes a generic travel cost vector (`numeric`) as an
-input and returns a vector of weights (`numeric`).
+input and returns a `list` of weight vectors (a list of `numeric`
+vectors, named after the arguments passed to the decay function).
 
 ## Details
 
@@ -56,11 +57,11 @@ function
 ## See also
 
 Other decay functions:
-[`decay_binary()`](https://ipeagit.github.io/accessibility/dev/reference/decay_binary.md),
-[`decay_exponential()`](https://ipeagit.github.io/accessibility/dev/reference/decay_exponential.md),
-[`decay_linear()`](https://ipeagit.github.io/accessibility/dev/reference/decay_linear.md),
-[`decay_logistic()`](https://ipeagit.github.io/accessibility/dev/reference/decay_logistic.md),
-[`decay_power()`](https://ipeagit.github.io/accessibility/dev/reference/decay_power.md)
+[`decay_binary()`](https://ipea.github.io/accessibility/dev/reference/decay_binary.md),
+[`decay_exponential()`](https://ipea.github.io/accessibility/dev/reference/decay_exponential.md),
+[`decay_linear()`](https://ipea.github.io/accessibility/dev/reference/decay_linear.md),
+[`decay_logistic()`](https://ipea.github.io/accessibility/dev/reference/decay_logistic.md),
+[`decay_power()`](https://ipea.github.io/accessibility/dev/reference/decay_power.md)
 
 ## Examples
 

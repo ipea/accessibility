@@ -34,7 +34,8 @@ cost_to_closest(
 
   A data frame. The distribution of opportunities within the study area
   cells. Must contain the columns `id` and any others specified in
-  `opportunity`.
+  `opportunity`. `NA` values, and ids in `travel_matrix` that are
+  missing from this table, are treated as 0.
 
 - opportunity:
 
@@ -70,7 +71,7 @@ cost_to_closest(
 
   A logical. When `TRUE`, the function calculates active accessibility
   (the quantity of opportunities that can be reached from a given
-  origin). when `FALSE`, it calculates passive accessibility (by how
+  origin). When `FALSE`, it calculates passive accessibility (by how
   many people each destination can be reached), which is equivalent to
   the notion of market potential.
 
@@ -81,16 +82,22 @@ cost_to_closest(
   reach the specified amount of opportunities across all destinations
   they can reach. For example, estimating the minimum travel time that
   an origin that can only reach 4 opportunities takes to reach 5
-  opportunities resulting in such origin not being included in the
-  output. When `TRUE` (the default), the function identifies which ids
-  would be left out from the output and fill their respective minimum
-  travel costs with `Inf`, which incurs in a performance penalty.
+  opportunities results in such origin not being included in the output.
+  When `TRUE` (the default), the function identifies which ids would be
+  left out from the output and fills their respective minimum travel
+  costs with `Inf`, which incurs a performance penalty.
 
 ## Value
 
 A data frame containing the accessibility estimates for each
 origin/destination (depending if `active` is `TRUE` or `FALSE`) in the
 travel matrix.
+
+## See also
+
+Other accessibility measures:
+[`balancing_cost()`](https://ipea.github.io/accessibility/dev/reference/balancing_cost.md),
+[`gravity()`](https://ipea.github.io/accessibility/dev/reference/gravity.md)
 
 ## Examples
 
@@ -107,7 +114,6 @@ df <- cost_to_closest(
   travel_cost = "travel_time"
 )
 head(df)
-#> Key: <id>
 #>                 id travel_time
 #>             <char>       <num>
 #> 1: 89a881a5a2bffff          29
@@ -125,7 +131,6 @@ df <- cost_to_closest(
   travel_cost = "travel_time"
 )
 head(df)
-#> Key: <id, n>
 #>                 id     n travel_time
 #>             <char> <num>       <num>
 #> 1: 89a881a5a2bffff     1          29

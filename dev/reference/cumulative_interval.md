@@ -3,7 +3,7 @@
 Calculates the average or median number of opportunities that can be
 reached considering multiple maximum travel cost thresholds within a
 given travel cost interval specified by the user. The time interval
-cumulative accessibility measures was originally proposed by Tomasiello
+cumulative accessibility measure was originally proposed by Tomasiello
 et al. (2023) .
 
 This function is generic over any kind of numeric travel cost, such as
@@ -21,7 +21,8 @@ cumulative_interval(
   interval_increment = 1,
   summary_function = stats::median,
   group_by = character(0),
-  active = TRUE
+  active = TRUE,
+  fill_missing_ids = TRUE
 )
 ```
 
@@ -38,7 +39,8 @@ cumulative_interval(
 
   A data frame. The distribution of opportunities within the study area
   cells. Must contain the columns `id` and any others specified in
-  `opportunity`.
+  `opportunity`. `NA` values, and ids in `travel_matrix` that are
+  missing from this table, are treated as 0.
 
 - opportunity:
 
@@ -72,7 +74,7 @@ cumulative_interval(
   A function. This function is used to summarize a distribution of
   accessibility estimates within a travel cost interval as a single
   value. Can be any function that takes an arbitrary number of numeric
-  values as as input and returns a single number as output. Defaults to
+  values as input and returns a single number as output. Defaults to
   [`stats::median()`](https://rdrr.io/r/stats/median.html).
 
 - group_by:
@@ -89,9 +91,16 @@ cumulative_interval(
 
   A logical. When `TRUE`, the function calculates active accessibility
   (the quantity of opportunities that can be reached from a given
-  origin). when `FALSE`, it calculates passive accessibility (by how
+  origin). When `FALSE`, it calculates passive accessibility (by how
   many people each destination can be reached), which is equivalent to
   the notion of market potential.
+
+- fill_missing_ids:
+
+  A `logical`. Origins (or destinations, when `active` is `FALSE`) that
+  cannot reach any opportunity within the interval would not be included
+  in the output. When `TRUE` (the default), the function includes them
+  with an accessibility of 0.
 
 ## Value
 
@@ -110,7 +119,7 @@ Accessibility.” *Applied Geography*, **157**, 103007. ISSN 0143-6228.
 ## See also
 
 Other cumulative access:
-[`cumulative_cutoff()`](https://ipeagit.github.io/accessibility/dev/reference/cumulative_cutoff.md)
+[`cumulative_cutoff()`](https://ipea.github.io/accessibility/dev/reference/cumulative_cutoff.md)
 
 ## Examples
 
@@ -128,13 +137,13 @@ df <- cumulative_interval(
 )
 head(df)
 #>                 id schools
-#>             <char>   <int>
-#> 1: 89a88cdb57bffff       0
-#> 2: 89a88cdb597ffff      14
-#> 3: 89a88cdb5b3ffff      17
-#> 4: 89a88cdb5cfffff       4
-#> 5: 89a88cd909bffff       6
-#> 6: 89a88cd90b7ffff      12
+#>             <char>   <num>
+#> 1: 89a881a5a2bffff       0
+#> 2: 89a881a5a2fffff       3
+#> 3: 89a881a5a67ffff       0
+#> 4: 89a881a5a6bffff       0
+#> 5: 89a881a5a6fffff       0
+#> 6: 89a881a5b03ffff      11
 
 df <- cumulative_interval(
   travel_matrix = travel_matrix,
@@ -145,11 +154,11 @@ df <- cumulative_interval(
 )
 head(df)
 #>                 id   jobs
-#>             <char>  <int>
-#> 1: 89a88cdb57bffff 435782
-#> 2: 89a88cdb597ffff 409191
-#> 3: 89a88cdb5b3ffff 423974
-#> 4: 89a88cdb5cfffff 460740
-#> 5: 89a88cd909bffff 437645
-#> 6: 89a88cd90b7ffff 449585
+#>             <char>  <num>
+#> 1: 89a881a5a2bffff 371990
+#> 2: 89a881a5a2fffff 395808
+#> 3: 89a881a5a67ffff 378286
+#> 4: 89a881a5a6bffff 355500
+#> 5: 89a881a5a6fffff 347725
+#> 6: 89a881a5b03ffff 414109
 ```

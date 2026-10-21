@@ -34,7 +34,8 @@ cumulative_cutoff(
 
   A data frame. The distribution of opportunities within the study area
   cells. Must contain the columns `id` and any others specified in
-  `opportunity`.
+  `opportunity`. `NA` values, and ids in `travel_matrix` that are
+  missing from this table, are treated as 0.
 
 - opportunity:
 
@@ -53,7 +54,7 @@ cumulative_cutoff(
   Either a `numeric` vector or a list of `numeric` vectors, one for each
   cost specified in `travel_cost`. The travel cost cutoffs to consider
   when calculating accessibility levels. If a list, the function finds
-  every single possible cutoff combination and use them to calculate
+  every single possible cutoff combination and uses them to calculate
   accessibility (e.g. if one specifies that travel time cutoffs should
   be 30 and 60 minutes and that monetary cost cutoffs should be 5 and 10
   dollars, the output includes accessibility estimates limited at 30 min
@@ -79,21 +80,21 @@ cumulative_cutoff(
 
   A logical. When `TRUE`, the function calculates active accessibility
   (the quantity of opportunities that can be reached from a given
-  origin). when `FALSE`, it calculates passive accessibility (by how
+  origin). When `FALSE`, it calculates passive accessibility (by how
   many people each destination can be reached), which is equivalent to
   the notion of market potential.
 
 - fill_missing_ids:
 
   A `logical`. Calculating cumulative accessibility may result in
-  missing ids if the they cannot reach any of the destinations within
-  the specified travel cost cutoff. For example, using a travel time
-  cutoff of 20 minutes, when estimating the accessibility of origin `A`
-  that can only reach destinations with more than 40 minutes results in
-  id `A` not being included in the output. When `TRUE` (the default),
-  the function identifies which origins would be left out and fills
-  their respective accessibility values with 0, which incurs in a
-  performance penalty.
+  missing ids if they cannot reach any of the destinations within the
+  specified travel cost cutoff. For example, using a travel time cutoff
+  of 20 minutes, when estimating the accessibility of origin `A` that
+  can only reach destinations with more than 40 minutes results in id
+  `A` not being included in the output. When `TRUE` (the default), the
+  function identifies which origins would be left out and fills their
+  respective accessibility values with 0, which incurs a performance
+  penalty.
 
 ## Value
 
@@ -104,7 +105,7 @@ travel matrix.
 ## See also
 
 Other cumulative access:
-[`cumulative_interval()`](https://ipeagit.github.io/accessibility/dev/reference/cumulative_interval.md)
+[`cumulative_interval()`](https://ipea.github.io/accessibility/dev/reference/cumulative_interval.md)
 
 ## Examples
 

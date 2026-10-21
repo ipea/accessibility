@@ -14,7 +14,7 @@ wrapper).
 ## Details
 
 Internal helper used by
-[`constrained_accessibility()`](https://ipeagit.github.io/accessibility/dev/reference/constrained_accessibility.md)
+[`constrained_accessibility()`](https://ipea.github.io/accessibility/dev/reference/constrained_accessibility.md)
 when `constraint = "total"`.
 
 ## Examples

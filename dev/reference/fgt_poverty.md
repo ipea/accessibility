@@ -39,7 +39,7 @@ fgt_poverty(
 - opportunity:
 
   A string. The name of the column in `accessibility_data` with the
-  accessibility levels to be considerend when calculating accessibility
+  accessibility levels to be considered when calculating accessibility
   poverty.
 
 - population:
@@ -55,9 +55,9 @@ fgt_poverty(
 
 - poor_below_threshold:
 
-  Logic. If `TRUE` (default,) the observations below the poverty line
+  A logical. If `TRUE` (default) the observations below the poverty line
   are considered to be poor. This is the correct approach for primal
-  accessibility measures (e.g.cumulative accessibility). If `FALSE`,
+  accessibility measures (e.g. cumulative accessibility). If `FALSE`,
   then observations above the poverty line are considered to be poor.
   This is the correct approach for dual accessibility measures (e.g.
   travel time to the closest facility). When set to `FALSE`, FGT 1 and 2
@@ -80,33 +80,55 @@ FGT2) for the study area.
 
 ## Interpretation of FGT measures
 
-The interpretation of each FGT measure depends on the \\\alpha\\
-parameter used to calculate it:
+With a poverty line \\z\\, the FGT measures are calculated as the
+population-weighted average of \\g_i^\alpha\\, in which \\g_i\\ is the
+normalised shortfall of each observation \\i\\ with accessibility
+\\y_i\\: \\g_i = (z - y_i) / z\\ if \\y_i \< z\\ and 0 otherwise. When
+`poor_below_threshold` is `FALSE`, \\g_i\\ is instead the normalised
+excess \\(y_i - z) / z\\ if \\y_i \> z\\, and 0 otherwise. The
+interpretation of each measure depends on the \\\alpha\\ parameter:
 
-- with \\\alpha = 0\\ (FGT0) the measure captures the *extent* of
-  poverty as a simple headcount - i.e. the proportion of people below
-  the poverty line;
+- with \\\alpha = 0\\ (FGT0) the measure captures the *incidence* (or
+  extent) of poverty as a simple headcount - i.e. the proportion of
+  people in poverty;
 
-- with \\\alpha = 1\\ (FGT1) the measure, also know as the "poverty gap
-  index", captures the *severity* of poverty as the average percentage
-  distance between the poverty line and the accessibility of individuals
-  below the poverty line;
+- with \\\alpha = 1\\ (FGT1) the measure, also known as the "poverty gap
+  index", captures the *depth* (or intensity) of poverty as the average
+  normalised shortfall from the poverty line, calculated over the whole
+  population (people not in poverty have a shortfall of 0);
 
-- with \\\alpha = 2\\ (FGT2) the measure simultaneously captures the
-  *extent* and the *severity* of poverty by calculating the number of
-  people below the poverty line weighted by the size of the
-  accessibility shortfall relative to the poverty line.
+- with \\\alpha = 2\\ (FGT2) the measure, also known as the "squared
+  poverty gap index", captures the *severity* of poverty. Squaring the
+  shortfalls gives more weight to the people furthest from the poverty
+  line, which makes the measure sensitive to inequality among the poor.
 
-FGT values range from 0 to 1. A value of 0 indicates that every
-individual is above the poverty line. When every individual is below the
-poverty line, however, FGT0 value is 1 and FGT1 and FGT2 values approach
-1.
+A value of 0 indicates that no one is in poverty. When
+`poor_below_threshold` is `TRUE`, FGT values range from 0 to 1: FGT0 is
+1 when everyone is below the poverty line, and FGT1 and FGT2 are 1 only
+when everyone has an accessibility of 0. When `poor_below_threshold` is
+`FALSE`, FGT0 still ranges from 0 to 1, but FGT1 and FGT2 have no upper
+bound: they can be greater than 1 (e.g. when travel costs are more than
+twice the poverty line) and are `Inf` if any accessibility value is
+`Inf`. This happens, for example, with the travel costs of origins that
+can't reach the required opportunities, as returned by
+[`cost_to_closest()`](https://ipea.github.io/accessibility/dev/reference/cost_to_closest.md).
+The function raises a warning in this case, and these values should be
+replaced by a maximum travel cost (e.g. the highest cost in the travel
+matrix) before calculating the FGT measures.
 
 ## References
 
 Foster J, Greer J, Thorbecke E (1984). “A Class of Decomposable Poverty
 Measures.” *Econometrica*, **52**(3), 761–766. ISSN 0012-9682.
 [doi:10.2307/1913475](https://doi.org/10.2307/1913475) . 1913475.
+
+## See also
+
+Other equity:
+[`concentration_index()`](https://ipea.github.io/accessibility/dev/reference/concentration_index.md),
+[`gini_index()`](https://ipea.github.io/accessibility/dev/reference/gini_index.md),
+[`palma_ratio()`](https://ipea.github.io/accessibility/dev/reference/palma_ratio.md),
+[`theil_t()`](https://ipea.github.io/accessibility/dev/reference/theil_t.md)
 
 ## Examples
 

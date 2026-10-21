@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Decay functions • accessibility</title>
 <script src="../lightswitch.js"></script><script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Decay functions">
 <meta name="robots" content="noindex">
@@ -21,7 +21,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">accessibility</a>
 
-    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.4.0.9000</small>
+    <small class="nav-text text-danger me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="In-development version">1.5.0.9000</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -45,7 +45,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/ipeaGIT/accessibility/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/ipea/accessibility/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
@@ -69,7 +69,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Decay functions</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/ipeaGIT/accessibility/blob/main/vignettes/decay_functions.Rmd" class="external-link"><code>vignettes/decay_functions.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/ipea/accessibility/blob/main/vignettes/decay_functions.Rmd" class="external-link"><code>vignettes/decay_functions.Rmd</code></a></small>
       <div class="d-none name"><code>decay_functions.Rmd</code></div>
     </div>
 
@@ -82,7 +82,7 @@ travel costs become larger. For convenience, the package ships with some
 of the most frequently used functions in the accessibility literature,
 which are discussed below. Additionally, users can pass custom functions
 to convert travel costs into weights to be applied to the opportunities,
-which is discussed further down in this the vignette.</p>
+which is discussed further down in this vignette.</p>
 <div class="section level2">
 <h2 id="currently-available-decay-functions">Currently available decay functions<a class="anchor" aria-label="anchor" href="#currently-available-decay-functions"></a>
 </h2>
@@ -169,7 +169,7 @@ is the parameter that tells the speed of decay.</p>
 <h3 id="stepped">Stepped<a class="anchor" aria-label="anchor" href="#stepped"></a>
 </h3>
 <p>Similar to the binary function, but can take an arbitrary number of
-steps. The current implementation assumes that values changes at each
+steps. The current implementation assumes that values change at each
 step, instead of right after it.</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mtable><mtr><mtd columnalign="right" style="text-align: right"><mi>f</mi><mo stretchy="false" form="prefix">(</mo><msub><mi>t</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mo stretchy="true" form="prefix">{</mo><mtable><mtr><mtd columnalign="left" style="text-align: left"><mn>1</mn></mtd><mtd columnalign="left" style="text-align: left"><mspace width="1.0em"></mspace><mrow><mtext mathvariant="normal">for </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>t</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>&lt;</mo><msub><mi>S</mi><mn>1</mn></msub></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><msub><mi>v</mi><mn>1</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mspace width="1.0em"></mspace><mrow><mtext mathvariant="normal">for </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>t</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>&lt;</mo><msub><mi>S</mi><mn>2</mn></msub></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><msub><mi>v</mi><mn>2</mn></msub></mtd><mtd columnalign="left" style="text-align: left"><mspace width="1.0em"></mspace><mrow><mtext mathvariant="normal">for </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>t</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>&lt;</mo><msub><mi>S</mi><mn>3</mn></msub></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><mi>.</mi><mi>.</mi><mi>.</mi></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><msub><mi>v</mi><mrow><mi>n</mi><mo>−</mo><mn>1</mn></mrow></msub></mtd><mtd columnalign="left" style="text-align: left"><mspace width="1.0em"></mspace><mrow><mtext mathvariant="normal">for </mtext><mspace width="0.333em"></mspace></mrow><msub><mi>t</mi><mrow><mi>i</mi><mi>j</mi></mrow></msub><mo>&lt;</mo><msub><mi>S</mi><mi>n</mi></msub></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"><msub><mi>v</mi><mi>n</mi></msub></mtd><mtd columnalign="left" style="text-align: left"><mspace width="1.0em"></mspace><mtext mathvariant="normal">otherwise</mtext></mtd></mtr><mtr><mtd columnalign="left" style="text-align: left"></mtd></mtr></mtable></mrow></mtd></mtr><mtr><mtd columnalign="right" style="text-align: right"></mtd></mtr></mtable><annotation encoding="application/x-tex">
 \begin{aligned}
@@ -238,7 +238,7 @@ parameters.</p>
 below, we calculate the opportunities weights for the same travel costs,
 but using different negative exponential decay values (0.2 and 0.3):</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ipeaGIT/accessibility" class="external-link">accessibility</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ipea/accessibility" class="external-link">accessibility</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">output_fn</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/decay_exponential.html">decay_exponential</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.2</span>, <span class="fl">0.3</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -248,10 +248,10 @@ but using different negative exponential decay values (0.2 and 0.3):</p>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; $`0.3`</span></span>
 <span><span class="co">#&gt; [1] 0.049787068 0.011108997 0.002478752</span></span></code></pre></div>
-<p><code><a href="../reference/decay_stepped.html">decay_stepped()</a></code>, as the only decay function that takes
-more than one argument (both <code>steps</code> and
-<code>weights</code>) names the output elements after the combination of
-steps and weights:</p>
+<p><code><a href="../reference/decay_stepped.html">decay_stepped()</a></code>, which takes two arguments that can be
+lists of vectors (both <code>steps</code> and <code>weights</code>),
+names the output elements after the combination of steps and
+weights:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">stepped_output</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/decay_stepped.html">decay_stepped</a></span><span class="op">(</span></span>
 <span>  steps <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">20</span>, <span class="fl">30</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">10</span>, <span class="fl">20</span>, <span class="fl">30</span>, <span class="fl">40</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -426,16 +426,18 @@ a function.</p>
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/decay_power.html">decay_power</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; function (travel_cost) </span></span>
 <span><span class="co">#&gt; {</span></span>
-<span><span class="co">#&gt;     weights_list &lt;- lapply(decay_value, function(x) {</span></span>
-<span><span class="co">#&gt;         weights &lt;- travel_cost^(-x)</span></span>
-<span><span class="co">#&gt;         weights[weights &gt; 1] &lt;- 1</span></span>
-<span><span class="co">#&gt;         weights</span></span>
+<span><span class="co">#&gt;     weights_list &lt;- weigh_unique_costs(travel_cost, function(cost) {</span></span>
+<span><span class="co">#&gt;         lapply(decay_value, function(x) {</span></span>
+<span><span class="co">#&gt;             weights &lt;- cost^(-x)</span></span>
+<span><span class="co">#&gt;             weights[weights &gt; 1] &lt;- 1</span></span>
+<span><span class="co">#&gt;             weights</span></span>
+<span><span class="co">#&gt;         })</span></span>
 <span><span class="co">#&gt;     })</span></span>
 <span><span class="co">#&gt;     names(weights_list) &lt;- decay_value</span></span>
 <span><span class="co">#&gt;     return(weights_list)</span></span>
 <span><span class="co">#&gt; }</span></span>
-<span><span class="co">#&gt; &lt;bytecode: 0x55d431c570e8&gt;</span></span>
-<span><span class="co">#&gt; &lt;environment: 0x55d436c67158&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; &lt;bytecode: 0x564b60271d30&gt;</span></span>
+<span><span class="co">#&gt; &lt;environment: 0x564b65019f00&gt;</span></span></code></pre></div>
 <p>What if we want our custom function to take many decay parameters as
 inputs, just like the built-in decay functions? In this case, our output
 function has to return a <code>list</code> of <code>numeric</code>
@@ -525,11 +527,11 @@ Function</span> Within the <span>Floating Catchment Area</span>
 
 
     <footer><div class="pkgdown-footer-left">
-  <p>Developed by Rafael H. M. Pereira, Daniel Herszenhut, Ipea - Institute for Applied Economic Research.</p>
+  <p>Developed by Rafael H. M. Pereira, Daniel Herszenhut, Anastasia Soukhov, Ipea - Institute for Applied Economic Research.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

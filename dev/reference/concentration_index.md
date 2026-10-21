@@ -1,7 +1,7 @@
 # Concentration Index
 
 Calculates the Concentration Index (CI) of a given accessibility
-distribution. This measures estimates the extent to which accessibility
+distribution. This measure estimates the extent to which accessibility
 inequalities are systematically associated with individuals'
 socioeconomic levels. CI values can theoretically vary between -1 and +1
 (when all accessibility is concentrated in the most or in the least
@@ -41,7 +41,7 @@ concentration_index(
 - opportunity:
 
   A string. The name of the column in `accessibility_data` with the
-  accessibility levels to be considerend when calculating inequality
+  accessibility levels to be considered when calculating inequality
   levels.
 
 - population:
@@ -91,10 +91,11 @@ Health Economics*, **28**(2), 504–515. ISSN 0167-6296.
 
 ## See also
 
-Other inequality:
-[`gini_index()`](https://ipeagit.github.io/accessibility/dev/reference/gini_index.md),
-[`palma_ratio()`](https://ipeagit.github.io/accessibility/dev/reference/palma_ratio.md),
-[`theil_t()`](https://ipeagit.github.io/accessibility/dev/reference/theil_t.md)
+Other equity:
+[`fgt_poverty()`](https://ipea.github.io/accessibility/dev/reference/fgt_poverty.md),
+[`gini_index()`](https://ipea.github.io/accessibility/dev/reference/gini_index.md),
+[`palma_ratio()`](https://ipea.github.io/accessibility/dev/reference/palma_ratio.md),
+[`theil_t()`](https://ipea.github.io/accessibility/dev/reference/theil_t.md)
 
 ## Examples
 
@@ -122,5 +123,5 @@ ci <- concentration_index(
 ci
 #>    concentration_index
 #>                  <num>
-#> 1:           0.3346494
+#> 1:           0.3346194
 ```

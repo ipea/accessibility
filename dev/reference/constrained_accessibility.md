@@ -39,7 +39,8 @@ constrained_accessibility(
 
   A data frame. The distribution of opportunities within the study area
   cells. Must contain the columns `id` and any others specified in
-  `opportunity`.
+  `opportunity`. `NA` values, and ids in `travel_matrix` that are
+  missing from this table, are treated as 0.
 
 - travel_cost:
 
@@ -67,16 +68,18 @@ constrained_accessibility(
 
 - decay_function:
 
-  A `fuction` that converts travel cost into an impedance factor used to
-  weight opportunities. This function should take a `numeric` vector and
-  also return a `numeric` vector as output, with the same length as the
-  input. For convenience, the package currently includes the following
-  functions:
-  [`decay_binary()`](https://ipeagit.github.io/accessibility/dev/reference/decay_binary.md),
-  [`decay_exponential()`](https://ipeagit.github.io/accessibility/dev/reference/decay_exponential.md),
-  [`decay_power()`](https://ipeagit.github.io/accessibility/dev/reference/decay_power.md)
+  A `function` that converts travel cost into an impedance factor used
+  to weight opportunities. This function should take a `numeric` vector
+  and also return a `numeric` vector as output, with the same length as
+  the input. For convenience, the package currently includes the
+  following functions:
+  [`decay_binary()`](https://ipea.github.io/accessibility/dev/reference/decay_binary.md),
+  [`decay_exponential()`](https://ipea.github.io/accessibility/dev/reference/decay_exponential.md),
+  [`decay_linear()`](https://ipea.github.io/accessibility/dev/reference/decay_linear.md),
+  [`decay_logistic()`](https://ipea.github.io/accessibility/dev/reference/decay_logistic.md),
+  [`decay_power()`](https://ipea.github.io/accessibility/dev/reference/decay_power.md)
   and
-  [`decay_stepped()`](https://ipeagit.github.io/accessibility/dev/reference/decay_stepped.md).
+  [`decay_stepped()`](https://ipea.github.io/accessibility/dev/reference/decay_stepped.md).
   See the documentation of each decay function for more details.
 
 - active:
@@ -117,14 +120,14 @@ constrained_accessibility(
 - fill_missing_ids:
 
   A `logical`. When calculating grouped accessibility estimates (i.e.
-  when `by_col` is not `NULL`), some combinations of groups and origins
+  when `group_by` is not empty), some combinations of groups and origins
   may be missing. For example, if a single trip can depart from origin
   `A` at 7:15am and reach destination `B` within 55 minutes, but no
   trips departing from `A` at 7:30am can be completed at all, this
   second combination will not be included in the output. When `TRUE`
   (the default), the function identifies which combinations would be
   left out and fills their respective accessibility values with 0, which
-  incurs in a performance penalty.
+  incurs a performance penalty.
 
 - detailed_results:
 
@@ -139,7 +142,7 @@ proposed in Soukhov et al. (2025) .
 
 Allocates the system-wide total proportionally based on travel impedance
 between origins and destinations. This measure uses the logic of a total
-~(or 'unconstrained' by Wilson's terms)~ constraint.
+(or 'unconstrained' by Wilson's terms) constraint.
 
 Use this measure when the total quantity of **supply** OR **demand** in
 the system is known and representing accessibility as a proportion of
@@ -147,7 +150,9 @@ this total is meaningful.
 
 #### Requirement:
 
-- Either `demand` or `supply` must be provided (cannot provide both).
+- `supply` must be provided when `active = TRUE`, and `demand` when
+  `active = FALSE`. The other argument is ignored, so the same call can
+  be used with `constraint = "singly"`, which requires both.
 
 #### Interpretation:
 
@@ -248,7 +253,7 @@ unconstrained side.
 
 **NOTE:** the active form of this measure yields equivalent results to
 the
-[`spatial_availability()`](https://ipeagit.github.io/accessibility/dev/reference/spatial_availability.md)
+[`spatial_availability()`](https://ipea.github.io/accessibility/dev/reference/spatial_availability.md)
 function, through different logic.
 
 ### Doubly Constrained Accessibility
@@ -274,7 +279,7 @@ marginals while being weighted by travel impedance.
   are the same and there is no distinction between 'active' and
   'passive' notions.
 
-- Only accepts`detailed_results = TRUE`.
+- Only accepts `detailed_results = TRUE`.
 
 #### Interpretation:
 
@@ -291,17 +296,20 @@ marginals while being weighted by travel impedance.
 
 ## References
 
-Soukhov A, Pereira RH, Higgins CD, Páez A (2025). “A family of
+Soukhov A, Pereira RHM, Higgins CD, Páez A (2025). “A family of
 accessibility measures derived from spatial interaction principles.”
-*PLoS One*, **20**(11), e0335951.  
+*PLoS One*, **20**(11), e0335951.
+[doi:10.1371/journal.pone.0335951](https://doi.org/10.1371/journal.pone.0335951)
+.  
   
 Wilson AG (1971). “A family of spatial interaction models, and
 associated developments.” *Environment and Planning A*, **3**(1), 1–32.
+[doi:10.1068/a030001](https://doi.org/10.1068/a030001) .
 
 ## See also
 
 Other Constrained accessibility:
-[`spatial_availability()`](https://ipeagit.github.io/accessibility/dev/reference/spatial_availability.md)
+[`spatial_availability()`](https://ipea.github.io/accessibility/dev/reference/spatial_availability.md)
 
 ## Examples
 
@@ -429,13 +437,13 @@ constrained_accessibility(
 )
 #>    from_id  to_id       flow       A_i      B_j kappa_doubly        error
 #>     <fctr> <fctr>      <num>     <num>    <num>        <num>        <num>
-#> 1:       1      1 2.52693730 0.1721781 1.424797   0.36099104 0.0007282441
-#> 2:       1      2 0.09995405 0.1721781 0.583010   0.01999081 0.0007282441
-#> 3:       1      3 1.37651660 0.1721781 1.119684   0.17206457 0.0007282441
-#> 4:       2      1 2.15341665 0.4336710 1.424797   0.30763095 0.0007282441
-#> 5:       2      2 4.65063122 0.4336710 0.583010   0.93012624 0.0007282441
-#> 6:       2      3 3.18866969 0.4336710 1.119684   0.39858371 0.0007282441
-#> 7:       3      1 2.31964604 0.1737245 1.424797   0.33137801 0.0007282441
-#> 8:       3      2 0.24941474 0.1737245 0.583010   0.04988295 0.0007282441
-#> 9:       3      3 3.43481370 0.1737245 1.119684   0.42935171 0.0007282441
+#> 1:       1      1 2.52693731 0.1721781 1.424797   0.36099104 0.0007282429
+#> 2:       1      2 0.09995405 0.1721781 0.583010   0.01999081 0.0007282429
+#> 3:       1      3 1.37651660 0.1721781 1.119684   0.17206457 0.0007282429
+#> 4:       2      1 2.15341665 0.4336710 1.424797   0.30763095 0.0007282429
+#> 5:       2      2 4.65063122 0.4336710 0.583010   0.93012624 0.0007282429
+#> 6:       2      3 3.18866970 0.4336710 1.119684   0.39858371 0.0007282429
+#> 7:       3      1 2.31964604 0.1737245 1.424797   0.33137801 0.0007282429
+#> 8:       3      2 0.24941474 0.1737245 0.583010   0.04988295 0.0007282429
+#> 9:       3      3 3.43481370 0.1737245 1.119684   0.42935171 0.0007282429
 ```

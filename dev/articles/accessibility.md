@@ -7,9 +7,10 @@ dataset, the package allows one to calculate active and passive
 accessibility levels using multiple accessibility metrics, such as
 cumulative opportunities (using either a travel cost cutoff or a travel
 cost interval), minimum travel cost to closest N number of activities,
-gravitational measures and different floating catchment area methods.
-This vignette briefly overviews the package with a few reproducible
-examples.
+gravitational measures, different floating catchment area methods,
+spatial availability, balancing cost and constrained accessibility
+measures. This vignette briefly overviews the package with a few
+reproducible examples.
 
 ## Installation
 
@@ -27,31 +28,42 @@ install.packages("accessibility")
 ``` r
 
 # install.packages("remotes")
-remotes::install_github("ipeaGIT/accessibility")
+remotes::install_github("ipea/accessibility")
 ```
 
 ## Overview of the package
 
 As of the time of writing this vignette, the **accessibility** package
-includes five different functions to calculate accessibility:
+includes eight different functions to calculate accessibility:
 
-1.  [`cost_to_closest()`](https://ipeagit.github.io/accessibility/dev/reference/cost_to_closest.md) -
+1.  [`cost_to_closest()`](https://ipea.github.io/accessibility/dev/reference/cost_to_closest.md) -
     calculates the minimum travel cost to the closest *n* number of
     opportunities.
-2.  [`cumulative_cutoff()`](https://ipeagit.github.io/accessibility/dev/reference/cumulative_cutoff.md) -
+2.  [`cumulative_cutoff()`](https://ipea.github.io/accessibility/dev/reference/cumulative_cutoff.md) -
     calculates the frequently used threshold-based cumulative
     opportunities measure.
-3.  [`cumulative_interval()`](https://ipeagit.github.io/accessibility/dev/reference/cumulative_interval.md) -
+3.  [`cumulative_interval()`](https://ipea.github.io/accessibility/dev/reference/cumulative_interval.md) -
     calculates accessibility as the median/mean (or any other summary
     measure, really) number of opportunities that can be reached within
     a cost interval.
-4.  [`gravity()`](https://ipeagit.github.io/accessibility/dev/reference/gravity.md) -
+4.  [`gravity()`](https://ipea.github.io/accessibility/dev/reference/gravity.md) -
     calculates gravity-based accessibility, taking a decay function
     specified by the user (more on that in a few paragraphs).
-5.  [`floating_catchment_area()`](https://ipeagit.github.io/accessibility/dev/reference/floating_catchment_area.md) -
+5.  [`floating_catchment_area()`](https://ipea.github.io/accessibility/dev/reference/floating_catchment_area.md) -
     calculates accessibility taking into account the effects of
     competition for opportunities with different floating catchment area
     measures.
+6.  [`spatial_availability()`](https://ipea.github.io/accessibility/dev/reference/spatial_availability.md) -
+    calculates accessibility taking into account competition effects
+    with the spatial availability measure, in which the opportunities
+    are allocated to origins proportionally to their demand and travel
+    cost.
+7.  [`balancing_cost()`](https://ipea.github.io/accessibility/dev/reference/balancing_cost.md) -
+    calculates the travel cost required to reach as many opportunities
+    as the number of people in each origin.
+8.  [`constrained_accessibility()`](https://ipea.github.io/accessibility/dev/reference/constrained_accessibility.md) -
+    calculates accessibility as potential spatial interaction, using the
+    total, singly or doubly constrained measures.
 
 You may have noticed that we’ve mentioned a few times that the functions
 calculate accessibility using travel *cost*, and not travel *time*.
@@ -61,34 +73,39 @@ such as travel time, monetary costs, distances, risk perception, etc.,
 can be considered a generic *cost*.
 
 The
-[`gravity()`](https://ipeagit.github.io/accessibility/dev/reference/gravity.md)
+[`gravity()`](https://ipea.github.io/accessibility/dev/reference/gravity.md),
+[`floating_catchment_area()`](https://ipea.github.io/accessibility/dev/reference/floating_catchment_area.md),
+[`spatial_availability()`](https://ipea.github.io/accessibility/dev/reference/spatial_availability.md)
 and
-[`floating_catchment_area()`](https://ipeagit.github.io/accessibility/dev/reference/floating_catchment_area.md)
+[`constrained_accessibility()`](https://ipea.github.io/accessibility/dev/reference/constrained_accessibility.md)
 functions can use different decay functions when estimating
 accessibility levels. These decay functions effectively weigh the number
 of opportunities in a destination by a factor that depends on the travel
 cost between the origin and the destination. For convenience, the
 package currently includes the following decay functions:
 
-1.  [`decay_binary()`](https://ipeagit.github.io/accessibility/dev/reference/decay_binary.md) -
+1.  [`decay_binary()`](https://ipea.github.io/accessibility/dev/reference/decay_binary.md) -
     binary decay function (the one used in cumulative opportunities
     measures).
-2.  [`decay_exponential()`](https://ipeagit.github.io/accessibility/dev/reference/decay_exponential.md) -
+2.  [`decay_exponential()`](https://ipea.github.io/accessibility/dev/reference/decay_exponential.md) -
     negative exponential decay function.
-3.  [`decay_linear()`](https://ipeagit.github.io/accessibility/dev/reference/decay_linear.md) -
+3.  [`decay_linear()`](https://ipea.github.io/accessibility/dev/reference/decay_linear.md) -
     linear decay function (weights decay linearly from 1 to 0 until a
     specific travel cost cutoff is reached).
-4.  [`decay_power()`](https://ipeagit.github.io/accessibility/dev/reference/decay_power.md) -
+4.  [`decay_logistic()`](https://ipea.github.io/accessibility/dev/reference/decay_logistic.md) -
+    logistic decay function (weights decay following a reversed
+    cumulative logistic curve around a travel cost cutoff).
+5.  [`decay_power()`](https://ipea.github.io/accessibility/dev/reference/decay_power.md) -
     inverse power decay function.
-5.  [`decay_stepped()`](https://ipeagit.github.io/accessibility/dev/reference/decay_stepped.md) -
+6.  [`decay_stepped()`](https://ipea.github.io/accessibility/dev/reference/decay_stepped.md) -
     stepped decay function (similar to
-    [`decay_binary()`](https://ipeagit.github.io/accessibility/dev/reference/decay_binary.md),
+    [`decay_binary()`](https://ipea.github.io/accessibility/dev/reference/decay_binary.md),
     but can take an arbitrary number of steps, instead of a single one).
 
 The users can also specify their own custom decay functions, if they
 need to use functions currently not included in the package. For more
 details on this, please read the [decay functions
-vignette](https://ipeagit.github.io/accessibility/dev/articles/decay_functions.md).
+vignette](https://ipea.github.io/accessibility/dev/articles/decay_functions.md).
 
 ## Demonstration on sample data
 
@@ -99,8 +116,6 @@ package. First we’ll need to load the libraries we’ll be using:
 
 library(accessibility)
 library(data.table)
-library(ggplot2)
-library(sf)
 ```
 
 ### Data requirements
@@ -154,7 +169,7 @@ head(land_use_data)
 
 ### Minimum travel cost
 
-[`cost_to_closest()`](https://ipeagit.github.io/accessibility/dev/reference/cost_to_closest.md)
+[`cost_to_closest()`](https://ipea.github.io/accessibility/dev/reference/cost_to_closest.md)
 calculates the minimum travel cost to a given number of opportunities.
 Much like the other functions we’ll be demonstrating in this section, it
 takes as inputs the travel matrix and land use datasets, the name of the
@@ -174,7 +189,6 @@ mtc <- cost_to_closest(
   n = 1
 )
 head(mtc)
-#> Key: <id>
 #>                 id travel_time
 #>             <char>       <num>
 #> 1: 89a881a5a2bffff          29
@@ -187,7 +201,7 @@ head(mtc)
 
 ### Cutoff-based cumulative opportunities
 
-[`cumulative_cutoff()`](https://ipeagit.github.io/accessibility/dev/reference/cumulative_cutoff.md)
+[`cumulative_cutoff()`](https://ipea.github.io/accessibility/dev/reference/cumulative_cutoff.md)
 calculates the traditional cumulative opportunities measure, indicating
 the number of opportunities that are accessible within a given travel
 cost threshold. In this example, we estimate how many jobs can be
@@ -243,20 +257,24 @@ head(passive_cum_cutoff)
 
 The `active` parameter is available in most other accessibility
 functions as well (with the exception of
-[`floating_catchment_area()`](https://ipeagit.github.io/accessibility/dev/reference/floating_catchment_area.md)),
+[`floating_catchment_area()`](https://ipea.github.io/accessibility/dev/reference/floating_catchment_area.md),
+[`spatial_availability()`](https://ipea.github.io/accessibility/dev/reference/spatial_availability.md)
+and
+[`balancing_cost()`](https://ipea.github.io/accessibility/dev/reference/balancing_cost.md)),
 making it very easy to calculate both active and passive accessibility.
 
 ### Interval-based cumulative opportunities
 
-`cumulative_time_interval()` calculates the interval-based cumulative
-opportunities measure. This measure, developed by Tomasiello et al.
-(2023), mitigates the impacts of arbitrary choices of cost cutoffs, one
-of the main disadvantages of the traditional threshold-based cumulative
-opportunities measure. Given a cost interval, it calculates several
-accessibility estimates within the interval and summarizes it using a
-user-specified function. In the example below, we calculate the average
-number of accessible jobs considering multiple minute-by-minute time
-thresholds between 40 and 60 minutes.
+[`cumulative_interval()`](https://ipea.github.io/accessibility/dev/reference/cumulative_interval.md)
+calculates the interval-based cumulative opportunities measure. This
+measure, developed by Tomasiello et al. (2023), mitigates the impacts of
+arbitrary choices of cost cutoffs, one of the main disadvantages of the
+traditional threshold-based cumulative opportunities measure. Given a
+cost interval, it calculates several accessibility estimates within the
+interval and summarizes it using a user-specified function. In the
+example below, we calculate the average number of accessible jobs
+considering multiple minute-by-minute time thresholds between 40 and 60
+minutes.
 
 ``` r
 
@@ -269,30 +287,30 @@ cum_interval <- cumulative_interval(
   summary_function = base::mean
 )
 head(cum_interval)
-#>                 id   jobs
-#>             <char>  <int>
-#> 1: 89a88cdb57bffff 311965
-#> 2: 89a88cdb597ffff 249416
-#> 3: 89a88cdb5b3ffff 302515
-#> 4: 89a88cdb5cfffff 373386
-#> 5: 89a88cd909bffff 308429
-#> 6: 89a88cd90b7ffff 344118
+#>                 id     jobs
+#>             <char>    <num>
+#> 1: 89a881a5a2bffff 226953.9
+#> 2: 89a881a5a2fffff 259412.0
+#> 3: 89a881a5a67ffff 238623.4
+#> 4: 89a881a5a6bffff 196886.7
+#> 5: 89a881a5a6fffff 186608.3
+#> 6: 89a881a5b03ffff 292281.8
 ```
 
 ### Gravity measures
 
-[`gravity()`](https://ipeagit.github.io/accessibility/dev/reference/gravity.md)
+[`gravity()`](https://ipea.github.io/accessibility/dev/reference/gravity.md)
 calculates gravity-based measures - i.e. measures in which the weight of
 opportunities is gradually discounted as the travel cost increases. Of
-course, several different decay functions can be used to so, each one of
-them with a range of possible different parameters. In order to
+course, several different decay functions can be used to do so, each one
+of them with a range of possible different parameters. In order to
 accommodate such generalization, the function takes the decay function
 to be used as a parameter.
 
 In the example below, we calculate accessibility using a negative
-exponential function with a `decay_value` (usually referred as the in
-its formulation) of 0.2. Please see [the vignette on decay
-functions](https://ipeagit.github.io/accessibility/dev/articles/decay_functions.md)
+exponential function with a `decay_value` (usually referred to as
+$`\beta`$ in its formulation) of 0.2. Please see [the vignette on decay
+functions](https://ipea.github.io/accessibility/dev/articles/decay_functions.md)
 for more information on the decay functions shipped with the package and
 how to use custom functions.
 
@@ -318,7 +336,7 @@ head(negative_exp)
 
 ### Floating catchment area
 
-[`floating_catchment_area()`](https://ipeagit.github.io/accessibility/dev/reference/floating_catchment_area.md)
+[`floating_catchment_area()`](https://ipea.github.io/accessibility/dev/reference/floating_catchment_area.md)
 calculates accessibility accounting for competition of resources using
 different floating catchment area (FCA) methods. The FCA family includes
 several different methods, which can be specified using the `method`
@@ -328,7 +346,7 @@ two different methods:
 - 2-Step Floating Catchment Area (`"2sfca"`) - the first metric in the
   FCA family, originally proposed by Luo and Wang (2003).
 - Balanced Floating Catchment Area (`"bfca"`) - takes competition
-  affects into account while correcting for issues of inflation of
+  effects into account while correcting for issues of inflation of
   demand and service levels. Originally proposed by Paez et al. (2019)
   and named in Pereira et al. (2021).
 
@@ -364,7 +382,7 @@ head(bfca)
 
 ### Spatial availability
 
-[`spatial_availability()`](https://ipeagit.github.io/accessibility/dev/reference/spatial_availability.md)
+[`spatial_availability()`](https://ipea.github.io/accessibility/dev/reference/spatial_availability.md)
 also calculates accessibility considering competition effects, though
 using the spatial availability measure proposed by Soukhov et al.
 (2023). The results from this metric are proportional both to the demand
@@ -397,13 +415,13 @@ head(spatial_avlblt)
 
 ### Balancing cost
 
-[`balancing_cost()`](https://ipeagit.github.io/accessibility/dev/reference/balancing_cost.md)
+[`balancing_cost()`](https://ipea.github.io/accessibility/dev/reference/balancing_cost.md)
 calculates the balancing cost accessibility measure. Originally proposed
 by Barboza et al. (2021) under the name “balancing time”, this metric is
 defined as the travel cost required to reach as many opportunities as
 the number of people in a given origin. Just like the previous two
 functions,
-[`balancing_cost()`](https://ipeagit.github.io/accessibility/dev/reference/balancing_cost.md)
+[`balancing_cost()`](https://ipea.github.io/accessibility/dev/reference/balancing_cost.md)
 also includes a parameter to specify the population competing for
 opportunities.
 
@@ -430,7 +448,6 @@ bal_cost <- balancing_cost(
   demand = "population"
 )
 head(bal_cost)
-#> Key: <id>
 #>                 id travel_time
 #>             <char>       <num>
 #> 1: 89a881a5a2bffff          15
@@ -441,6 +458,59 @@ head(bal_cost)
 #> 6: 89a881a5b03ffff           6
 ```
 
+### Constrained accessibility
+
+[`constrained_accessibility()`](https://ipea.github.io/accessibility/dev/reference/constrained_accessibility.md)
+calculates the family of constrained accessibility measures proposed by
+Soukhov et al. (2025), in which accessibility is conceptualised as
+potential spatial interaction. Borrowing the constraints of the family
+of spatial interaction models proposed by Wilson (1971), the function
+covers three cases, specified with the `constraint` parameter:
+
+- `"total"` - allocates the total supply (or demand) of the region
+  according to the travel impedance between origins and destinations;
+- `"singly"` - allocates the supply at each destination (or the demand
+  at each origin) according to the travel impedance and the demand (or
+  supply) on the other side, thus accounting for competition;
+- `"doubly"` - allocates flows so that they match both the demand at
+  each origin and the supply at each destination, which must sum to the
+  same total.
+
+The results of the total and singly constrained measures are expressed
+in units of supply (e.g. jobs) when `active = TRUE` and in units of
+demand (e.g. population) when `active = FALSE`. In the example below, we
+calculate singly constrained accessibility to jobs, considering the
+population competing for them and a negative exponential decay function.
+Please note that the column with the results is named `supply`, after
+the side being allocated, and not after the opportunity column.
+
+``` r
+
+constrained <- constrained_accessibility(
+  travel_matrix,
+  land_use_data,
+  travel_cost = "travel_time",
+  demand = "population",
+  supply = "jobs",
+  constraint = "singly",
+  decay_function = decay_exponential(decay_value = 0.1),
+  active = TRUE
+)
+head(constrained)
+#>            from_id   supply
+#>             <char>    <num>
+#> 1: 89a88cdb57bffff 186.0876
+#> 2: 89a88cdb597ffff 140.0738
+#> 3: 89a88cdb5b3ffff 736.5830
+#> 4: 89a88cdb5cfffff 900.9284
+#> 5: 89a88cd909bffff   0.0000
+#> 6: 89a88cd90b7ffff 204.7962
+```
+
+Summing the results gives back the total number of jobs in the city,
+and, with the same decay function, the results are equal to those of
+[`spatial_availability()`](https://ipea.github.io/accessibility/dev/reference/spatial_availability.md).
+
 ### Visualize results
 
 If you have the spatial data of your origins/destinations, you can
@@ -449,6 +519,9 @@ of the results. The example below quickly shows how to create a simple
 map using [ggplot2](https://ggplot2.tidyverse.org).
 
 ``` r
+
+library(ggplot2)
+library(sf)
 
 grid <- system.file("extdata/grid_bho.rds", package = "accessibility")
 grid <- readRDS(grid)
@@ -465,7 +538,7 @@ ggplot() +
   theme_void()
 ```
 
-![](accessibility_files/figure-html/unnamed-chunk-15-1.png)
+![](accessibility_files/figure-html/unnamed-chunk-16-1.png)
 
 ## References
 
@@ -494,15 +567,24 @@ Mohamed. 2023. “Introducing Spatial Availability, a Singly-Constrained
 Measure of Competitive Accessibility.” *PLOS ONE* 18 (1): e0278468.
 <https://doi.org/10.1371/journal.pone.0278468>.
 
+Soukhov, Anastasia, Rafael H. M. Pereira, Christopher D. Higgins, and
+Antonio Páez. 2025. “A Family of Accessibility Measures Derived from
+Spatial Interaction Principles.” *PLoS One* 20 (11): e0335951.
+<https://doi.org/10.1371/journal.pone.0335951>.
+
 Tomasiello, Diego Bogado, Daniel Herszenhut, João Lucas Albuquerque
 Oliveira, Carlos Kaue Vieira Braga, and Rafael H. M. Pereira. 2023. “A
 Time Interval Metric for Cumulative Opportunity Accessibility.” *Applied
 Geography* 157 (August): 103007.
 <https://doi.org/10.1016/j.apgeog.2023.103007>.
 
+Wilson, Alan Geoffrey. 1971. “A Family of Spatial Interaction Models,
+and Associated Developments.” *Environment and Planning A* 3 (1): 1–32.
+<https://doi.org/10.1068/a030001>.
+
 [^1]: If you would like to calculate such travel cost matrices yourself,
     there are several computational packages to do that in R, such as
-    [r5r](https://github.com/ipeaGIT/r5r),
+    [r5r](https://github.com/ipea/r5r),
     [dodgr](https://github.com/UrbanAnalyst/dodgr),
     [gtfsrouter](https://github.com/UrbanAnalyst/gtfsrouter),
     [hereR](https://github.com/munterfi/hereR) and
