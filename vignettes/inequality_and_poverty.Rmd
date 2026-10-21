@@ -232,4 +232,41 @@ poverty <- fgt_poverty(
 poverty
 ```
 
+By default, `fgt_poverty()` considers that people with accessibility *below*
+the poverty line are poor, which is the right approach for primal accessibility
+measures, such as the number of accessible jobs. For dual measures, such as the
+travel time to the closest facility calculated with `cost_to_closest()`, higher
+values indicate worse access, so people *above* the poverty line should be
+considered poor. This is done by setting `poor_below_threshold = FALSE`. In
+this case, FGT1 and FGT2 measure the excess travel cost relative to the poverty
+line, so they are not bounded by 1. In the example below, we consider that
+people who take more than 20 minutes to reach the closest school are in
+accessibility poverty. Note that `cost_to_closest()` returns `Inf` for origins
+that can't reach any school in the travel matrix, which would make FGT1 and
+FGT2 infinite (`fgt_poverty()` warns about it), so we replace these values by
+the longest travel time in the travel matrix (120 minutes) beforehand.
+
+```{r}
+time_to_school <- cost_to_closest(
+  travel_matrix,
+  land_use_data,
+  opportunity = "schools",
+  travel_cost = "travel_time"
+)
+
+unreachable <- is.infinite(time_to_school$travel_time)
+time_to_school$travel_time[unreachable] <- 120
+
+poverty_dual <- fgt_poverty(
+  time_to_school,
+  sociodemographic_data = land_use_data,
+  opportunity = "travel_time",
+  population = "population",
+  poverty_line = 20,
+  poor_below_threshold = FALSE
+)
+
+poverty_dual
+```
+
 # References

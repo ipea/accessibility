@@ -270,3 +270,52 @@ test_that("fgt measures match hand-computed values on a toy example", {
     )
   )
 })
+
+test_that("warns about Inf values when poor_below_threshold = FALSE", {
+  toy_access <- data.table::data.table(
+    id = c("a", "b", "c"),
+    travel_time = c(10, 30, Inf)
+  )
+  toy_sociodem <- data.table::data.table(
+    id = c("a", "b", "c"),
+    population = c(1, 1, 1)
+  )
+
+  expect_warning(
+    result <- tester(
+      toy_access,
+      toy_sociodem,
+      opportunity = "travel_time",
+      poverty_line = 20,
+      poor_below_threshold = FALSE,
+      group_by = character(0)
+    ),
+    regexp = "Inf"
+  )
+  expect_identical(result$FGT1, Inf)
+
+  # no warning when Inf is not a problem: with primal measures, and when the
+  # observation has no population
+
+  expect_silent(
+    tester(
+      toy_access,
+      toy_sociodem,
+      opportunity = "travel_time",
+      poverty_line = 20,
+      group_by = character(0)
+    )
+  )
+
+  toy_sociodem[id == "c", population := 0]
+  expect_silent(
+    tester(
+      toy_access,
+      toy_sociodem,
+      opportunity = "travel_time",
+      poverty_line = 20,
+      poor_below_threshold = FALSE,
+      group_by = character(0)
+    )
+  )
+})

@@ -155,6 +155,13 @@
   formatting of argument names and values. Long lists of ids or columns in
   messages are abbreviated. `{cli}` and `{rlang}` are new dependencies.
 
+- `fgt_poverty()` now warns when `poor_below_threshold = FALSE` and
+  `accessibility_data` contains `Inf` values (e.g. from `cost_to_closest()` for
+  origins that can't reach the required opportunities), which make FGT1 and
+  FGT2 infinite. The documentation and the inequality and poverty vignette now
+  explain this case, and the vignette includes an example with
+  `poor_below_threshold = FALSE`.
+
 ## Notes
 
 - Updated the package website and GitHub URLs after the repository moved from

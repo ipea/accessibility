@@ -66,7 +66,11 @@
 #' accessibility of 0. When `poor_below_threshold` is `FALSE`, FGT0 still ranges
 #' from 0 to 1, but FGT1 and FGT2 have no upper bound: they can be greater than
 #' 1 (e.g. when travel costs are more than twice the poverty line) and are
-#' `Inf` if any accessibility value is `Inf`.
+#' `Inf` if any accessibility value is `Inf`. This happens, for example, with
+#' the travel costs of origins that can't reach the required opportunities, as
+#' returned by [cost_to_closest()]. The function raises a warning in this case,
+#' and these values should be replaced by a maximum travel cost (e.g. the
+#' highest cost in the travel matrix) before calculating the FGT measures.
 #'
 #' @references
 #' \insertAllCited{}
@@ -143,6 +147,34 @@ fgt_poverty <- function(
   )
 
   warn_extra_access_cols(accessibility_data, opportunity, group_by)
+
+  # with dual measures, infinite costs (e.g. from cost_to_closest() when an
+  # origin can't reach the required opportunities) make FGT1 and FGT2 infinite
+
+  if (!poor_below_threshold) {
+    inf_rows <- is.infinite(data[[opportunity]]) &
+      data[[opportunity]] > 0 &
+      data[[population]] > 0
+    inf_rows <- inf_rows & !is.na(inf_rows)
+
+    if (any(inf_rows)) {
+      n_inf <- sum(inf_rows)
+      inf_population <- sum(data[[population]][inf_rows])
+
+      cli::cli_warn(
+        c(
+          "{.arg accessibility_data${opportunity}} contains {.val {Inf}} values
+          in {n_inf} observation{?s} with population greater than 0 (total
+          population of {inf_population}).",
+          "i" = "With {.code poor_below_threshold = FALSE}, FGT1 and FGT2 are
+          {.val {Inf}} wherever these observations are included.",
+          "i" = "Consider replacing {.val {Inf}} values with a maximum travel
+          cost (e.g. the highest cost in the travel matrix) before calculating
+          the FGT measures."
+        )
+      )
+    }
+  }
 
   .opp_colname <- opportunity
   .pop_colname <- population

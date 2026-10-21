@@ -91,7 +91,11 @@ poverty line, and FGT1 and FGT2 are 1 only when everyone has an
 accessibility of 0. When \code{poor_below_threshold} is \code{FALSE}, FGT0 still ranges
 from 0 to 1, but FGT1 and FGT2 have no upper bound: they can be greater than
 1 (e.g. when travel costs are more than twice the poverty line) and are
-\code{Inf} if any accessibility value is \code{Inf}.
+\code{Inf} if any accessibility value is \code{Inf}. This happens, for example, with
+the travel costs of origins that can't reach the required opportunities, as
+returned by \code{\link[=cost_to_closest]{cost_to_closest()}}. The function raises a warning in this case,
+and these values should be replaced by a maximum travel cost (e.g. the
+highest cost in the travel matrix) before calculating the FGT measures.
 }
 
 \examples{
