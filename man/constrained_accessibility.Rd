@@ -115,7 +115,9 @@ system is known and representing accessibility as a proportion of this total
 is meaningful.
 \subsection{Requirement:}{
 \itemize{
-\item Either \code{demand} or \code{supply} must be provided (cannot provide both).
+\item \code{supply} must be provided when \code{active = TRUE}, and \code{demand} when
+\code{active = FALSE}. The other argument is ignored, so the same call can be
+used with \code{constraint = "singly"}, which requires both.
 }
 }
 

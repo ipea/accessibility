@@ -104,6 +104,10 @@
 - Fixed a bug in `constrained_accessibility(constraint = "total")` that added
   a data.table index attribute to the user's `land_use_data`.
 
+- Fixed a bug in `constrained_accessibility(constraint = "doubly")` that
+  returned a `data.table` when `travel_matrix` was a `data.frame` (or another
+  class), instead of keeping the class of the input.
+
 ## Minor changes
 
 - Accessibility, inequality and poverty functions now raise an error if

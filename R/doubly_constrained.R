@@ -186,6 +186,7 @@ doubly_constrained <- function(travel_matrix,
   )
 
   if (detailed_results) {
+    if (exists("original_class")) class(detailed_dt) <- original_class
     return(detailed_dt[])
   } else {
     cli::cli_warn(
@@ -196,6 +197,7 @@ doubly_constrained <- function(travel_matrix,
       data.table::data.table(id = origins,      flow = O),
       data.table::data.table(id = destinations, flow = D)
     ))
+    if (exists("original_class")) class(agg) <- original_class
     return(agg[])
   }
 

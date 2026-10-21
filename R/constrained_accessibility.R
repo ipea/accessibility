@@ -47,7 +47,9 @@
 #'  is meaningful.
 #'
 #' ### Requirement:
-#' - Either `demand` or `supply` must be provided (cannot provide both).
+#' - `supply` must be provided when `active = TRUE`, and `demand` when
+#'   `active = FALSE`. The other argument is ignored, so the same call can be
+#'   used with `constraint = "singly"`, which requires both.
 #'
 #' ### Interpretation:
 #' - `active = TRUE` (*active accessibility*): Results represent the total

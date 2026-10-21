@@ -148,3 +148,32 @@ test_that("raises a clear error if demand or supply has length > 1", {
     regexp = "Must have length 1"
   )
 })
+
+test_that("returns a dataframe whose class is the same as travel_matrix's", {
+  tm_df <- as.data.frame(tm)
+
+  for (constraint in c("total", "singly", "doubly")) {
+    result <- tester(constraint, travel_matrix = tm_df, detailed_results = TRUE)
+    expect_false(inherits(result, "data.table"))
+    expect_is(result, "data.frame")
+
+    result <- tester(constraint, detailed_results = TRUE)
+    expect_is(result, "data.table")
+  }
+
+  result <- suppressWarnings(tester("doubly", travel_matrix = tm_df))
+  expect_false(inherits(result, "data.table"))
+})
+
+test_that("total constraint ignores the side not used by active", {
+  # supply is used when active = TRUE, and demand when active = FALSE
+
+  expect_identical(
+    tester("total", active = TRUE),
+    tester("total", active = TRUE, demand = NULL)
+  )
+  expect_identical(
+    tester("total", active = FALSE),
+    tester("total", active = FALSE, supply = NULL)
+  )
+})
