@@ -199,7 +199,8 @@ test_that("input data sets remain unchanged", {
 
   data.table::setindexv(small_access, NULL)
   expect_equal(original_access_data, small_access)
-  expect_equal(original_sociodem_data, original_sociodem_data)
+  data.table::setindex(sociodem_data, NULL)
+  expect_equal(original_sociodem_data, sociodem_data)
 })
 
 test_that("theil t is correctly calculated", {
@@ -379,7 +380,8 @@ test_that("input data sets remain unchanged", {
   result <- null_tester()
 
   expect_equal(original_access_data, small_access)
-  expect_equal(original_sociodem_data, original_sociodem_data)
+  data.table::setindex(sociodem_data, NULL)
+  expect_equal(original_sociodem_data, sociodem_data)
 })
 
 test_that("theil t is correctly calculated", {
@@ -451,4 +453,94 @@ test_that("works even if access_data and sociodem_data has specific colnames", {
   expect_identical(expected_result, result)
 
   access_data[, group_by := NULL]
+})
+
+test_that("doesn't overflow with large integer opportunities and population", {
+  # jobs * population exceeds .Machine$integer.max (~2.1e9)
+
+  toy_access <- data.table::data.table(id = c("a", "b"), jobs = c(50000L, 100000L))
+  toy_sociodem <- data.table::data.table(
+    id = c("a", "b"),
+    population = c(50000L, 30000L),
+    income_per_capita = c(1, 2),
+    income_decile = c(1, 2)
+  )
+
+  # population-weighted mean access: (5e4 * 5e4 + 3e4 * 1e5) / 8e4 = 68750
+
+  ratio <- c(50000, 100000) / 68750
+  expected_theil <- sum(c(0.625, 0.375) * ratio * log(ratio))
+
+  result <- expect_silent(
+    tester(
+      toy_access,
+      toy_sociodem,
+      socioeconomic_groups = NULL,
+      group_by = character(0)
+    )
+  )
+  expect_equal(result$theil_t, expected_theil)
+
+  result <- expect_silent(
+    tester(toy_access, toy_sociodem, group_by = character(0))
+  )
+  expect_equal(result$summary[component == "total"]$value, expected_theil)
+})
+
+test_that("handles zero access with the 0 * log(0) = 0 convention", {
+  toy_access <- data.table::data.table(
+    id = rep(c("a", "b", "c", "d"), 2),
+    mode = rep(c("car", "walk"), each = 4),
+    jobs = c(0, 10, 20, 30, 0, 0, 0, 0)
+  )
+  toy_sociodem <- data.table::data.table(
+    id = c("a", "b", "c", "d"),
+    population = c(1, 1, 1, 1),
+    income_decile = c(1, 1, 2, 2)
+  )
+
+  # car: mean access 15, so ratios are 0, 2/3, 4/3 and 2. walk: no one has
+  # access, so the index is undefined
+
+  ratio <- c(0, 10, 20, 30) / 15
+  expected_theil <- mean(c(0, ratio[-1] * log(ratio[-1])))
+
+  result <- tester(toy_access, toy_sociodem, socioeconomic_groups = NULL)
+  expect_equal(result[mode == "car"]$theil_t, expected_theil)
+  expect_true(is.na(result[mode == "walk"]$theil_t))
+
+  # decomposition: deciles hold 1/6 and 5/6 of the access and half of the
+  # population each
+
+  access_share <- c(10, 50) / 60
+  expected_between <- sum(access_share * log(access_share / 0.5))
+
+  result <- tester(toy_access, toy_sociodem)
+  car_summary <- result$summary[mode == "car"]
+  expect_equal(
+    car_summary[component == "between_group"]$value,
+    expected_between
+  )
+  expect_equal(car_summary[component == "total"]$value, expected_theil)
+  expect_false(anyNA(result$within_group_component[mode == "car"]$value))
+  expect_true(all(is.na(result$summary[mode == "walk"]$value)))
+
+  # a decile with no access has weight 0 in the within-group component
+
+  toy_access <- data.table::data.table(
+    id = c("a", "b", "c", "d"),
+    jobs = c(0, 0, 20, 30)
+  )
+  ratio <- c(0, 0, 20, 30) / 12.5
+  expected_theil <- mean(c(0, 0, ratio[3:4] * log(ratio[3:4])))
+
+  result <- tester(toy_access, toy_sociodem, group_by = character(0))
+  expect_equal(
+    result$summary[component == "total"]$value,
+    expected_theil
+  )
+  expect_equal(
+    result$within_group_component[income_decile == 1]$value,
+    0
+  )
 })

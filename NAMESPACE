@@ -20,10 +20,13 @@ export(palma_ratio)
 export(spatial_availability)
 export(theil_t)
 importFrom(Rdpack,reprompt)
-importFrom(data.table,"%chin%")
-importFrom(data.table,":=")
-importFrom(data.table,.GRP)
-importFrom(data.table,.I)
-importFrom(data.table,.N)
-importFrom(data.table,.SD)
+importFrom(data.table,
+  "%chin%",
+  ":=",
+  .GRP,
+  .I,
+  .N,
+  .SD
+)
+importFrom(rlang,abort)
 importFrom(utils,globalVariables)

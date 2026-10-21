@@ -148,7 +148,7 @@ poverty
 
 ## Related work:
 
-- [r5r](https://github.com/ipeaGIT/r5r): Rapid Realistic Routing with R5
+- [r5r](https://github.com/ipea/r5r): Rapid Realistic Routing with R5
   in R
 - [tracc](https://github.com/jamaps/tracc): Transport accessibility
   measures in Python

@@ -1,4 +1,4 @@
-url: https://ipeagit.github.io/accessibility/
+url: https://ipea.github.io/accessibility/
 
 template:
   bootstrap: 5
@@ -21,12 +21,12 @@ reference:
   - title: "Decay functions"
   - contents:
     - starts_with("decay_")
-  - title: "Inequality"
+  - title: "Equity: Inequality"
   - contents:
     - concentration_index
     - gini_index
     - palma_ratio
     - theil_t
-  - title: "Poverty"
+  - title: "Equity: Poverty"
   - contents:
     - fgt_poverty

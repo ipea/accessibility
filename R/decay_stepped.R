@@ -16,8 +16,7 @@
 #'   value at the actual step, not right after it. Please see the illustrative
 #'   examples for effects of this assumption on the results.
 #'
-#' @return A `function` that takes a generic travel cost vector (`numeric`) as
-#'   an input and returns a vector of weights (`numeric`).
+#' @template return_decay_function
 #'
 #' @details When both `steps` and `weights` parameters are given `list`s, their
 #'   content are matched element-wise to define each stepped weighting function
@@ -56,6 +55,24 @@ decay_stepped <- function(steps, weights) {
   if (!is.list(steps)) steps <- list(steps)
   if (!is.list(weights)) weights <- list(weights)
 
+  # duplicated (steps, weights) pairs would produce duplicated list names,
+  # which are merged/double counted downstream
+
+  step_weight_pairs <- mapply(
+    function(stps, wghts) list(as.numeric(stps), as.numeric(wghts)),
+    steps,
+    weights,
+    SIMPLIFY = FALSE
+  )
+
+  if (anyDuplicated(step_weight_pairs)) {
+    cli::cli_abort(
+      "Assertion on {.arg steps} and {.arg weights} failed: Must not contain
+      duplicated (steps, weights) pairs.",
+      call = NULL
+    )
+  }
+
   steps <- lapply(steps, function(stps) c(0, stps))
   weights <- lapply(weights, function(wghts) c(1, wghts))
 
@@ -64,11 +81,16 @@ decay_stepped <- function(steps, weights) {
       stps = steps,
       wghts = weights,
       FUN = function(stps, wghts) {
-        vapply(
-          travel_cost,
-          function(x) wghts[max(which(x >= stps))],
-          numeric(1)
-        )
+        # findInterval() returns the index of the last step lower than or equal
+        # to each cost. negative costs (index 0) get NA, as NA costs do
+
+        step_index <- findInterval(travel_cost, stps)
+        step_index[step_index == 0L] <- NA_integer_
+
+        weights_by_cost <- wghts[step_index]
+        names(weights_by_cost) <- names(travel_cost)
+
+        weights_by_cost
       },
       SIMPLIFY = FALSE
     )
@@ -98,9 +120,10 @@ assert_steps <- function(steps) {
   is_numeric_like <- function(x) is.numeric(x) || is.integer(x)
 
   if (!(is_numeric_like(steps) || is.list(steps))) {
-    stop(
-      "Assertion on 'steps' failed: Must be either a numeric vector or a list ",
-      "of numeric vectors."
+    cli::cli_abort(
+      "Assertion on {.arg steps} failed: Must be either a numeric vector or a
+      list of numeric vectors.",
+      call = NULL
     )
   }
 

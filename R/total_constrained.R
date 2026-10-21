@@ -44,7 +44,11 @@ total_constrained <- function(travel_matrix,
   if (active) {
     #active accessibility
     if (is.null(supply) || !is.null(demand)) {
-      stop("For active = TRUE, supply must be specified and demand must be NULL.")
+      cli::cli_abort(
+        "For {.code active = TRUE}, {.arg supply} must be specified and
+        {.arg demand} must be NULL.",
+        call = NULL
+      )
     }
     merge_id <- "to_id"
     group_id <- "from_id"
@@ -56,7 +60,11 @@ total_constrained <- function(travel_matrix,
   } else {
     #passive accessibility
     if (is.null(demand) || !is.null(supply)) {
-      stop("For active = FALSE, demand must be specified and supply must be NULL.")
+      cli::cli_abort(
+        "For {.code active = FALSE}, {.arg demand} must be specified and
+        {.arg supply} must be NULL.",
+        call = NULL
+      )
     }
     merge_id <- "from_id"
     group_id <- "to_id"
@@ -85,7 +93,13 @@ total_constrained <- function(travel_matrix,
   }
 
   # Merge land use data
-  merge_by_reference(data, land_use_data, opportunity_col, left_df_idcol = merge_id)
+  merge_by_reference(
+    data,
+    land_use_data,
+    opportunity_col,
+    left_df_idcol = merge_id,
+    na_as_zero = TRUE
+  )
 
   # Apply decay
   data <- apply_gravity_measure(data, decay_function, travel_cost)
@@ -96,7 +110,10 @@ total_constrained <- function(travel_matrix,
   data[, (kappa_col) := get(weighted_col) / total_weighted_system]
 
   ids_for_total <- unique(data[[merge_id]])                   # e.g., A,B,C when active=TRUE
-  total_opportunities_region <- land_use_data[id %in% ids_for_total, sum(get(opportunity_col), na.rm = TRUE)]
+  total_opportunities_region <- sum(
+    land_use_data[[opportunity_col]][match(ids_for_total, land_use_data$id)],
+    na.rm = TRUE
+  )
 
   data[, constrained_opportunity := get(kappa_col) * total_opportunities_region]
 
@@ -125,11 +142,25 @@ total_constrained <- function(travel_matrix,
     if (active) {
       # supply aggregated by origin (from_id)
       access <- data[, .(supply = sum(constrained_opportunity)), by = c("from_id", group_by)]
-      if (fill_missing_ids) access <- fill_missing_ids(access, travel_matrix, c("from_id", group_by))
+      if (fill_missing_ids) {
+        access <- fill_missing_ids(
+          access,
+          travel_matrix,
+          c("from_id", group_by),
+          access_col = "supply"
+        )
+      }
     } else {
       # demand aggregated by destination (to_id)
       access <- data[, .(demand = sum(constrained_opportunity)), by = c("to_id", group_by)]
-      if (fill_missing_ids) access <- fill_missing_ids(access, travel_matrix, c("to_id", group_by))
+      if (fill_missing_ids) {
+        access <- fill_missing_ids(
+          access,
+          travel_matrix,
+          c("to_id", group_by),
+          access_col = "demand"
+        )
+      }
     }
   }
 

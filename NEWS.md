@@ -1,3 +1,104 @@
+# accessibility (development version)
+
+## New features
+
+- `cumulative_interval()` has a new argument `fill_missing_ids`. When `TRUE`
+  (the default), ids that reach no opportunity are kept with accessibility 0,
+  as in `cumulative_cutoff()`.
+
+## Breaking changes
+
+- Accessibility functions now treat `NA` opportunity, demand and supply
+  values, and `travel_matrix` ids missing from `land_use_data`, as 0.
+  Previously, they could make results `NA`.
+- `concentration_index(type = "corrected")` now uses the bounds of the whole
+  accessibility distribution, not of each `group_by` group, to calculate the
+  correction factor.
+- `cumulative_interval()` no longer truncates results to integers (e.g. a
+  median of 26.5).
+
+## Bug fixes
+
+- `balancing_cost()`: numeric ids were used as positions to look up
+  population, returning `NA` or wrong costs; origins balanced only when
+  opportunities exceeded (instead of matched) population; and costs above the
+  last multiple of `cost_increment` were `NA`. `cost_increment` must now be
+  greater than 0.
+- `concentration_index()`: tied incomes now share the same fractional rank,
+  so results no longer depend on row order. With `type = "corrected"`, the
+  index is now 0, instead of `NaN`, when everyone has the same accessibility.
+- `concentration_index()`, `gini_index()` and `theil_t()` no longer return
+  `NA` due to integer overflow with large opportunity and population counts.
+- `constrained_accessibility()`:
+  - `constraint = "doubly"` aligned impedances and totals by row position
+    instead of by id; pairs missing from `travel_matrix` are now unreachable.
+  - `constraint = "doubly"` no longer adds a constant to the balancing
+    factors, which distorted results with very small weights, and now warns
+    when balancing stops before reaching `error_threshold`.
+  - `constraint = "doubly"` now returns the same class as `travel_matrix`.
+  - `constraint = "total"` or `"singly"` no longer errors when
+    `fill_missing_ids = TRUE` and `group_by` leave combinations missing.
+  - `constraint = "total"` no longer adds an index to the user's
+    `land_use_data`.
+- `cumulative_cutoff()`: cutoffs with floating point noise (e.g. from
+  `seq(0, 0.5, by = 0.1)`) could be zeroed when filling missing ids. Travel
+  cost columns with non-syntactic names now work.
+- `cumulative_interval()`: cutoffs with floating point noise (e.g. from
+  `interval_increment = 0.1`) were left out of the summary.
+- `decay_stepped()` no longer warns for each `NA` travel cost.
+- `palma_ratio()`: income cutoffs depended on the scale of population (`NA`
+  with population shares), and with several `group_by` columns the output
+  included `NA` rows for absent combinations. The output is no longer keyed.
+- `spatial_availability()`: a destination no one could reach made all
+  results `NaN`. Its opportunities are now left unallocated.
+- `theil_t()`: observations with no access are now included and contribute 0
+  (`0 * log(0) = 0`), instead of being excluded or making the index `NaN`.
+  `group_by` levels where no one has access are kept with `NA`.
+
+## Minor changes
+
+- Errors and warnings now use `{cli}`. `{cli}` and `{rlang}` are new
+  dependencies.
+- Accessibility, inequality and poverty functions now raise an error if
+  `land_use_data` or `sociodemographic_data` have duplicated ids.
+- Accessibility functions:
+  - raise an error on negative travel costs and a clear error when the id
+    types of `travel_matrix` and `land_use_data` are incompatible.
+  - match land use data by id with `match()`, making them about 1.2 to 3.3
+    times faster with half the memory. A `travel_matrix` column named like
+    the opportunity column is now replaced.
+  - no longer return keyed data.tables when filling missing ids.
+- Several functions are faster on large travel matrices. Results may differ
+  from previous versions by floating point rounding only.
+- `balancing_cost()`, `cumulative_cutoff()` and `cumulative_interval()` are
+  about 4 to 20 times faster, because opportunities are summed once per travel
+  cost instead of once per cutoff.
+- `constrained_accessibility()` checks that `demand` and `supply` are single
+  strings. With `constraint = "doubly"`, it is about 2 to 4 times faster and
+  uses much less memory.
+- `cost_to_closest()` is about 1.3 to 2.3 times faster.
+- `cumulative_cutoff()` and `cumulative_interval()` return accessibility
+  above the largest integer as doubles instead of erroring.
+  `cumulative_interval()` always sorts rows by interval, id and `group_by`.
+- `decay_exponential()`, `decay_logistic()`, `decay_power()` and
+  `decay_stepped()` are about 2 to 200 times faster.
+- `decay_linear()` requires `cutoff` greater than 0.
+- `decay_logistic()` and `decay_stepped()` raise an error on duplicated
+  parameter combinations.
+- `fgt_poverty()` raises an error on invalid `poverty_line` or
+  `poor_below_threshold`, and warns when `poor_below_threshold = FALSE` and
+  `accessibility_data` has `Inf` values (e.g. from `cost_to_closest()`).
+- `floating_catchment_area()` and `gravity()` are faster with several decay
+  values (about 4 times with three). `gravity()` with integer opportunities and
+  `decay_binary()` no longer fails when accessibility exceeds the largest
+  integer.
+- `spatial_availability()` is about 2 times faster.
+
+## Notes
+
+- Updated URLs after the repository moved from `ipeaGIT` to `ipea`.
+
+
 # accessibility 1.5.0
 
 ## New features
@@ -7,13 +108,13 @@ constrained accessibility measures proposed in Soukhov et al. (2025).
 
 ## Minor changes
 
-- The function `fgt_poverty()` has a new argument `poor_below_threshold`. when
-set to `TRUE` (default,) the observations below the poverty line are considered 
+- The function `fgt_poverty()` has a new argument `poor_below_threshold`. When
+set to `TRUE` (default) the observations below the poverty line are considered 
 to be poor. This is the correct approach for primal accessibility measures (e.g.
 cumulative accessibility). If `FALSE`, then observations above the poverty line 
 are considered to be poor. This is the correct approach for dual accessibility 
 measures (e.g. travel time to the closest facility). When set to `FALSE`, FGT 1 
-and 2 do not have an upper bound. Closes [#63](https://github.com/ipeaGIT/accessibility/issues/63)
+and 2 do not have an upper bound. Closes [#63](https://github.com/ipea/accessibility/issues/63)
 
 
 
@@ -39,7 +140,7 @@ and 2 do not have an upper bound. Closes [#63](https://github.com/ipeaGIT/access
 
 - New parameter `detailed_results` to `spatial_availability()`, used to specify
   whether results should be aggregated by origin-destination pair or by origin.
-  When aggregation by origin-destination pair, the output also includes the
+  When aggregating by origin-destination pair, the output also includes the
   demand, impedance and combined balancing factors used to calculate spatial
   availability.
 
@@ -90,10 +191,10 @@ and 2 do not have an upper bound. Closes [#63](https://github.com/ipeaGIT/access
 
 # accessibility 1.0.0
 
-The package has been to tremendous changes. Basically, there's not a single
+The package has been through tremendous changes. Basically, there's not a single
 part of it that remained untouched: documentation, vignettes, function names,
 parameter names, extra functionality, performance improvements, etc. While it
-is impossible to highlight everything that has been done, we'll try to summary
+is impossible to highlight everything that has been done, we'll try to summarize
 some of the key points in the following topics.
 
 ## Breaking changes

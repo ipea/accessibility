@@ -1,6 +1,6 @@
 #' Spatial availability
 #'
-#' Calculates spatial availability, an accessibility measured proposed by
+#' Calculates spatial availability, an accessibility measure proposed by
 #' \insertCite{soukhov2023introducing;textual}{accessibility} that takes into
 #' account competition effects. The accessibility levels that result from using
 #' this measure are proportional both to the demand in each origin and to the
@@ -27,7 +27,10 @@
 #'   availability. Please note that the argument `fill_missing_ids`
 #'   does not affect the output when `detailed_results` is `TRUE`.
 #'
-#' @template return_accessibility
+#' @return A data frame containing the spatial availability estimates for
+#'   each origin in the travel matrix. When `detailed_results` is `TRUE`, the
+#'   estimates are given for each origin-destination pair instead, alongside the
+#'   balancing factors used to calculate them.
 #'
 #' @references
 #' \insertAllCited{}
@@ -107,8 +110,20 @@ spatial_availability <- function(travel_matrix,
     land_use_data <- data.table::as.data.table(land_use_data)
   }
 
-  merge_by_reference(data, land_use_data, opportunity, left_df_idcol = "to_id")
-  merge_by_reference(data, land_use_data, demand, left_df_idcol = "from_id")
+  merge_by_reference(
+    data,
+    land_use_data,
+    opportunity,
+    left_df_idcol = "to_id",
+    na_as_zero = TRUE
+  )
+  merge_by_reference(
+    data,
+    land_use_data,
+    demand,
+    left_df_idcol = "from_id",
+    na_as_zero = TRUE
+  )
 
   data <- apply_gravity_measure(data, decay_function, travel_cost)
 
@@ -126,27 +141,47 @@ spatial_availability <- function(travel_matrix,
   )
 
   .demand_colname <- demand
-  total_demand <- sum(land_use_data[[.demand_colname]] ^ alpha)
+
+  # na.rm because ids that are not in travel_matrix may have NA demand. this
+  # sum cancels out in combined_bal_fac anyway
+
+  total_demand <- sum(land_use_data[[.demand_colname]] ^ alpha, na.rm = TRUE)
   data[, demand_bal_fac := (get(.demand_colname) ^ alpha) / total_demand]
 
-  data[
-    ,
-    impedance_bal_fac := opp_weight / sum(opp_weight),
-    by = c("to_id", group_by)
-  ]
+  # destinations that no one reaches (or that are only reached by origins
+  # without demand) have null denominators. their opportunities are not
+  # allocated to any origin, so their factors are set to 0 instead of NaN.
+  # the denominators are calculated in a separate step, so the sums are
+  # optimized by data.table (GForce). the temporary column is dropped after
+  # each use, because the first sum may be an integer and the second a double
 
+  data[, .total_weight := sum(opp_weight), by = c("to_id", group_by)]
   data[
     ,
-    combined_bal_fac := demand_bal_fac * impedance_bal_fac /
-      sum(demand_bal_fac * impedance_bal_fac),
-    by = c("to_id", group_by)
+    impedance_bal_fac := data.table::fifelse(
+      !is.na(.total_weight) & .total_weight == 0,
+      0,
+      opp_weight / .total_weight
+    )
   ]
+  data[, .total_weight := NULL]
+
+  data[, combined_bal_fac := demand_bal_fac * impedance_bal_fac]
+  data[, .total_weight := sum(combined_bal_fac), by = c("to_id", group_by)]
+  data[
+    ,
+    combined_bal_fac := data.table::fifelse(
+      !is.na(.total_weight) & .total_weight == 0,
+      0,
+      combined_bal_fac / .total_weight
+    )
+  ]
+  data[, .total_weight := NULL]
 
   .opportunity_colname <- opportunity
   data[
     ,
-    spatial_availability := combined_bal_fac * get(.opportunity_colname),
-    by = c("to_id", group_by)
+    spatial_availability := combined_bal_fac * get(.opportunity_colname)
   ]
 
   if (detailed_results) {

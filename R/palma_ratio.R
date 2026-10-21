@@ -19,7 +19,7 @@
 #'
 #' @template return_inequality
 #'
-#' @family inequality
+#' @family equity
 #'
 #' @examplesIf identical(tolower(Sys.getenv("NOT_CRAN")), "true")
 #' data_dir <- system.file("extdata", package = "accessibility")
@@ -44,12 +44,14 @@
 #' palma
 #'
 #' @export
-palma_ratio <- function(accessibility_data,
-                        sociodemographic_data,
-                        opportunity,
-                        population,
-                        income,
-                        group_by = character(0)) {
+palma_ratio <- function(
+  accessibility_data,
+  sociodemographic_data,
+  opportunity,
+  population,
+  income,
+  group_by = character(0)
+) {
   checkmate::assert_string(opportunity)
   checkmate::assert_string(population)
   checkmate::assert_string(income)
@@ -83,10 +85,14 @@ palma_ratio <- function(accessibility_data,
 
   warn_extra_access_cols(accessibility_data, opportunity, group_by)
 
+  # normwt = TRUE treats population as relative weights, so the quantiles don't
+  # depend on its scale (e.g. counts vs. shares)
+
   income_quantiles <- Hmisc::wtd.quantile(
     sociodemographic_data[[income]],
     weights = sociodemographic_data[[population]],
-    probs = c(0.4, 0.9)
+    probs = c(0.4, 0.9),
+    normwt = TRUE
   )
 
   .income_colname <- income
@@ -153,16 +159,20 @@ palma_ratio <- function(accessibility_data,
     palma[, c("avg_access", "poorest_avg_access") := NULL]
   }
 
-  if (exists("original_class")) class(palma) <- original_class
+  data.table::setkeyv(palma, NULL)
+
+  if (exists("original_class")) {
+    class(palma) <- original_class
+  }
 
   return(palma[])
 }
 
 fill_groups <- function(wealthiest_access, data, group_by) {
-  unique_values <- lapply(group_by, function(x) unique(data[[x]]))
-  names(unique_values) <- group_by
+  # only the group combinations present in the data, not all crossings of the
+  # values of each group_by column
 
-  possible_combinations <- do.call(data.table::CJ, unique_values)
+  possible_combinations <- unique(data[, ..group_by])
 
   if (nrow(possible_combinations) > nrow(wealthiest_access)) {
     wealthiest_access <- possible_combinations[

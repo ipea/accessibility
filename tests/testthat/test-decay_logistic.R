@@ -55,3 +55,11 @@ test_that("output fn returns empty numeric if receives empty numeric/integer", {
   expect_identical(output_fn(integer())[["c20;sd2"]], numeric())
   expect_identical(output_fn(numeric())[["c20;sd2"]], numeric())
 })
+
+test_that("raises an error if (cutoff, sd) pairs are duplicated", {
+  expect_error(
+    tester(c(30, 30), c(5, 5)),
+    regexp = "duplicated[[:space:]]+.cutoff,[[:space:]]+sd.[[:space:]]+pairs"
+  )
+  expect_error(tester(c(30, 30), c(5, 10)), NA)
+})

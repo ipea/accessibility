@@ -47,8 +47,20 @@ singly_constrained <- function(travel_matrix,
   }
 
   # Merge demand and supply
-  merge_by_reference(data, land_use_data, demand, left_df_idcol = "from_id")
-  merge_by_reference(data, land_use_data, supply, left_df_idcol = "to_id")
+  merge_by_reference(
+    data,
+    land_use_data,
+    demand,
+    left_df_idcol = "from_id",
+    na_as_zero = TRUE
+  )
+  merge_by_reference(
+    data,
+    land_use_data,
+    supply,
+    left_df_idcol = "to_id",
+    na_as_zero = TRUE
+  )
 
   # Apply decay
   data <- apply_gravity_measure(data, decay_function, travel_cost)
@@ -70,7 +82,14 @@ singly_constrained <- function(travel_matrix,
       )]
     } else {
       access <- data[, .(supply = sum(singly_access)), by = c("from_id", group_by)]
-      if (fill_missing_ids) access <- fill_missing_ids(access, travel_matrix, c("from_id", group_by))
+      if (fill_missing_ids) {
+        access <- fill_missing_ids(
+          access,
+          travel_matrix,
+          c("from_id", group_by),
+          access_col = "supply"
+        )
+      }
     }
 
   } else {
@@ -90,7 +109,14 @@ singly_constrained <- function(travel_matrix,
       )]
     } else {
       access <- data[, .(demand = sum(singly_access)), by = c("to_id", group_by)]
-      if (fill_missing_ids) access <- fill_missing_ids(access, travel_matrix, c("to_id", group_by))
+      if (fill_missing_ids) {
+        access <- fill_missing_ids(
+          access,
+          travel_matrix,
+          c("to_id", group_by),
+          access_col = "demand"
+        )
+      }
     }
   }
 

@@ -4,14 +4,14 @@
 #' Please check the vignettes for more on the package usage:
 #' - Introduction to accessibility: calculating accessibility measures. Run
 #' `vignette("accessibility")` or check it on the [website](
-#' https://ipeagit.github.io/accessibility/articles/accessibility.html).
+#' https://ipea.github.io/accessibility/articles/accessibility.html).
 #' - Decay functions. Run `vignette("decay_functions", package =
 #' "accessibility")` or check it on the [website](
-#' https://ipeagit.github.io/accessibility/articles/decay_functions.html).
+#' https://ipea.github.io/accessibility/articles/decay_functions.html).
 #' - Calculating accessibility inequality and poverty. Run
 #' `vignette("inequality_and_poverty", package = "accessibility")` or check it
 #' on the
-#' [website](https://ipeagit.github.io/accessibility/articles/inequality_and_poverty.html).
+#' [website](https://ipea.github.io/accessibility/articles/inequality_and_poverty.html).
 #'
 #' @docType package
 #' @name accessibility
@@ -20,6 +20,7 @@
 #' @importFrom data.table := .I .SD %chin% .GRP .N
 #' @importFrom utils globalVariables
 #' @importFrom Rdpack reprompt
+#' @importFrom rlang abort
 #'
 #' @keywords internal
 "_PACKAGE"
@@ -50,7 +51,6 @@ utils::globalVariables(
     "combined_bal_fac",
     "decay_function_arg",
     "cost",
-    "did_balance",
     "avg_access",
     "i.avg_access",
     ".palma_group",
@@ -91,7 +91,22 @@ utils::globalVariables(
     "share_of_component",
     "group_tot_pop",
     "total",
-    "share_of_total"
+    "share_of_total",
+    ".block_share",
+    "..groups",
+    "..group_by",
+    ".weighted_opportunities",
+    ".weighted_demand",
+    ".weighted_ppr",
+    ".total_weight",
+    ".opp",
+    ".cost",
+    ".bin",
+    ".n",
+    "i..opp",
+    "i..n",
+    ".cum_opp",
+    ".demand"
   )
 )
 

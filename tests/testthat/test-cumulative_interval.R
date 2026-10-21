@@ -9,7 +9,8 @@ tester <- function(travel_matrix = smaller_matrix,
                    interval_increment = 1,
                    summary_function = stats::median,
                    group_by = "mode",
-                   active = TRUE) {
+                   active = TRUE,
+                   fill_missing_ids = TRUE) {
   cumulative_interval(
     travel_matrix,
     land_use_data,
@@ -19,7 +20,8 @@ tester <- function(travel_matrix = smaller_matrix,
     interval_increment,
     summary_function,
     group_by,
-    active
+    active,
+    fill_missing_ids
   )
 }
 
@@ -66,6 +68,10 @@ test_that("raises errors due to incorrect input", {
   expect_error(tester(active = 1))
   expect_error(tester(active = c(TRUE, TRUE)))
   expect_error(tester(active = NA))
+
+  expect_error(tester(fill_missing_ids = 1))
+  expect_error(tester(fill_missing_ids = c(TRUE, TRUE)))
+  expect_error(tester(fill_missing_ids = NA))
 
   expect_error(tester(as.list(travel_matrix)))
   expect_error(tester(travel_matrix[, .(oi = from_id, to_id, travel_time)]))
@@ -120,18 +126,18 @@ test_that("result has correct structure", {
   expect_true(ncol(result) == 3)
   expect_is(result$id, "character")
   expect_is(result$mode, "character")
-  expect_is(result$jobs, "integer")
+  expect_is(result$jobs, "numeric")
 
   result <- tester(opportunity = "schools")
   expect_true(ncol(result) == 3)
   expect_is(result$id, "character")
   expect_is(result$mode, "character")
-  expect_is(result$schools, "integer")
+  expect_is(result$schools, "numeric")
 
   suppressWarnings(result <- tester(group_by = character(0)))
   expect_true(ncol(result) == 2)
   expect_is(result$id, "character")
-  expect_is(result$jobs, "integer")
+  expect_is(result$jobs, "numeric")
 
   result <- tester(
     data.table::data.table(
@@ -145,14 +151,14 @@ test_that("result has correct structure", {
   expect_true(nrow(result) == 0)
   expect_is(result$id, "character")
   expect_is(result$mode, "character")
-  expect_is(result$jobs, "integer")
+  expect_is(result$jobs, "numeric")
 
   result <- tester(interval = list(c(10, 30), c(20, 30)))
   expect_true(ncol(result) == 4)
   expect_is(result$id, "character")
   expect_is(result$mode, "character")
   expect_is(result$interval, "character")
-  expect_is(result$jobs, "integer")
+  expect_is(result$jobs, "numeric")
 })
 
 test_that("input data sets remain unchanged", {
@@ -188,8 +194,9 @@ test_that("active and passive accessibility is correctly calculated", {
   expected_result <- data.table::data.table(
     id = rep(selected_ids, 2),
     mode = rep(c("transit", "transit2"), each = 5),
-    jobs = rep(as.integer(c(82, 517, 517, 304, 0)), 2)
+    jobs = rep(c(82, 517, 517, 304, 0), 2)
   )
+  data.table::setorderv(expected_result, c("id", "mode"))
   expect_identical(result, expected_result)
 
   result <- tester(
@@ -202,8 +209,9 @@ test_that("active and passive accessibility is correctly calculated", {
   expected_result <- data.table::data.table(
     id = rep(selected_ids, 2),
     mode = rep(c("transit", "transit2"), each = 5),
-    population = rep(as.integer(c(1946, 3457, 2363, 4552, 0)), 2)
+    population = rep(c(1946.5, 3457.5, 2363, 4552, 0), 2)
   )
+  data.table::setorderv(expected_result, c("id", "mode"))
   expect_identical(result, expected_result)
 
   # with more than one interval
@@ -218,10 +226,11 @@ test_that("active and passive accessibility is correctly calculated", {
     mode = rep(rep(c("transit", "transit2"), each = 5), 2),
     interval = rep(c("[40,45]", "[40,50]"), each = 10),
     jobs = c(
-      rep(as.integer(c(82, 517, 517, 304, 0)), 2),
-      rep(as.integer(c(82, 599, 599, 499, 0)), 2)
+      rep(c(82, 517, 517, 304, 0), 2),
+      rep(c(82, 599, 599, 499, 0), 2)
     )
   )
+  data.table::setorderv(expected_result, c("interval", "id", "mode"))
   expect_identical(result, expected_result)
 
   result <- tester(
@@ -236,10 +245,11 @@ test_that("active and passive accessibility is correctly calculated", {
     mode = rep(rep(c("transit", "transit2"), each = 5), 2),
     interval = rep(c("[40,45]", "[40,50]"), each = 10),
     population = c(
-      rep(as.integer(c(1946, 3457, 2363, 4552, 0)), 2),
-      rep(as.integer(c(5404, 4552, 2363, 4552, 0)), 2)
+      rep(c(1946.5, 3457.5, 2363, 4552, 0), 2),
+      rep(c(5404, 4552, 2363, 4552, 0), 2)
     )
   )
+  data.table::setorderv(expected_result, c("interval", "id", "mode"))
   expect_identical(result, expected_result)
 })
 
@@ -264,8 +274,9 @@ test_that("summarizes the result according to summary function", {
   expected_result <- data.table::data.table(
     id = rep(selected_ids, 2),
     mode = rep(c("transit", "transit2"), each = 5),
-    jobs = rep(as.integer(c(82, 408, 408, 109, 0)), 2)
+    jobs = rep(c(82, 408, 408, 109, 0), 2)
   )
+  data.table::setorderv(expected_result, c("id", "mode"))
   expect_identical(result, expected_result)
 
   result <- tester(
@@ -277,8 +288,9 @@ test_that("summarizes the result according to summary function", {
   expected_result <- data.table::data.table(
     id = rep(selected_ids, 2),
     mode = rep(c("transit", "transit2"), each = 5),
-    jobs = rep(as.integer(c(82, 512, 508, 304, 0)), 2)
+    jobs = rep(c(82, 512.5, 508, 304, 0), 2)
   )
+  data.table::setorderv(expected_result, c("id", "mode"))
   expect_identical(result, expected_result)
 })
 
@@ -303,7 +315,7 @@ test_that("accessibility is correctly calculated when ids are missing", {
   expected_result <- data.table::data.table(
     id = rep(selected_ids[order(selected_ids)], each = 2),
     mode = rep(c("transit", "transit2"), 5),
-    jobs = rep(as.integer(c(0, 0, 0, 0, 0)), 2)
+    jobs = rep(c(0, 0, 0, 0, 0), 2)
   )
   expect_identical(result, expected_result)
 })
@@ -361,4 +373,165 @@ test_that("works even if travel_matrix and land_use has specific colnames", {
   expect_identical(expected_result, result)
 
   land_use_data[, opportunity := NULL]
+})
+
+test_that("each interval is summarised over its own cutoffs only", {
+  toy_matrix <- data.table::data.table(
+    from_id = rep(c("a", "b", "c"), each = 3),
+    to_id = rep(c("a", "b", "c"), 3),
+    travel_time = c(0, 10, 20, 10, 0, 30, 20, 30, 0)
+  )
+  toy_land_use <- data.table::data.table(
+    id = c("a", "b", "c"),
+    jobs = c(10, 20, 30)
+  )
+
+  toy_tester <- function(interval) {
+    tester(
+      toy_matrix,
+      toy_land_use,
+      interval = interval,
+      interval_increment = 10,
+      summary_function = mean,
+      group_by = character(0)
+    )
+  }
+
+  # [0, 20] uses cutoffs 0, 10 and 20 (a: mean(10, 30, 60) = 33.3) and [5, 15]
+  # uses 5 and 15 (a: mean(10, 30) = 20), whether requested alone or together
+
+  result <- toy_tester(list(c(0, 20), c(5, 15)))
+  expect_equal(result[interval == "[0,20]"]$jobs, c(100 / 3, 80 / 3, 100 / 3))
+  expect_equal(result[interval == "[5,15]"]$jobs, c(20, 25, 30))
+
+  expect_identical(
+    result[interval == "[0,20]"]$jobs,
+    toy_tester(c(0, 20))$jobs
+  )
+  expect_identical(
+    result[interval == "[5,15]"]$jobs,
+    toy_tester(c(5, 15))$jobs
+  )
+})
+
+test_that("fill_missing_ids arg works correctly", {
+  toy_matrix <- data.table::data.table(
+    from_id = c(rep(c("a", "b", "c"), each = 3), "d"),
+    to_id = c(rep(c("a", "b", "c"), 3), "a"),
+    travel_time = c(0, 10, 20, 10, 0, 30, 20, 30, 0, 100)
+  )
+  toy_land_use <- data.table::data.table(
+    id = c("a", "b", "c", "d"),
+    jobs = c(10, 20, 30, 40)
+  )
+
+  toy_tester <- function(...) {
+    tester(
+      toy_matrix,
+      toy_land_use,
+      interval_increment = 10,
+      summary_function = mean,
+      group_by = character(0),
+      ...
+    )
+  }
+
+  # d doesn't reach any opportunity within the interval
+
+  result <- toy_tester(interval = c(0, 20))
+  expect_identical(result$id, c("a", "b", "c", "d"))
+  expect_equal(result$jobs, c(100 / 3, 80 / 3, 100 / 3, 0))
+
+  result <- toy_tester(interval = c(0, 20), fill_missing_ids = FALSE)
+  expect_identical(result$id, c("a", "b", "c"))
+  expect_equal(result$jobs, c(100 / 3, 80 / 3, 100 / 3))
+  expect_identical(result, result[order(id)])
+  expect_null(data.table::key(result))
+})
+
+test_that("float cutoffs are all used in the summary", {
+  # the cutoffs are seq(0, 0.5, 0.1), whose 4th element is
+  # 0.30000000000000004. a reaches 0, 1, 3, 7, 7 and 7 jobs
+
+  toy_matrix <- data.table::data.table(
+    from_id = c("a", "a", "a"),
+    to_id = c("a", "b", "c"),
+    travel_time = c(0.1, 0.2, 0.3)
+  )
+  toy_land_use <- data.table::data.table(
+    id = c("a", "b", "c"),
+    jobs = c(1, 2, 4)
+  )
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    interval = c(0, 0.5),
+    interval_increment = 0.1,
+    summary_function = length,
+    group_by = character(0),
+    fill_missing_ids = FALSE
+  )
+  expect_identical(result$jobs, 6)
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    interval = c(0, 0.5),
+    interval_increment = 0.1,
+    group_by = character(0),
+    fill_missing_ids = FALSE
+  )
+  expect_identical(result$jobs, 5)
+})
+
+test_that("works when nothing is reached within the interval", {
+  toy_matrix <- data.table::data.table(
+    from_id = c("a", "b"),
+    to_id = c("b", "a"),
+    travel_time = c(70, 80)
+  )
+  toy_land_use <- data.table::data.table(id = c("a", "b"), jobs = c(1, 2))
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    interval = c(10, 20),
+    group_by = character(0)
+  )
+  expect_identical(result$id, c("a", "b"))
+  expect_identical(result$jobs, c(0, 0))
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    interval = c(10, 20),
+    group_by = character(0),
+    fill_missing_ids = FALSE
+  )
+  expect_identical(nrow(result), 0L)
+})
+
+test_that("the upper limit of the interval is always considered", {
+  toy_matrix <- data.table::data.table(
+    from_id = rep(c("a", "b", "c"), each = 3),
+    to_id = rep(c("a", "b", "c"), 3),
+    travel_time = c(0, 10, 25, 10, 0, 30, 25, 30, 0)
+  )
+  toy_land_use <- data.table::data.table(
+    id = c("a", "b", "c"),
+    jobs = c(10, 20, 30)
+  )
+
+  # cutoffs are 0, 10, 20 and 25. a reaches 10, 30, 30 and 60 jobs
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    interval = c(0, 25),
+    interval_increment = 10,
+    summary_function = mean,
+    group_by = character(0)
+  )
+  expect_equal(result$jobs, c(32.5, 27.5, 32.5))
 })

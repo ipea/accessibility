@@ -1,7 +1,7 @@
 Type: Package
 Package: accessibility
 Title: Transport Accessibility Measures
-Version: 1.5.0
+Version: 1.5.0.9000
 Authors@R: c(
     person("Rafael H. M.", "Pereira", , "rafa.pereira.br@gmail.com", role = "aut",
            comment = c(ORCID = "0000-0003-2125-7465")),
@@ -12,28 +12,30 @@ Authors@R: c(
     person("Joey", "Reid", role = "ctb"),
     person("Ipea - Institute for Applied Economic Research", role = c("cph", "fnd"))
   )
-Description: A set of fast and convenient functions to help conducting 
+Description: A set of fast and convenient functions to help conduct 
     accessibility analyses. Given a pre-computed travel cost matrix and a land 
     use dataset (containing for example the location of jobs, healthcare and 
     population), the package allows one to calculate accessibility levels, and 
     accessibility poverty and inequality. The package covers the majority of the 
     most commonly used accessibility measures (such as cumulative opportunities, 
-    gravity-based and floating catchment areas methods), some cutting edge 
+    gravity-based and floating catchment area methods), some cutting edge 
     measures proposed in the literature (e.g. balancing cost and constrained 
     accessibility) as well as the most frequently used inequality and poverty 
     metrics (such as the Palma ratio, the concentration and Theil indices and 
     the FGT family of measures).
 License: MIT + file LICENSE
-URL: https://github.com/ipeaGIT/accessibility,
-    https://ipeagit.github.io/accessibility/
-BugReports: https://github.com/ipeaGIT/accessibility/issues
+URL: https://github.com/ipea/accessibility,
+    https://ipea.github.io/accessibility/
+BugReports: https://github.com/ipea/accessibility/issues
 Depends: 
     R (>= 3.5.0)
 Imports:
     checkmate,
+    cli (>= 3.0.0),
     data.table,
     Hmisc,
     Rdpack (>= 0.7),
+    rlang (>= 1.0.0),
     stats,
     utils
 Suggests: 
@@ -51,4 +53,4 @@ RdMacros:
 Encoding: UTF-8
 NeedsCompilation: no
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
+Config/roxygen2/version: 8.1.0

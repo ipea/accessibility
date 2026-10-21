@@ -319,3 +319,81 @@ test_that("results are grouped by decay_function_arg when needed", {
     )
   )
 })
+
+test_that("2sfca and bfca match hand-computed values on a toy example", {
+  # 3 zones, asymmetric costs (a->b = 10 but b->a = 20), linear decay with
+  # cutoff 40, so f(c) = 1 - c / 40:
+  #        to a   to b   to c
+  # from a 1      0.75   0.50     row sums: a 2.25, b 1.75, c 1.75
+  # from b 0.50   1      0.25     col sums: a 2.00, b 2.00, c 1.75
+  # from c 0.50   0.25   1
+  # opportunities S = (10, 20, 30); population P = (10, 5, 5)
+  toy_matrix <- data.table::data.table(
+    from_id = rep(c("a", "b", "c"), each = 3),
+    to_id = rep(c("a", "b", "c"), 3),
+    travel_time = c(0, 10, 20, 20, 0, 30, 20, 30, 0)
+  )
+  toy_land_use <- data.table::data.table(
+    id = c("a", "b", "c"),
+    jobs = c(10, 20, 30),
+    population = c(10, 5, 5)
+  )
+
+  toy_fca <- function(method) {
+    floating_catchment_area(
+      toy_matrix,
+      toy_land_use,
+      opportunity = "jobs",
+      travel_cost = "travel_time",
+      demand = "population",
+      method = method,
+      decay_function = decay_linear(cutoff = 40)
+    )
+  }
+
+  # 2SFCA (Luo & Wang 2003): R_j = S_j / sum_k P_k f(c_kj);
+  # A_i = sum_j R_j f(c_ij)
+  # R_a = 10 / (10 * 1    + 5 * 0.5 + 5 * 0.5 ) = 10 / 15    = 2 / 3
+  # R_b = 20 / (10 * 0.75 + 5 * 1   + 5 * 0.25) = 20 / 13.75 = 16 / 11
+  # R_c = 30 / (10 * 0.5  + 5 * 0.25 + 5 * 1  ) = 30 / 11.25 = 8 / 3
+  # A_a = 2/3 + 0.75 * 16/11 + 0.5 * 8/3 = 34 / 11
+  # A_b = 0.5 * 2/3 + 16/11 + 0.25 * 8/3 = 27 / 11
+  # A_c = 0.5 * 2/3 + 0.25 * 16/11 + 8/3 = 37 / 11
+  result <- toy_fca("2sfca")
+  expect_equal(
+    result,
+    data.table::data.table(
+      id = c("a", "b", "c"),
+      jobs = c(34 / 11, 27 / 11, 37 / 11)
+    )
+  )
+  # 2SFCA preserves the total supply: sum_i P_i A_i = sum_j S_j = 60
+  expect_equal(sum(toy_land_use$population * result$jobs), 60)
+
+  # BFCA (Paez et al. 2019): f is balanced by origin, Wi_ij = f_ij / sum_j f_ij,
+  # to allocate demand, and by destination, Wj_ij = f_ij / sum_i f_ij, to
+  # allocate the level of service:
+  # R_j = S_j / sum_k P_k Wi_kj; A_i = sum_j R_j Wj_ij
+  # demand: D_a = 10 * 4/9 + 5 * 2/7 + 5 * 2/7 = 460 / 63
+  #         D_b = 10 * 1/3 + 5 * 4/7 + 5 * 1/7 = 145 / 21
+  #         D_c = 10 * 2/9 + 5 * 1/7 + 5 * 4/7 = 365 / 63
+  # ratios: R_a = 10 / D_a = 63 / 46, R_b = 20 / D_b = 84 / 29,
+  #         R_c = 30 / D_c = 378 / 73
+  r_a <- 63 / 46
+  r_b <- 84 / 29
+  r_c <- 378 / 73
+  result <- toy_fca("bfca")
+  expect_equal(
+    result,
+    data.table::data.table(
+      id = c("a", "b", "c"),
+      jobs = c(
+        r_a * 0.5 + r_b * 0.375 + r_c * 2 / 7,
+        r_a * 0.25 + r_b * 0.5 + r_c * 1 / 7,
+        r_a * 0.25 + r_b * 0.125 + r_c * 4 / 7
+      )
+    )
+  )
+  # BFCA does not inflate the level of service: sum_i A_i = sum_j R_j
+  expect_equal(sum(result$jobs), r_a + r_b + r_c)
+})

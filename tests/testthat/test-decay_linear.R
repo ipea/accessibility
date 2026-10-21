@@ -61,3 +61,8 @@ test_that("output fn returns empty numeric if receives empty numeric/integer", {
   expect_identical(output_fn(numeric())[["20"]], numeric())
   expect_identical(output_fn(numeric())[["30"]], numeric())
 })
+
+test_that("raises an error if cutoff is 0", {
+  expect_error(tester(0), regexp = "Value must be greater than 0")
+  expect_error(tester(c(0, 30)), regexp = "Value must be greater than 0")
+})

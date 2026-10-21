@@ -27,7 +27,8 @@ test_that("warns if travel_matrix contains ids that land_use_data does not", {
           travel_time = 50
         )
       )
-    )
+    ),
+    "treated as 0"
   )
 
   expect_warning(
@@ -42,7 +43,8 @@ test_that("warns if travel_matrix contains ids that land_use_data does not", {
         )
       ),
       active = FALSE
-    )
+    ),
+    "treated as 0"
   )
 
   expect_warning(
@@ -57,7 +59,8 @@ test_that("warns if travel_matrix contains ids that land_use_data does not", {
         )
       ),
       active = NULL
-    )
+    ),
+    "treated as 0"
   )
 
   expect_warning(
@@ -72,7 +75,8 @@ test_that("warns if travel_matrix contains ids that land_use_data does not", {
         )
       ),
       active = NULL
-    )
+    ),
+    "treated as 0"
   )
 })
 
@@ -81,13 +85,24 @@ test_that("warns if either opportunity or demand cols contain NAs", {
     tester(
       rbind(land_use_data, data.table::data.table(id = "hehe"), fill = TRUE),
       demand = "population"
-    )
+    ),
+    "treated as 0"
   )
 })
 
 test_that("assert_land_use_data() doesn't error with tibbles", {
-  # issue 49 (https://github.com/ipeaGIT/accessibility/issues/49)
+  skip_if_not_installed("tibble")
+
+  # issue 49 (https://github.com/ipea/accessibility/issues/49)
   # using land_use_data as tibbles would throw errors because this format has
   # stricter subsetting rules
   expect_no_error(tester(tibble::as_tibble(land_use_data)))
+})
+
+test_that("errors if land_use_data has duplicated ids", {
+  duplicated_land_use <- rbind(land_use_data, land_use_data[1])
+  expect_error(
+    tester(duplicated_land_use),
+    regexp = "must not contain duplicated ids"
+  )
 })

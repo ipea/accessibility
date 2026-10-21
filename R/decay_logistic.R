@@ -14,8 +14,7 @@
 #'   that approximate binary decay, while higher values tend to linearize the
 #'   decay.
 #'
-#' @return A `function` that takes a generic travel cost vector (`numeric`) as
-#'   input and returns a vector of weights (`numeric`).
+#' @template return_decay_function
 #'
 #' @details When using a function created with `decay_logistic()`, the output is
 #'   named after the combination of cutoffs (`"c"`) and standard deviations
@@ -45,22 +44,34 @@ decay_logistic <- function(cutoff, sd) {
   assert_logistic_cutoff(cutoff)
   assert_standard_deviation(sd, cutoff)
 
+  # duplicated (cutoff, sd) pairs would produce duplicated list names, which
+  # are merged/double counted downstream
+
+  if (anyDuplicated(data.frame(cutoff, sd))) {
+    cli::cli_abort(
+      "Assertion on {.arg cutoff} and {.arg sd} failed: Must not contain
+      duplicated (cutoff, sd) pairs.",
+      call = NULL
+    )
+  }
+
   weighting_function <- function(travel_cost) {
     g <- function(cost, median, std_dev) {
       1 + exp(((cost - median) * base::pi) / (std_dev * sqrt(3)))
     }
 
-    sd_list <- mapply(
-      median = cutoff,
-      std_dev = sd,
-      FUN = function(median, std_dev) {
-        vapply(
-          travel_cost,
-          function(x) g(0, median, std_dev) / g(x, median, std_dev),
-          numeric(1)
+    sd_list <- weigh_unique_costs(
+      travel_cost,
+      function(cost) {
+        mapply(
+          median = cutoff,
+          std_dev = sd,
+          FUN = function(median, std_dev) {
+            g(0, median, std_dev) / g(cost, median, std_dev)
+          },
+          SIMPLIFY = FALSE
         )
-      },
-      SIMPLIFY = FALSE
+      }
     )
 
     list_names <- paste0("c", cutoff, ";sd", sd)

@@ -40,14 +40,16 @@
 #'
 #' Allocates the system-wide total proportionally based on travel impedance
 #' between origins and destinations. This measure uses the logic of a
-#' total ~(or 'unconstrained' by Wilson's terms)~ constraint.
+#' total (or 'unconstrained' by Wilson's terms) constraint.
 #'
 #' Use this measure when the total quantity of **supply** OR **demand** in the
 #' system is known and representing accessibility as a proportion of this total
 #'  is meaningful.
 #'
 #' ### Requirement:
-#' - Either `demand` or `supply` must be provided (cannot provide both).
+#' - `supply` must be provided when `active = TRUE`, and `demand` when
+#'   `active = FALSE`. The other argument is ignored, so the same call can be
+#'   used with `constraint = "singly"`, which requires both.
 #'
 #' ### Interpretation:
 #' - `active = TRUE` (*active accessibility*): Results represent the total
@@ -156,7 +158,7 @@
 #' to match; otherwise, the model will not converge.
 #'  - `active` must be `NULL`. Since supply must match demand, their units are
 #'  the same and there is no distinction between 'active' and 'passive' notions.
-#' - Only accepts`detailed_results = TRUE`.
+#' - Only accepts `detailed_results = TRUE`.
 #'
 #' ### Interpretation:
 #' - Results include OD-level flows (`flow`) along with balancing factors (`A_i`,
@@ -265,6 +267,8 @@ constrained_accessibility <- function(travel_matrix,
 
   checkmate::assert_choice(constraint, c("total", "singly", "doubly"))
   checkmate::assert_string(travel_cost)
+  checkmate::assert_string(demand, null.ok = TRUE)
+  checkmate::assert_string(supply, null.ok = TRUE)
   assert_decay_function(decay_function)
   assert_group_by(group_by)
   assert_travel_matrix(travel_matrix, travel_cost, group_by)
@@ -291,7 +295,10 @@ constrained_accessibility <- function(travel_matrix,
   }
   # For 'total' and 'singly' we require active to be TRUE or FALSE
   if (is.null(active)) {
-    stop(sprintf("For '%s', active must be TRUE or FALSE.", constraint))
+    cli::cli_abort(
+      "For {.val {constraint}}, active must be TRUE or FALSE.",
+      call = NULL
+    )
   }
 
   # Validate the relevant side (opportunity column) only

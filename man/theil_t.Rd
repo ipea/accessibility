@@ -24,7 +24,7 @@ Must contain the columns \code{id} and any others specified in \code{population}
 \code{socioeconomic_groups}.}
 
 \item{opportunity}{A string. The name of the column in \code{accessibility_data}
-with the accessibility levels to be considerend when calculating inequality
+with the accessibility levels to be considered when calculating inequality
 levels.}
 
 \item{population}{A string. The name of the column in \code{sociodemographic_data}
@@ -59,8 +59,14 @@ range from 0 (when all individuals have exactly the same accessibility
 levels) to the natural log of \emph{n}, in which \emph{n} is the number of individuals
 in the accessibility dataset. If the individuals can be classified into
 mutually exclusive and completely exhaustive groups, the index can be
-decomposed into a between-groups inequaliy component and a within-groups
+decomposed into a between-groups inequality component and a within-groups
 component.
+}
+\details{
+Observations with no access contribute 0 to the index, following the usual
+convention that \code{0 * log(0) = 0}. If no one has access to any opportunity
+(i.e. the average accessibility is 0), the index is undefined and \code{NA} is
+returned.
 }
 \examples{
 \dontshow{if (identical(tolower(Sys.getenv("NOT_CRAN")), "true")) withAutoprint(\{ # examplesIf}
@@ -108,9 +114,10 @@ ti
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-Other inequality: 
-\code{\link{concentration_index}()},
-\code{\link{gini_index}()},
-\code{\link{palma_ratio}()}
+Other equity:
+\code{\link[=concentration_index]{concentration_index()}},
+\code{\link[=fgt_poverty]{fgt_poverty()}},
+\code{\link[=gini_index]{gini_index()}},
+\code{\link[=palma_ratio]{palma_ratio()}}
 }
-\concept{inequality}
+\concept{equity}

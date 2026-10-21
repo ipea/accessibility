@@ -9,7 +9,7 @@ decay_linear(cutoff)
 \arguments{
 \item{cutoff}{A \code{numeric} vector. Indicates the travel cost cutoffs until
 which the weighting factor decays linearly. From this point onward the
-weight is equal to 0.}
+weight is equal to 0. Must be greater than 0.}
 }
 \value{
 A \code{function} that takes a generic travel cost vector (\code{numeric}) as
@@ -35,11 +35,11 @@ weighting_function(c(20, 35))
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-Other decay functions: 
-\code{\link{decay_binary}()},
-\code{\link{decay_exponential}()},
-\code{\link{decay_logistic}()},
-\code{\link{decay_power}()},
-\code{\link{decay_stepped}()}
+Other decay functions:
+\code{\link[=decay_binary]{decay_binary()}},
+\code{\link[=decay_exponential]{decay_exponential()}},
+\code{\link[=decay_logistic]{decay_logistic()}},
+\code{\link[=decay_power]{decay_power()}},
+\code{\link[=decay_stepped]{decay_stepped()}}
 }
 \concept{decay functions}

@@ -3,7 +3,7 @@
 #' Calculates the average or median number of opportunities that can be reached
 #' considering multiple maximum travel cost thresholds within a given travel
 #' cost interval specified by the user. The time interval cumulative
-#' accessibility measures was originally proposed by
+#' accessibility measure was originally proposed by
 #' \insertCite{tomasiello2023time;textual}{accessibility}.
 #' @template description_generic_cost
 #'
@@ -22,10 +22,14 @@
 #' @param summary_function A function. This function is used to summarize a
 #'   distribution of accessibility estimates within a travel cost interval as a
 #'   single value. Can be any function that takes an arbitrary number of
-#'   numeric values as as input and returns a single number as output. Defaults
+#'   numeric values as input and returns a single number as output. Defaults
 #'   to [stats::median()].
 #' @template group_by
 #' @template active
+#' @param fill_missing_ids A `logical`. Origins (or destinations, when `active`
+#'   is `FALSE`) that cannot reach any opportunity within the interval would
+#'   not be included in the output. When `TRUE` (the default), the function
+#'   includes them with an accessibility of 0.
 #'
 #' @template return_accessibility
 #'
@@ -66,10 +70,12 @@ cumulative_interval <- function(travel_matrix,
                                 interval_increment = 1,
                                 summary_function = stats::median,
                                 group_by = character(0),
-                                active = TRUE) {
+                                active = TRUE,
+                                fill_missing_ids = TRUE) {
   checkmate::assert_string(opportunity)
   checkmate::assert_string(travel_cost)
   checkmate::assert_logical(active, len = 1, any.missing = FALSE)
+  checkmate::assert_logical(fill_missing_ids, len = 1, any.missing = FALSE)
   assert_interval_increment(interval_increment)
   assert_summary_function(summary_function)
   assert_group_by(group_by)
@@ -96,13 +102,18 @@ cumulative_interval <- function(travel_matrix,
     land_use_data <- data.table::as.data.table(land_use_data)
   }
 
-  cutoffs <- lapply(
+  # each interval is summarised over its own cutoffs only, which always include
+  # the interval's upper limit (even if it's not a multiple of the increment).
+  # accessibility is calculated once for the union of all cutoffs
+
+  interval_cutoffs <- lapply(
     interval,
-    function(pair) seq.int(pair[1], pair[2], by = interval_increment)
+    function(pair) {
+      unique(c(seq.int(pair[1], pair[2], by = interval_increment), pair[2]))
+    }
   )
-  cutoffs <- unique(unlist(cutoffs))
+  cutoffs <- unique(unlist(interval_cutoffs))
   cutoffs <- cutoffs[order(cutoffs)]
-  names(cutoffs) <- as.character(cutoffs)
 
   # small optimization: we can ditch anything that costs more than the highest
   # cost cutoff value, since it won't affect the results anyway
@@ -113,7 +124,8 @@ cumulative_interval <- function(travel_matrix,
     data,
     land_use_data,
     opportunity,
-    left_df_idcol = ifelse(active, "to_id", "from_id")
+    left_df_idcol = ifelse(active, "to_id", "from_id"),
+    na_as_zero = TRUE
   )
 
   group_id <- ifelse(active, "from_id", "to_id")
@@ -122,51 +134,60 @@ cumulative_interval <- function(travel_matrix,
 
   warn_extra_cols(travel_matrix, travel_cost, group_id, groups)
 
-  .opportunity_colname <- opportunity
-  access_list <- lapply(
-    cutoffs,
-    function(x) {
-      data[
-        get(.cost_colname) <= x,
-        .(access = sum(get(.opportunity_colname))),
-        by = eval(groups, envir = env)
-      ]
-    }
+  # accessibility is calculated for every cutoff at once from the sums of
+  # opportunities by cost bin. every combination of ids and groups gets a row
+  # for each cutoff, with 0 opportunities where nothing is reached, otherwise
+  # the summary measure would be miscalculated (e.g. think of median of 1 3 5
+  # and median of 0 1 3 5)
+
+  binned_sums <- sum_by_cost_bin(
+    data,
+    groups,
+    opportunity,
+    travel_cost,
+    cutoffs
   )
 
-  # some of the estimates for lower thresholds may have less number of rows
-  # because some origins may not reach any destinations when the travel cost
-  # restrictions are harder. in such case, we have to fill these datasets with
-  # the missing combinations having accessibility 0, otherwise the summary
-  # measure would be miscalculated (e.g. think of median of 1 3 5 and median of
-  # 0 1 3 5)
+  # ids that can't reach any opportunity at any cutoff are filled as well, and
+  # only dropped at the end if fill_missing_ids is FALSE
 
-  nrow_more_restrictive <- nrow(access_list[[1]])
-  nrow_less_restrictive <- nrow(access_list[[length(access_list)]])
+  reached_ids <- unique(binned_sums[, ..groups])
 
-  if (nrow_more_restrictive < nrow_less_restrictive) {
-    access_list <- fill_access_list(access_list, travel_matrix, groups)
-  }
-  access_list <- data.table::rbindlist(access_list, idcol = "cutoffs")
-  access_list[, cutoffs := as.numeric(cutoffs)]
+  unique_values <- lapply(groups, function(x) unique(travel_matrix[[x]]))
+  names(unique_values) <- groups
 
-  # the as.integer() call below makes sure that, even though the summary
-  # function may return doubles, the result is an integer (afterall when using
-  # a cumulative measure you cannot reach half of an opportunity) and that the
-  # float is rounded down to the integer (if you reach 2.8 opportunities you do
-  # reach 2, but you can't reach 3)
+  grid_groups <- do.call(data.table::CJ, unique_values)
+
+  access_list <- cumulative_sums_grid(
+    binned_sums,
+    grid_groups,
+    groups,
+    n_cutoffs = length(cutoffs),
+    integer_opportunity = is.integer(data[[opportunity]])
+  )
+  data.table::set(access_list, j = "cutoffs", value = cutoffs[access_list$.bin])
+
+  # the summary is returned as a double: summary functions such as median()
+  # may return integers for some groups and doubles for others, and the summary
+  # of opportunity counts doesn't have to be a whole number
 
   access_list <- lapply(
-    interval,
-    function(pair) {
+    interval_cutoffs,
+    function(own_cutoffs) {
       access_list[
-        cutoffs >= pair[1] & cutoffs <= pair[2],
-        .(access = as.integer(summary_function(access))),
+        cutoffs %in% own_cutoffs,
+        .(access = as.numeric(summary_function(access))),
         by = eval(groups, envir = env)
       ]
     }
   )
   access <- data.table::rbindlist(access_list, idcol = "interval")
+
+  if (!fill_missing_ids) {
+    reached_rows <- access[reached_ids, on = groups, which = TRUE, nomatch = 0]
+    access <- access[sort(reached_rows)]
+  }
+
   data.table::setcolorder(access, c(groups, "interval", "access"))
   data.table::setnames(access, c(group_id, "access"), c("id", opportunity))
 
@@ -175,35 +196,4 @@ cumulative_interval <- function(travel_matrix,
   if (exists("original_class")) class(access) <- original_class
 
   return(access[])
-}
-
-
-#' @keywords internal
-fill_access_list <- function(access, travel_matrix, groups) {
-  unique_values <- lapply(groups, function(x) unique(travel_matrix[[x]]))
-  names(unique_values) <- groups
-  possible_combinations <- do.call(data.table::CJ, unique_values)
-
-  access_nrows <- vapply(access, nrow, integer(1))
-  possible_nrows <- nrow(possible_combinations)
-  should_fill <- access_nrows < possible_nrows
-
-  filled_access <- mapply(
-    do_fill = should_fill,
-    access_df = access,
-    SIMPLIFY = FALSE,
-    FUN = function(do_fill, access_df) {
-      if (!do_fill) return(access_df)
-
-      filled_access_df <- do_fill_missing_ids(
-        access_df,
-        possible_combinations,
-        groups
-      )
-
-      return(filled_access_df[])
-    }
-  )
-
-  return(filled_access)
 }

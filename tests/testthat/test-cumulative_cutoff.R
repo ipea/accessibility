@@ -379,3 +379,173 @@ test_that("works even if travel_matrix and land_use has specific colnames", {
 
   land_use_data[, opportunity := NULL]
 })
+
+test_that("works with cutoffs with floating point noise and any colname", {
+  toy_matrix <- data.table::data.table(
+    from_id = c(rep(c("a", "b", "c"), each = 3), "d"),
+    to_id = c(rep(c("a", "b", "c"), 3), "a"),
+    fare = c(0, 0.2, 0.3, 0.2, 0, 0.4, 0.3, 0.4, 0, 1)
+  )
+  toy_land_use <- data.table::data.table(
+    id = c("a", "b", "c", "d"),
+    jobs = c(10, 20, 30, 40)
+  )
+
+  # seq() cutoffs are not exactly 0.1, 0.2, ... (e.g. the 4th is
+  # 0.30000000000000004). d doesn't reach anyone, so missing ids are filled
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    travel_cost = "fare",
+    cutoff = seq(0, 0.5, by = 0.1),
+    group_by = character(0)
+  )
+  expect_identical(result[id == "a"]$jobs, c(10, 10, 30, 60, 60, 60))
+  expect_identical(result[id == "d"]$jobs, rep(0, 6))
+
+  data.table::setnames(toy_matrix, "fare", "bus fare")
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    travel_cost = "bus fare",
+    cutoff = 0.3,
+    group_by = character(0)
+  )
+  expect_identical(result$jobs, c(60, 30, 40, 0))
+})
+
+test_that("raises a clear error if id types are incompatible", {
+  int_matrix <- data.table::data.table(
+    from_id = 1:2,
+    to_id = 1:2,
+    travel_time = c(1, 2)
+  )
+  chr_land_use <- data.table::data.table(id = c("1", "2"), jobs = c(1, 2))
+
+  expect_error(
+    tester(int_matrix, chr_land_use, cutoff = 5, group_by = character(0)),
+    regexp = "must be of compatible types"
+  )
+
+  # integer vs double and factor vs character ids join fine, so no error
+
+  dbl_land_use <- data.table::data.table(id = c(1, 2), jobs = c(1, 2))
+  expect_error(
+    tester(int_matrix, dbl_land_use, cutoff = 5, group_by = character(0)),
+    NA
+  )
+
+  chr_matrix <- data.table::data.table(
+    from_id = c("1", "2"),
+    to_id = c("1", "2"),
+    travel_time = c(1, 2)
+  )
+  fct_land_use <- data.table::data.table(
+    id = factor(c("1", "2")),
+    jobs = c(1, 2)
+  )
+  expect_error(
+    tester(chr_matrix, fct_land_use, cutoff = 5, group_by = character(0)),
+    NA
+  )
+})
+
+test_that("result is not keyed, even when missing ids are filled", {
+  toy_matrix <- data.table::data.table(
+    from_id = c("a", "a", "b"),
+    to_id = c("a", "b", "a"),
+    travel_time = c(0, 10, 50)
+  )
+  toy_land_use <- data.table::data.table(id = c("a", "b"), jobs = c(10, 20))
+
+  # b reaches nothing within 30 minutes, so it's filled with 0
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    cutoff = 30,
+    group_by = character(0)
+  )
+  expect_identical(result$jobs, c(30, 0))
+  expect_null(data.table::key(result))
+
+  for (fill in c(TRUE, FALSE)) {
+    result <- tester(
+      as.data.frame(toy_matrix),
+      toy_land_use,
+      cutoff = c(30, 60),
+      group_by = character(0),
+      fill_missing_ids = fill
+    )
+    expect_null(attr(result, "sorted"))
+  }
+})
+
+test_that("edge cases of cutoffs and travel costs are handled", {
+  # costs equal to infinity or NA are never reached. b reaches a destination
+  # within 30 minutes, but it has no opportunities. c reaches nothing
+
+  toy_matrix <- data.table::data.table(
+    from_id = c("a", "a", "a", "a", "b", "b", "c"),
+    to_id = c("a", "b", "c", "d", "b", "a", "a"),
+    travel_time = c(0, 30, NA, Inf, 0, 45, 100)
+  )
+  toy_land_use <- data.table::data.table(
+    id = c("a", "b", "c", "d"),
+    jobs = c(10, 0, 7, 5)
+  )
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    cutoff = c(60, 30),
+    group_by = character(0),
+    fill_missing_ids = FALSE
+  )
+  expect_identical(result$id, c("a", "a", "b", "b"))
+  expect_identical(result$travel_time, c(30, 60, 30, 60))
+  expect_identical(result$jobs, c(10, 10, 0, 10))
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    cutoff = c(60, 30),
+    group_by = character(0)
+  )
+  expect_identical(result$id, c("a", "a", "b", "b", "c", "c"))
+  expect_identical(result$jobs, c(10, 10, 0, 10, 0, 0))
+})
+
+test_that("large integer sums don't overflow", {
+  # a reaches 10 jobs and b reaches more jobs than the largest integer, which
+  # used to raise an error when sums of different ids had different types
+
+  toy_matrix <- data.table::data.table(
+    from_id = c("a", "b", "b"),
+    to_id = c("a", "a", "b"),
+    travel_time = c(0, 0, 20)
+  )
+  toy_land_use <- data.table::data.table(
+    id = c("a", "b"),
+    jobs = c(10L, .Machine$integer.max)
+  )
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    cutoff = c(30, 60),
+    group_by = character(0),
+    fill_missing_ids = FALSE
+  )
+  expect_identical(result$jobs, c(10, 10, rep(.Machine$integer.max + 10, 2)))
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    cutoff = 30,
+    group_by = character(0),
+    fill_missing_ids = FALSE
+  )
+  expect_identical(result$jobs, c(10, .Machine$integer.max + 10))
+})

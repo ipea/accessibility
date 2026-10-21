@@ -14,25 +14,32 @@
 #' @template demand
 #' @param cost_increment A number. The cost increment that should be used when
 #'   defining the travel cost distribution from which the potential balancing
-#'   costs will be picked. For example, an increment of 1 tends to suitable for
+#'   costs will be picked. For example, an increment of 1 tends to be suitable for
 #'   travel time distributions, meaning that the function will first check if
 #'   any origins reach their balancing cost with a travel time of 0 minutes,
-#'   then 1 minute, 2 minutes, 3, 4, ..., etc. A increment of 1 might be too big
+#'   then 1 minute, 2 minutes, 3, 4, ..., etc. An increment of 1 might be too big
 #'   for a distribution of monetary costs, on the other hand, which could
 #'   possibly benefit from a smaller increment of 0.05, for example, resulting
 #'   in the function looking for balancing costs first at a cost of 0, then
 #'   0.05, 0.10, ..., etc. Defaults to 1.
 #' @template group_by
-#' @template fill_missing_ids_combinations
+#' @param fill_missing_ids A `logical`. Origins that never reach as many
+#'   opportunities as there are people residing in them, as well as (when
+#'   `group_by` is not empty) combinations of groups and origins missing from
+#'   the travel matrix, would not be included in the output. When `TRUE` (the
+#'   default), the function identifies which combinations would be left out and
+#'   fills their respective balancing costs with `NA`, which incurs a
+#'   performance penalty.
 #'
-#' @template return_accessibility
-#' @return A data frame containing the accessibility estimates for each origin
-#'   in the travel matrix. Origins marked with a `NA` balancing cost never reach
-#'   as many opportunities as there is people residing in them, given the
-#'   specified travel matrix.
+#' @return A data frame containing the balancing cost of each origin in the
+#'   travel matrix. Origins with a `NA` balancing cost never reach as many
+#'   opportunities as there are people residing in them, given the specified
+#'   travel matrix.
 #'
 #' @references
 #' \insertAllCited{}
+#'
+#' @family accessibility measures
 #'
 #' @examplesIf identical(tolower(Sys.getenv("NOT_CRAN")), "true")
 #' data_dir <- system.file("extdata", package = "accessibility")
@@ -59,7 +66,14 @@ balancing_cost <- function(travel_matrix,
   checkmate::assert_string(opportunity)
   checkmate::assert_string(travel_cost)
   checkmate::assert_string(demand)
-  checkmate::assert_number(cost_increment, lower = 0, finite = TRUE)
+  checkmate::assert_number(cost_increment, finite = TRUE)
+  if (cost_increment <= 0) {
+    cli::cli_abort(
+      "Assertion on {.arg cost_increment} failed: Value must be greater
+      than 0.",
+      call = NULL
+    )
+  }
   checkmate::assert_logical(fill_missing_ids, len = 1, any.missing = FALSE)
   assert_group_by(group_by)
   assert_travel_matrix(travel_matrix, travel_cost, group_by)
@@ -69,8 +83,6 @@ balancing_cost <- function(travel_matrix,
     opportunity,
     demand = demand
   )
-
-  variable <- 3
 
   # if not a dt, keep original class to assign later when returning result
 
@@ -85,26 +97,42 @@ balancing_cost <- function(travel_matrix,
     land_use_data <- data.table::as.data.table(land_use_data)
   }
 
-  merge_by_reference(data, land_use_data, opportunity, left_df_idcol = "to_id")
+  merge_by_reference(
+    data,
+    land_use_data,
+    opportunity,
+    left_df_idcol = "to_id",
+    na_as_zero = TRUE
+  )
 
   groups <- c("from_id", group_by)
   warn_extra_cols(travel_matrix, travel_cost, "from_id", groups)
 
-  lookup_vec <- land_use_data[[demand]]
-  names(lookup_vec) <- land_use_data$id
+  # demand of each origin, matched by id. NA values and ids missing from
+  # land_use_data count as 0 people
+
+  origins <- unique(data$from_id)
+  origin_demand <- land_use_data[[demand]][match(origins, land_use_data$id)]
+  origin_demand[is.na(origin_demand)] <- 0
 
   max_lookup_cost <- if (length(data[[travel_cost]]) > 0) {
     max(data[[travel_cost]], na.rm = TRUE)
   } else {
     0
   }
-  lookup_costs <- seq.int(0, max_lookup_cost, by = cost_increment)
+
+  # the last cost must be at least the max cost, otherwise origins that only
+  # balance after the last multiple of cost_increment are reported as NA
+
+  lookup_costs <- seq.int(
+    0,
+    ceiling(max_lookup_cost / cost_increment) * cost_increment,
+    by = cost_increment
+  )
 
   # origins with 0 people should always have a balancing time of 0
 
-  .demand_colname <- demand
-  no_pop_origins <- land_use_data[get(.demand_colname) == 0]$id
-  no_pop_origins_in_ttm <- no_pop_origins[no_pop_origins %in% data$from_id]
+  no_pop_origins_in_ttm <- origins[origin_demand == 0]
 
   grouped_no_pop_origins <- lapply(
     groups,
@@ -120,23 +148,41 @@ balancing_cost <- function(travel_matrix,
 
   data <- data[!(from_id %in% no_pop_origins_in_ttm)]
 
-  for (i in lookup_costs) {
-    cum_opps <- calc_cum_cutoff(data, groups, opportunity, travel_cost, i)
+  # the opportunities reached by each origin are summed by cost bin (the first
+  # lookup cost that each travel cost is lower than or equal to) and
+  # accumulated. an origin balances at the first lookup cost at which it
+  # reaches as many opportunities as people. the cumulative sum only changes
+  # at bins that contain some travel cost, so the first of those bins that
+  # balances is the balancing cost
 
-    cum_opps[, did_balance := access > lookup_vec[from_id]]
-    balanced <- cum_opps[did_balance == TRUE]
+  binned_sums <- sum_by_cost_bin(
+    data,
+    groups,
+    opportunity,
+    travel_cost,
+    lookup_costs
+  )
+  data.table::setorderv(binned_sums, c(groups, ".bin"))
+  binned_sums[, .cum_opp := cumsum(.opp), by = c(groups)]
 
-    if (nrow(balanced) > 0) {
-      balanced[, c("access", "did_balance") := NULL]
-      balanced[, cost := i]
+  # set() keeps origin_demand from being shadowed by a column of binned_sums
 
-      access <- rbind(access, balanced)
+  data.table::set(
+    binned_sums,
+    j = ".demand",
+    value = origin_demand[match(binned_sums$from_id, origins)]
+  )
 
-      data <- data[!balanced, on = groups]
+  # warnings are suppressed outside of j (so min() is still optimized), because
+  # data.table evaluates min() on an empty vector when no rows are selected
 
-      if (nrow(data) == 0) break
-    }
-  }
+  balanced <- suppressWarnings(
+    binned_sums[.cum_opp >= .demand, .(.bin = min(.bin)), by = c(groups)]
+  )
+  data.table::set(balanced, j = "cost", value = lookup_costs[balanced$.bin])
+  balanced[, .bin := NULL]
+
+  if (nrow(balanced) > 0) access <- rbind(access, balanced)
 
   if (fill_missing_ids) {
     unique_values <- lapply(groups, function(x) unique(travel_matrix[[x]]))
@@ -165,21 +211,4 @@ balancing_cost <- function(travel_matrix,
   if (exists("original_class")) class(access) <- original_class
 
   return(access[])
-}
-
-
-calc_cum_cutoff <- function(data, groups, opportunity, travel_cost, .cutoff) {
-  env <- environment()
-  .opportunity_colname <- opportunity
-  .cost_colname <- travel_cost
-
-  data <- data[get(.cost_colname) <= .cutoff]
-
-  cum_cutoff_access <- data[
-    ,
-    .(access = sum(get(.opportunity_colname))),
-    by = eval(groups, envir = env)
-  ]
-
-  return(cum_cutoff_access)
 }

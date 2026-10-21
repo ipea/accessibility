@@ -22,7 +22,7 @@ sociodemographic characteristics of the population in the study area cells.
 Must contain the columns \code{id} and any others specified in \code{population}.}
 
 \item{opportunity}{A string. The name of the column in \code{accessibility_data}
-with the accessibility levels to be considerend when calculating inequality
+with the accessibility levels to be considered when calculating inequality
 levels.}
 
 \item{population}{A string. The name of the column in \code{sociodemographic_data}
@@ -67,9 +67,10 @@ gini
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-Other inequality: 
-\code{\link{concentration_index}()},
-\code{\link{palma_ratio}()},
-\code{\link{theil_t}()}
+Other equity:
+\code{\link[=concentration_index]{concentration_index()}},
+\code{\link[=fgt_poverty]{fgt_poverty()}},
+\code{\link[=palma_ratio]{palma_ratio()}},
+\code{\link[=theil_t]{theil_t()}}
 }
-\concept{inequality}
+\concept{equity}

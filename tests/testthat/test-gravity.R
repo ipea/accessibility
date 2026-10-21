@@ -321,3 +321,19 @@ test_that("decay_fn_arg is char when decay fn is stepped and num otherwise", {
   )
   expect_is(result$decay_function_arg, "character")
 })
+
+test_that("raises an error if travel_matrix contains negative travel costs", {
+  negative_matrix <- data.table::copy(smaller_matrix)
+  negative_matrix[1, travel_time := -10]
+
+  expect_error(
+    tester(travel_matrix = negative_matrix),
+    regexp = "Travel costs must not[[:space:]]+be[[:space:]]+negative"
+  )
+
+  # NA costs are still allowed
+
+  na_matrix <- data.table::copy(smaller_matrix)
+  na_matrix[1, travel_time := NA]
+  expect_error(tester(travel_matrix = na_matrix), NA)
+})

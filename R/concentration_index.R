@@ -1,7 +1,7 @@
 #' Concentration Index
 #'
 #' Calculates the Concentration Index (CI) of a given accessibility
-#' distribution. This measures estimates the extent to which accessibility
+#' distribution. This measure estimates the extent to which accessibility
 #' inequalities are systematically associated with individuals' socioeconomic
 #' levels. CI values can theoretically vary between -1 and +1 (when all
 #' accessibility is concentrated in the most or in the least disadvantaged
@@ -30,7 +30,7 @@
 #'
 #' @template return_inequality
 #'
-#' @family inequality
+#' @family equity
 #'
 #' @references
 #' \insertAllCited{}
@@ -59,13 +59,15 @@
 #' ci
 #'
 #' @export
-concentration_index <- function(accessibility_data,
-                                sociodemographic_data,
-                                opportunity,
-                                population,
-                                income,
-                                type,
-                                group_by = character(0)) {
+concentration_index <- function(
+  accessibility_data,
+  sociodemographic_data,
+  opportunity,
+  population,
+  income,
+  type,
+  group_by = character(0)
+) {
   checkmate::assert_string(opportunity)
   checkmate::assert_string(population)
   checkmate::assert_string(income)
@@ -104,6 +106,12 @@ concentration_index <- function(accessibility_data,
 
   warn_extra_access_cols(accessibility_data, opportunity, group_by)
 
+  # integer opportunities and population counts may overflow when multiplied,
+  # so we convert them to doubles first
+
+  .numeric_cols <- c(opportunity, population)
+  data[, (.numeric_cols) := lapply(.SD, as.numeric), .SDcols = .numeric_cols]
+
   .opp_colname <- opportunity
   .pop_colname <- population
   .groups <- group_by
@@ -113,15 +121,23 @@ concentration_index <- function(accessibility_data,
   # fractional rank calculation based on equation 4 of this paper:
   # Eddy van Doorslaer and Xander Koolman, https://doi.org/10.1002/hec.918
 
+  # observations with the same income share the same rank: the midpoint of
+  # their block in the cumulative population distribution. otherwise the result
+  # would depend on the order of the rows
+
   data[, pop_share := get(.pop_colname) / sum(get(.pop_colname)), by = .groups]
-  data[
-    ,
-    fractional_rank := c(0, cumsum(pop_share)[-.N]) + pop_share / 2,
+
+  .income_colname <- income
+  data[, .block_share := sum(pop_share), by = c(.groups, income)]
+  data[,
+    fractional_rank := {
+      first_in_block <- !duplicated(get(.income_colname))
+      cumsum(.block_share * first_in_block) - .block_share / 2
+    },
     by = .groups
   ]
 
-  data[
-    ,
+  data[,
     avg_access := stats::weighted.mean(
       get(.opp_colname),
       w = get(.pop_colname)
@@ -130,38 +146,50 @@ concentration_index <- function(accessibility_data,
   ]
   data[, diff_from_avg := get(.opp_colname) - avg_access]
 
-  data[
-    ,
-    cont_to_total := (fractional_rank - 0.5) * diff_from_avg * pop_share /
+  data[,
+    cont_to_total := (fractional_rank - 0.5) *
+      diff_from_avg *
+      pop_share /
       avg_access
   ]
 
   if (nrow(data) == 0 && identical(group_by, character(0))) {
     ci <- data.table::data.table(concentration_index = numeric(0))
   } else if (type == "standard") {
-    ci <- data[
-      ,
+    ci <- data[,
       .(concentration_index = 2 * sum(cont_to_total)),
       by = .groups
     ]
   } else if (type == "corrected") {
+    # the bounds of the accessibility distribution are the same for all groups.
     # max()/min() may result in warnings if nrow(data) == 0
-    data[, upper := suppressWarnings(max(get(.opp_colname))), by = .groups]
-    data[, lower := suppressWarnings(min(get(.opp_colname))), by = .groups]
+
+    data[, upper := suppressWarnings(max(get(.opp_colname)))]
+    data[, lower := suppressWarnings(min(get(.opp_colname)))]
 
     # from Erreygers (2009), comparing equations 27 and 24, we have the
     # following correction factor
     # https://doi.org/10.1016/j.jhealeco.2008.02.003
-    data[, correction_factor := 4 * avg_access / (upper - lower)]
+    # when access is constant (upper == lower) there is no inequality, and the
+    # factor would be Inf (0 * Inf = NaN). it's set to 0 so the index is 0
 
-    ci <- data[
-      ,
+    data[,
+      correction_factor := data.table::fifelse(
+        upper > lower,
+        4 * avg_access / (upper - lower),
+        0
+      )
+    ]
+
+    ci <- data[,
       .(concentration_index = 2 * sum(cont_to_total * correction_factor)),
       by = .groups
     ]
   }
 
-  if (exists("original_class")) class(ci) <- original_class
+  if (exists("original_class")) {
+    class(ci) <- original_class
+  }
 
   return(ci)
 }

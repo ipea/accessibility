@@ -32,12 +32,17 @@ decay_power <- function(decay_value) {
   )
 
   weighting_function <- function(travel_cost) {
-    weights_list <- lapply(
-      decay_value,
-      function(x) {
-        weights <- travel_cost ^ (-x)
-        weights[weights > 1] <- 1
-        weights
+    weights_list <- weigh_unique_costs(
+      travel_cost,
+      function(cost) {
+        lapply(
+          decay_value,
+          function(x) {
+            weights <- cost ^ (-x)
+            weights[weights > 1] <- 1
+            weights
+          }
+        )
       }
     )
     names(weights_list) <- decay_value

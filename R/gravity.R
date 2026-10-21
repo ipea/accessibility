@@ -15,6 +15,8 @@
 #'
 #' @template return_accessibility
 #'
+#' @family accessibility measures
+#'
 #' @examplesIf identical(tolower(Sys.getenv("NOT_CRAN")), "true")
 #' data_dir <- system.file("extdata", package = "accessibility")
 #' travel_matrix <- readRDS(file.path(data_dir, "travel_matrix.rds"))
@@ -78,7 +80,8 @@ gravity <- function(travel_matrix,
     data,
     land_use_data,
     opportunity,
-    left_df_idcol = ifelse(active, "to_id", "from_id")
+    left_df_idcol = ifelse(active, "to_id", "from_id"),
+    na_as_zero = TRUE
   )
 
   data <- apply_gravity_measure(data, decay_function, travel_cost)
@@ -92,10 +95,14 @@ gravity <- function(travel_matrix,
 
   warn_extra_cols(travel_matrix, travel_cost, group_id, groups)
 
+  # the weighted opportunities are calculated before aggregating, so the sum
+  # below is optimized by data.table (GForce)
+
   .opp_colname <- opportunity
+  data[, .weighted_opportunities := get(.opp_colname) * opp_weight]
   access <- data[
     ,
-    .(access = sum(get(.opp_colname) * opp_weight)),
+    .(access = sum(.weighted_opportunities)),
     by = eval(groups, envir = env)
   ]
 

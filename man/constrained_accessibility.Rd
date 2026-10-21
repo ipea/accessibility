@@ -29,7 +29,8 @@ and any others specified in \code{travel_cost}.}
 
 \item{land_use_data}{A data frame. The distribution of opportunities within
 the study area cells. Must contain the columns \code{id} and any others
-specified in \code{opportunity}.}
+specified in \code{opportunity}. \code{NA} values, and ids in \code{travel_matrix} that
+are missing from this table, are treated as 0.}
 
 \item{travel_cost}{A string. The name of the column in \code{travel_matrix} with
 the travel cost between origins and destinations. The notion of cost
@@ -47,13 +48,14 @@ that will be considered.}
 \item{constraint}{A string. One of \code{"total"}, \code{"singly"}, or \code{"doubly"}. See
 Details section for more information.}
 
-\item{decay_function}{A \code{fuction} that converts travel cost into an
+\item{decay_function}{A \code{function} that converts travel cost into an
 impedance factor used to weight opportunities. This function should take a
 \code{numeric} vector and also return a \code{numeric} vector as output, with the
 same length as the input. For convenience, the package currently includes
 the following functions: \code{\link[=decay_binary]{decay_binary()}}, \code{\link[=decay_exponential]{decay_exponential()}},
-\code{\link[=decay_power]{decay_power()}} and \code{\link[=decay_stepped]{decay_stepped()}}. See the documentation of each decay
-function for more details.}
+\code{\link[=decay_linear]{decay_linear()}}, \code{\link[=decay_logistic]{decay_logistic()}}, \code{\link[=decay_power]{decay_power()}} and
+\code{\link[=decay_stepped]{decay_stepped()}}. See the documentation of each decay function for more
+details.}
 
 \item{active}{A logical. When \code{TRUE}, the function calculates active
 accessibility (the quantity of opportunities that can be reached from
@@ -81,13 +83,13 @@ the data frame, passing \code{"departure_time"} to this parameter results in
 accessibility estimates grouped by origin and by departure time.}
 
 \item{fill_missing_ids}{A \code{logical}. When calculating grouped accessibility
-estimates (i.e. when \code{by_col} is not \code{NULL}), some combinations of groups
+estimates (i.e. when \code{group_by} is not empty), some combinations of groups
 and origins may be missing. For example, if a single trip can depart from
 origin \code{A} at 7:15am and reach destination \code{B} within 55 minutes, but no
 trips departing from \code{A} at 7:30am can be completed at all, this second
 combination will not be included in the output. When \code{TRUE} (the default),
 the function identifies which combinations would be left out and fills
-their respective accessibility values with 0, which incurs in a
+their respective accessibility values with 0, which incurs a
 performance penalty.}
 
 \item{detailed_results}{Logical. Whether to return detailed OD-level results.}
@@ -106,14 +108,16 @@ proposed in \insertCite{soukhov2025family;textual}{accessibility}.
 
 Allocates the system-wide total proportionally based on travel impedance
 between origins and destinations. This measure uses the logic of a
-total ~(or 'unconstrained' by Wilson's terms)~ constraint.
+total (or 'unconstrained' by Wilson's terms) constraint.
 
 Use this measure when the total quantity of \strong{supply} OR \strong{demand} in the
 system is known and representing accessibility as a proportion of this total
 is meaningful.
 \subsection{Requirement:}{
 \itemize{
-\item Either \code{demand} or \code{supply} must be provided (cannot provide both).
+\item \code{supply} must be provided when \code{active = TRUE}, and \code{demand} when
+\code{active = FALSE}. The other argument is ignored, so the same call can be
+used with \code{constraint = "singly"}, which requires both.
 }
 }
 
@@ -241,7 +245,7 @@ travel  impedance.
 to match; otherwise, the model will not converge.
 \item \code{active} must be \code{NULL}. Since supply must match demand, their units are
 the same and there is no distinction between 'active' and 'passive' notions.
-\item Only accepts\code{detailed_results = TRUE}.
+\item Only accepts \code{detailed_results = TRUE}.
 }
 }
 
@@ -343,7 +347,7 @@ constrained_accessibility(
 \insertAllCited{}
 }
 \seealso{
-Other Constrained accessibility: 
-\code{\link{spatial_availability}()}
+Other Constrained accessibility:
+\code{\link[=spatial_availability]{spatial_availability()}}
 }
 \concept{Constrained accessibility}

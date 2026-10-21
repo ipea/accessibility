@@ -28,6 +28,15 @@ test_that("raises errors due to incorrect input", {
 
   expect_error(tester(poverty_line = "a"))
   expect_error(tester(poverty_line = -1))
+  expect_error(tester(poverty_line = c(10000, 20000)))
+  expect_error(tester(poverty_line = NA_real_))
+  expect_error(tester(poverty_line = Inf))
+  expect_error(
+    tester(poverty_line = 0, poor_below_threshold = FALSE),
+    regexp = "greater than 0"
+  )
+  expect_error(tester(poor_below_threshold = NA))
+  expect_error(tester(poor_below_threshold = c(TRUE, FALSE)))
 
   expect_error(tester(group_by = 1))
   expect_error(tester(group_by = NA))
@@ -210,4 +219,103 @@ test_that("works even if access_data and sociodem_data has specific colnames", {
   expect_identical(poor_above$FGT0, 1)
   expect_identical(poor_above$FGT1, 1)
   expect_identical(poor_above$FGT2, 1)
+})
+
+test_that("fgt measures match hand-computed values on a toy example", {
+  # access x = (0, 5, 10, 15, 20), population w = (1, 2, 3, 4, 5), total 15,
+  # poverty line z = 10. zone "c" sits exactly on the line and is never poor
+  # (strict inequalities). FGT_a = sum_i w_i * gap_i ^ a * poor_i / sum_i w_i
+  toy_access <- data.table::data.table(
+    id = c("a", "b", "c", "d", "e"),
+    jobs = c(0, 5, 10, 15, 20)
+  )
+  toy_sociodem <- data.table::data.table(
+    id = c("a", "b", "c", "d", "e"),
+    population = c(1, 2, 3, 4, 5)
+  )
+
+  # poor_below_threshold = TRUE: poor if x < z, gap (z - x) / z.
+  # a (gap 1) and b (gap 0.5) are poor
+  result <- tester(
+    toy_access,
+    toy_sociodem,
+    poverty_line = 10,
+    poor_below_threshold = TRUE,
+    group_by = character(0)
+  )
+  expect_equal(
+    result,
+    data.table::data.table(
+      FGT0 = (1 + 2) / 15,
+      FGT1 = (1 * 1 + 2 * 0.5) / 15,
+      FGT2 = (1 * 1 ^ 2 + 2 * 0.5 ^ 2) / 15
+    )
+  )
+
+  # poor_below_threshold = FALSE: poor if x > z, gap (x - z) / z.
+  # d (gap 0.5) and e (gap 1) are poor
+  result <- tester(
+    toy_access,
+    toy_sociodem,
+    poverty_line = 10,
+    poor_below_threshold = FALSE,
+    group_by = character(0)
+  )
+  expect_equal(
+    result,
+    data.table::data.table(
+      FGT0 = (4 + 5) / 15,
+      FGT1 = (4 * 0.5 + 5 * 1) / 15,
+      FGT2 = (4 * 0.5 ^ 2 + 5 * 1 ^ 2) / 15
+    )
+  )
+})
+
+test_that("warns about Inf values when poor_below_threshold = FALSE", {
+  toy_access <- data.table::data.table(
+    id = c("a", "b", "c"),
+    travel_time = c(10, 30, Inf)
+  )
+  toy_sociodem <- data.table::data.table(
+    id = c("a", "b", "c"),
+    population = c(1, 1, 1)
+  )
+
+  expect_warning(
+    result <- tester(
+      toy_access,
+      toy_sociodem,
+      opportunity = "travel_time",
+      poverty_line = 20,
+      poor_below_threshold = FALSE,
+      group_by = character(0)
+    ),
+    regexp = "Inf"
+  )
+  expect_identical(result$FGT1, Inf)
+
+  # no warning when Inf is not a problem: with primal measures, and when the
+  # observation has no population
+
+  expect_silent(
+    tester(
+      toy_access,
+      toy_sociodem,
+      opportunity = "travel_time",
+      poverty_line = 20,
+      group_by = character(0)
+    )
+  )
+
+  toy_sociodem[id == "c", population := 0]
+  expect_silent(
+    tester(
+      toy_access,
+      toy_sociodem,
+      opportunity = "travel_time",
+      poverty_line = 20,
+      poor_below_threshold = FALSE,
+      group_by = character(0)
+    )
+  )
 })

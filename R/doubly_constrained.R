@@ -55,8 +55,20 @@ doubly_constrained <- function(travel_matrix,
   }
 
   # Merge demand and supply
-  merge_by_reference(data, land_use_data, demand, left_df_idcol = "from_id")
-  merge_by_reference(data, land_use_data, supply, left_df_idcol = "to_id")
+  merge_by_reference(
+    data,
+    land_use_data,
+    demand,
+    left_df_idcol = "from_id",
+    na_as_zero = TRUE
+  )
+  merge_by_reference(
+    data,
+    land_use_data,
+    supply,
+    left_df_idcol = "to_id",
+    na_as_zero = TRUE
+  )
 
   # Apply decay
   data <- apply_gravity_measure(data, decay_function, travel_cost)
@@ -64,16 +76,45 @@ doubly_constrained <- function(travel_matrix,
   # Prepare vectors and impedance matrix
   origins <- unique(data$from_id)
   destinations <- unique(data$to_id)
-  O <- land_use_data[id %in% origins, get(demand)]
-  D <- land_use_data[id %in% destinations, get(supply)]
+  O <- land_use_data[[demand]][match(origins, land_use_data$id)]
+  D <- land_use_data[[supply]][match(destinations, land_use_data$id)]
+
+  # NA values and ids missing from land_use_data count as 0 demand/supply
+
+  O[is.na(O)] <- 0
+  D[is.na(D)] <- 0
 
   # Validate totals match
   if (abs(sum(O) - sum(D)) > 1e-6) {
-    stop("For doubly-constrained, the sum of origins must equal the sum of destinations.")
+    cli::cli_abort(
+      "For doubly-constrained, the sum of origins must equal the sum of
+      destinations. NA values and ids missing from {.arg land_use_data} count
+      as 0.",
+      call = NULL
+    )
+  }
+
+  if (sum(O) <= 0) {
+    cli::cli_abort(
+      "For doubly-constrained, the total demand and supply must be greater
+      than 0.",
+      call = NULL
+    )
   }
 
   # Build impedance matrix
-  impedance_matrix <- matrix(data$opp_weight, nrow = length(origins), ncol = length(destinations), byrow = FALSE)
+  # filled by id, so the result doesn't depend on the row order of
+  # travel_matrix. pairs missing from travel_matrix are unreachable (weight 0)
+
+  impedance_matrix <- matrix(
+    0,
+    nrow = length(origins),
+    ncol = length(destinations),
+    dimnames = list(origins, destinations)
+  )
+  impedance_matrix[
+    cbind(match(data$from_id, origins), match(data$to_id, destinations))
+  ] <- data$opp_weight
 
   # Iterative proportional fitting
   Ai <- rep(1, length(O))
@@ -86,21 +127,24 @@ doubly_constrained <- function(travel_matrix,
     iteration_count <- iteration_count + 1
 
     # Update Ai
-    for (i in seq_along(O)) {
-      Ai[i] <- 1 / (sum(Bj * D * impedance_matrix[i, ]) + 1e-9)
-    }
+    # a null denominator means the zone reaches (or is reached by) no one, so
+    # its factor is 0 and it gets no flow. the denominators of all zones are
+    # calculated at once with matrix products
+
+    denominator_i <- drop(impedance_matrix %*% (Bj * D))
+    Ai <- data.table::fifelse(denominator_i > 0, 1 / denominator_i, 0)
 
     # Update Bj
-    Bj_new <- numeric(length(D))
-    for (j in seq_along(D)) {
-      Bj_new[j] <- 1 / (sum(Ai * O * impedance_matrix[, j]) + 1e-9)
-    }
-
-    # Compute flows
-    Tij <- outer(Ai * O, Bj_new * D) * impedance_matrix
+    denominator_j <- drop(crossprod(impedance_matrix, Ai * O))
+    Bj_new <- data.table::fifelse(denominator_j > 0, 1 / denominator_j, 0)
 
     # Compute error
-    error <- (sum(abs(O - rowSums(Tij))) + sum(abs(D - colSums(Tij)))) / sum(O)
+    # the row and column sums of the flows (Tij = Ai * O_i * Bj * D_j * f_ij)
+    # are calculated from the factors, without building the flow matrix
+
+    flow_from <- Ai * O * drop(impedance_matrix %*% (Bj_new * D))
+    flow_to <- Bj_new * D * denominator_j
+    error <- (sum(abs(O - flow_from)) + sum(abs(D - flow_to))) / sum(O)
     error_change <- abs(previous_error - error)
 
     if (error < error_threshold || error_change < improvement_threshold || iteration_count >= max_iterations) {
@@ -112,6 +156,19 @@ doubly_constrained <- function(travel_matrix,
     previous_error <- error
     Bj <- Bj_new
   }
+
+  if (error >= error_threshold) {
+    cli::cli_warn(
+      "Doubly-constrained balancing did not converge ({stop_reason} after
+      {iteration_count} iterations). Final error is {signif(error, 3)}, above
+      {.arg error_threshold} ({error_threshold}), so flows don't fully match
+      the demand and supply totals. Consider increasing
+      {.arg max_iterations} or decreasing {.arg improvement_threshold}."
+    )
+  }
+
+  # Compute flows
+  Tij <- outer(Ai * O, Bj * D) * impedance_matrix
 
   # Compute kappa_doubly
 # kappa_ij^D = A_i * B_j * O_i * f(c_ij)
@@ -129,13 +186,18 @@ doubly_constrained <- function(travel_matrix,
   )
 
   if (detailed_results) {
+    if (exists("original_class")) class(detailed_dt) <- original_class
     return(detailed_dt[])
   } else {
-    warning("Aggregated results equal marginals (O_i or D_j). Interpret with caution.")
+    cli::cli_warn(
+      "Aggregated results equal marginals (O_i or D_j). Interpret with
+      caution."
+    )
     agg <- data.table::rbindlist(list(
       data.table::data.table(id = origins,      flow = O),
       data.table::data.table(id = destinations, flow = D)
     ))
+    if (exists("original_class")) class(agg) <- original_class
     return(agg[])
   }
 

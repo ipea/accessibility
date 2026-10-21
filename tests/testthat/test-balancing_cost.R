@@ -36,6 +36,7 @@ test_that("raises errors due to incorrect input", {
 
   expect_error(tester(cost_increment = "a"))
   expect_error(tester(cost_increment = -1))
+  expect_error(tester(cost_increment = 0))
   expect_error(tester(cost_increment = Inf))
 
   expect_error(tester(group_by = 1))
@@ -155,6 +156,61 @@ test_that("calculates balancing cost correctly", {
   expect_identical(result, expected_result)
 })
 
+test_that("works with numeric ids, regardless of land_use_data row order", {
+  toy_matrix <- data.table::data.table(
+    from_id = rep(101:103, each = 3),
+    to_id = rep(101:103, 3),
+    travel_time = c(0, 10, 20, 10, 0, 30, 20, 30, 0)
+  )
+  toy_land_use <- data.table::data.table(
+    id = 101:103,
+    jobs = c(10, 20, 30),
+    population = c(5, 15, 50)
+  )
+
+  # 103 has 50 people: reaches 30 jobs at 0, 40 at 20 and 60 at 30
+
+  expected_result <- data.table::data.table(
+    id = 101:103,
+    travel_time = c(0, 0, 30)
+  )
+
+  result <- tester(toy_matrix, toy_land_use, group_by = character(0))
+  expect_equal(result, expected_result)
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use[c(3, 1, 2)],
+    group_by = character(0)
+  )
+  expect_equal(result, expected_result)
+})
+
+test_that("balances when access equals population, at any max cost", {
+  toy_matrix <- data.table::data.table(
+    from_id = rep(c("a", "b"), each = 2),
+    to_id = rep(c("a", "b"), 2),
+    travel_time = c(0, 25, 25, 0)
+  )
+  toy_land_use <- data.table::data.table(
+    id = c("a", "b"),
+    jobs = c(10, 20),
+    population = c(10, 25)
+  )
+
+  # a reaches exactly as many jobs as people at cost 0. b only balances at
+  # cost 25, which is not a multiple of cost_increment, so it balances at the
+  # next step of the cost grid (30)
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    cost_increment = 10,
+    group_by = character(0)
+  )
+  expect_equal(result$travel_time, c(0, 30))
+})
+
 test_that("fill_missing_ids arg works correctly", {
   test_matrix <- rbind(
     fast_smaller_matrix,
@@ -235,4 +291,76 @@ test_that("works even if travel_matrix and land_use has specific colnames", {
   expect_identical(expected_result, result)
 
   land_use_data[, demand := NULL]
+})
+
+test_that("NA demand and missing ids count as 0 people", {
+  # "a" has NA population, "b" has 0 and "d" is missing from land_use_data, so
+  # they all balance at cost 0. "c" (30 people) reaches 5 jobs at cost 0, 25 at
+  # 15 and 35 at 20, so it balances at 20 (and at 40 when costs are doubled)
+
+  travel_matrix <- data.table::data.table(
+    from_id = rep(c("a", "b", "c", "d"), each = 4),
+    to_id = rep(c("a", "b", "c", "d"), times = 4),
+    travel_time = c(0, 10, 20, 30, 10, 0, 15, 25, 20, 15, 0, 10, 30, 25, 10, 0)
+  )
+  land_use_data <- data.table::data.table(
+    id = c("a", "b", "c"),
+    jobs = c(10, 20, 5),
+    population = c(NA, 0, 30)
+  )
+
+  result <- suppressWarnings(
+    tester(travel_matrix, land_use_data, group_by = character(0))
+  )
+  data.table::setkey(result, NULL)
+  data.table::setorderv(result, "id")
+  expect_identical(result$id, c("a", "b", "c", "d"))
+  expect_identical(result$travel_time, c(0, 0, 20, 0))
+
+  doubled_matrix <- data.table::copy(travel_matrix)[
+    ,
+    travel_time := travel_time * 2
+  ]
+  two_modes <- rbind(
+    data.table::copy(travel_matrix)[, mode := "walk"],
+    doubled_matrix[, mode := "slow_walk"]
+  )
+
+  result <- suppressWarnings(
+    tester(two_modes, land_use_data, fill_missing_ids = FALSE)
+  )
+  expect_identical(nrow(result), 8L)
+  expect_identical(
+    result[id == "c"][order(mode)]$travel_time,
+    c(40, 20)
+  )
+  expect_true(all(result[id != "c"]$travel_time == 0))
+})
+
+test_that("origins that never balance are filled with NA or dropped", {
+  # a has 100 people but only reaches 30 jobs
+
+  toy_matrix <- data.table::data.table(
+    from_id = c("a", "a", "b"),
+    to_id = c("a", "b", "b"),
+    travel_time = c(0, 10, 0)
+  )
+  toy_land_use <- data.table::data.table(
+    id = c("a", "b"),
+    jobs = c(10, 20),
+    population = c(100, 5)
+  )
+
+  result <- tester(toy_matrix, toy_land_use, group_by = character(0))
+  expect_identical(result$id, c("a", "b"))
+  expect_identical(result$travel_time, c(NA, 0))
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    group_by = character(0),
+    fill_missing_ids = FALSE
+  )
+  expect_identical(result$id, "b")
+  expect_identical(result$travel_time, 0)
 })

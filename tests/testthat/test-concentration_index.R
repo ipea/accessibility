@@ -194,7 +194,9 @@ test_that("concentration index is correctly calculated", {
 
   expected_result <- data.table::data.table(
     mode = c("transit", "transit2"),
-    concentration_index = c(-0.1314, -0.8282)
+    # the correction uses the bounds of the whole distribution, not of each
+    # group
+    concentration_index = c(-0.1314, -0.5003)
   )
   expect_identical(result, expected_result)
 })
@@ -231,4 +233,100 @@ test_that("works even if access_data and sociodem_data has specific colnames", {
   expect_identical(expected_result, result)
 
   access_data[, group_by := NULL]
+})
+
+test_that("doesn't overflow with large integer opportunities and population", {
+  # jobs * population exceeds .Machine$integer.max (~2.1e9)
+
+  toy_access <- data.table::data.table(id = c("a", "b"), jobs = c(50000L, 100000L))
+  toy_sociodem <- data.table::data.table(
+    id = c("a", "b"),
+    population = c(50000L, 30000L),
+    income_per_capita = c(1, 2),
+    income_decile = c(1, 2)
+  )
+
+  # population-weighted mean access: (5e4 * 5e4 + 3e4 * 1e5) / 8e4 = 68750
+
+  # fractional ranks are 0.3125 and 0.8125, population shares 0.625 and 0.375
+
+  expected_ci <- 2 / 68750 * (
+    0.625 * (50000 - 68750) * (0.3125 - 0.5) +
+      0.375 * (100000 - 68750) * (0.8125 - 0.5)
+  )
+
+  result <- expect_silent(
+    tester(toy_access, toy_sociodem, group_by = character(0))
+  )
+  expect_equal(result$concentration_index, expected_ci)
+})
+
+test_that("observations with tied income share the same rank", {
+  toy_access <- data.table::data.table(
+    id = c("a", "b", "c", "d"),
+    jobs = c(10, 30, 20, 40)
+  )
+  toy_sociodem <- data.table::data.table(
+    id = c("a", "b", "c", "d"),
+    population = c(1, 1, 1, 1),
+    income_per_capita = c(1, 1, 2, 2)
+  )
+
+  # a/b and c/d are tied, so their fractional ranks are 0.25 and 0.75
+
+  access <- c(10, 30, 20, 40)
+  rank <- c(0.25, 0.25, 0.75, 0.75)
+  avg_access <- mean(access)
+  expected_ci <- 2 / avg_access * mean((access - avg_access) * (rank - 0.5))
+  expected_corrected <- expected_ci * 4 * avg_access / (40 - 10)
+
+  for (rows in list(1:4, 4:1, c(2, 1, 4, 3))) {
+    result <- tester(
+      toy_access[rows],
+      toy_sociodem[rows],
+      group_by = character(0)
+    )
+    expect_equal(result$concentration_index, expected_ci)
+
+    result <- tester(
+      toy_access[rows],
+      toy_sociodem[rows],
+      type = "corrected",
+      group_by = character(0)
+    )
+    expect_equal(result$concentration_index, expected_corrected)
+  }
+
+  # without ties, ranks are the usual cumulative midpoints
+
+  toy_sociodem[, income_per_capita := 1:4]
+  rank <- c(0.125, 0.375, 0.625, 0.875)
+  expected_ci <- 2 / avg_access * mean((access - avg_access) * (rank - 0.5))
+
+  result <- tester(toy_access, toy_sociodem, group_by = character(0))
+  expect_equal(result$concentration_index, expected_ci)
+})
+
+test_that("returns 0 when access is constant, for both types", {
+  toy_access <- data.table::data.table(
+    id = rep(c("a", "b", "c"), 2),
+    mode = rep(c("car", "walk"), each = 3),
+    jobs = c(5, 5, 5, 1, 2, 6)
+  )
+  toy_sociodem <- data.table::data.table(
+    id = c("a", "b", "c"),
+    population = c(1, 2, 3),
+    income_per_capita = c(1, 2, 3)
+  )
+
+  standard <- tester(toy_access, toy_sociodem)
+  corrected <- tester(toy_access, toy_sociodem, type = "corrected")
+
+  expect_identical(standard[mode == "car"]$concentration_index, 0)
+  expect_identical(corrected[mode == "car"]$concentration_index, 0)
+
+  # the level with some inequality is unaffected by the constant one
+
+  expect_false(anyNA(corrected$concentration_index))
+  expect_true(corrected[mode == "walk"]$concentration_index > 0)
 })

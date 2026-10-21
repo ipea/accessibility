@@ -17,7 +17,8 @@ decay.}
 }
 \value{
 A \code{function} that takes a generic travel cost vector (\code{numeric}) as
-input and returns a vector of weights (\code{numeric}).
+an input and returns a \code{list} of weight vectors (a list of \code{numeric}
+vectors, named after the arguments passed to the decay function).
 }
 \description{
 Returns a logistic weighting function (in which the weights
@@ -55,11 +56,11 @@ weighting_function(c(0, 30, 45, 60))
 \insertAllCited{}
 }
 \seealso{
-Other decay functions: 
-\code{\link{decay_binary}()},
-\code{\link{decay_exponential}()},
-\code{\link{decay_linear}()},
-\code{\link{decay_power}()},
-\code{\link{decay_stepped}()}
+Other decay functions:
+\code{\link[=decay_binary]{decay_binary()}},
+\code{\link[=decay_exponential]{decay_exponential()}},
+\code{\link[=decay_linear]{decay_linear()}},
+\code{\link[=decay_power]{decay_power()}},
+\code{\link[=decay_stepped]{decay_stepped()}}
 }
 \concept{decay functions}

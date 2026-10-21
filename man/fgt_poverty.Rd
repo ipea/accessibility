@@ -24,7 +24,7 @@ sociodemographic characteristics of the population in the study area cells.
 Must contain the columns \code{id} and any others specified in \code{population}.}
 
 \item{opportunity}{A string. The name of the column in \code{accessibility_data}
-with the accessibility levels to be considerend when calculating
+with the accessibility levels to be considered when calculating
 accessibility poverty.}
 
 \item{population}{A string. The name of the column in \code{sociodemographic_data}
@@ -34,9 +34,9 @@ when calculating poverty.}
 \item{poverty_line}{A \code{numeric}. The poverty line below which individuals are
 considered to be in accessibility poverty.}
 
-\item{poor_below_threshold}{Logic. If \code{TRUE} (default,) the observations below
+\item{poor_below_threshold}{A logical. If \code{TRUE} (default) the observations below
 the poverty line are considered to be poor. This is the correct approach
-for primal accessibility measures (e.g.cumulative accessibility). If
+for primal accessibility measures (e.g. cumulative accessibility). If
 \code{FALSE}, then observations above the poverty line are considered to be
 poor. This is the correct approach for dual accessibility measures (e.g.
 travel time to the closest facility). When set to \code{FALSE}, FGT 1 and 2
@@ -64,24 +64,38 @@ the interpretation of the measures.
 }
 \section{Interpretation of FGT measures}{
 
-The interpretation of each FGT measure depends on the \eqn{\alpha} parameter
-used to calculate it:
+With a poverty line \eqn{z}, the FGT measures are calculated as the
+population-weighted average of \eqn{g_i^\alpha}, in which \eqn{g_i} is the
+normalised shortfall of each observation \eqn{i} with accessibility
+\eqn{y_i}: \eqn{g_i = (z - y_i) / z} if \eqn{y_i < z} and 0 otherwise. When
+\code{poor_below_threshold} is \code{FALSE}, \eqn{g_i} is instead the normalised
+excess \eqn{(y_i - z) / z} if \eqn{y_i > z}, and 0 otherwise. The
+interpretation of each measure depends on the \eqn{\alpha} parameter:
 \itemize{
-\item with \eqn{\alpha = 0} (FGT0) the measure captures the \emph{extent} of poverty
-as a simple headcount - i.e. the proportion of people below the poverty line;
-\item with \eqn{\alpha = 1} (FGT1) the measure, also know as the "poverty gap
-index", captures the \emph{severity} of poverty as the average percentage distance
-between the poverty line and the accessibility of individuals below the
-poverty line;
-\item with \eqn{\alpha = 2} (FGT2) the measure simultaneously captures the
-\emph{extent} and the \emph{severity} of poverty by calculating the number of people
-below the poverty line weighted by the size of the accessibility shortfall
-relative to the poverty line.
+\item with \eqn{\alpha = 0} (FGT0) the measure captures the \emph{incidence} (or
+extent) of poverty as a simple headcount - i.e. the proportion of people in
+poverty;
+\item with \eqn{\alpha = 1} (FGT1) the measure, also known as the "poverty gap
+index", captures the \emph{depth} (or intensity) of poverty as the average
+normalised shortfall from the poverty line, calculated over the whole
+population (people not in poverty have a shortfall of 0);
+\item with \eqn{\alpha = 2} (FGT2) the measure, also known as the "squared
+poverty gap index", captures the \emph{severity} of poverty. Squaring the
+shortfalls gives more weight to the people furthest from the poverty line,
+which makes the measure sensitive to inequality among the poor.
 }
 
-FGT values range from 0 to 1. A value of 0 indicates that every individual is
-above the poverty line. When every individual is below the poverty line,
-however, FGT0 value is 1 and FGT1 and FGT2 values approach 1.
+A value of 0 indicates that no one is in poverty. When \code{poor_below_threshold}
+is \code{TRUE}, FGT values range from 0 to 1: FGT0 is 1 when everyone is below the
+poverty line, and FGT1 and FGT2 are 1 only when everyone has an
+accessibility of 0. When \code{poor_below_threshold} is \code{FALSE}, FGT0 still ranges
+from 0 to 1, but FGT1 and FGT2 have no upper bound: they can be greater than
+1 (e.g. when travel costs are more than twice the poverty line) and are
+\code{Inf} if any accessibility value is \code{Inf}. This happens, for example, with
+the travel costs of origins that can't reach the required opportunities, as
+returned by \code{\link[=cost_to_closest]{cost_to_closest()}}. The function raises a warning in this case,
+and these values should be replaced by a maximum travel cost (e.g. the
+highest cost in the travel matrix) before calculating the FGT measures.
 }
 
 \examples{
@@ -111,3 +125,11 @@ poverty
 \references{
 \insertAllCited{}
 }
+\seealso{
+Other equity:
+\code{\link[=concentration_index]{concentration_index()}},
+\code{\link[=gini_index]{gini_index()}},
+\code{\link[=palma_ratio]{palma_ratio()}},
+\code{\link[=theil_t]{theil_t()}}
+}
+\concept{equity}
