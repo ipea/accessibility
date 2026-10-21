@@ -38,25 +38,35 @@
 #'   FGT2) for the study area.
 #'
 #' @section Interpretation of FGT measures:
-#' The interpretation of each FGT measure depends on the \eqn{\alpha} parameter
-#' used to calculate it:
+#' With a poverty line \eqn{z}, the FGT measures are calculated as the
+#' population-weighted average of \eqn{g_i^\alpha}, in which \eqn{g_i} is the
+#' normalised shortfall of each observation \eqn{i} with accessibility
+#' \eqn{y_i}: \eqn{g_i = (z - y_i) / z} if \eqn{y_i < z} and 0 otherwise. When
+#' `poor_below_threshold` is `FALSE`, \eqn{g_i} is instead the normalised
+#' excess \eqn{(y_i - z) / z} if \eqn{y_i > z}, and 0 otherwise. The
+#' interpretation of each measure depends on the \eqn{\alpha} parameter:
 #'
-#' - with \eqn{\alpha = 0} (FGT0) the measure captures the *extent* of poverty
-#' as a simple headcount - i.e. the proportion of people below the poverty line;
+#' - with \eqn{\alpha = 0} (FGT0) the measure captures the *incidence* (or
+#' extent) of poverty as a simple headcount - i.e. the proportion of people in
+#' poverty;
 #'
 #' - with \eqn{\alpha = 1} (FGT1) the measure, also known as the "poverty gap
-#' index", captures the *severity* of poverty as the average percentage distance
-#' between the poverty line and the accessibility of individuals below the
-#' poverty line;
+#' index", captures the *depth* (or intensity) of poverty as the average
+#' normalised shortfall from the poverty line, calculated over the whole
+#' population (people not in poverty have a shortfall of 0);
 #'
-#' - with \eqn{\alpha = 2} (FGT2) the measure simultaneously captures the
-#' *extent* and the *severity* of poverty by calculating the number of people
-#' below the poverty line weighted by the size of the accessibility shortfall
-#' relative to the poverty line.
+#' - with \eqn{\alpha = 2} (FGT2) the measure, also known as the "squared
+#' poverty gap index", captures the *severity* of poverty. Squaring the
+#' shortfalls gives more weight to the people furthest from the poverty line,
+#' which makes the measure sensitive to inequality among the poor.
 #'
-#' FGT values range from 0 to 1. A value of 0 indicates that every individual is
-#' above the poverty line. When every individual is below the poverty line,
-#' however, FGT0 value is 1 and FGT1 and FGT2 values approach 1.
+#' A value of 0 indicates that no one is in poverty. When `poor_below_threshold`
+#' is `TRUE`, FGT values range from 0 to 1: FGT0 is 1 when everyone is below the
+#' poverty line, and FGT1 and FGT2 are 1 only when everyone has an
+#' accessibility of 0. When `poor_below_threshold` is `FALSE`, FGT0 still ranges
+#' from 0 to 1, but FGT1 and FGT2 have no upper bound: they can be greater than
+#' 1 (e.g. when travel costs are more than twice the poverty line) and are
+#' `Inf` if any accessibility value is `Inf`.
 #'
 #' @references
 #' \insertAllCited{}
