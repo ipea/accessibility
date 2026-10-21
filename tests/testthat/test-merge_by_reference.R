@@ -38,3 +38,20 @@ test_that("matches numeric and factor ids", {
   tester(data, land_use_data)
   expect_identical(data$jobs, c(2, 1))
 })
+
+test_that("na_as_zero turns NA values and missing ids into 0", {
+  data <- data.table::data.table(to_id = c("a", "b", "c", "z"))
+  land_use_data <- data.table::data.table(
+    id = c("a", "b", "c"),
+    jobs = c(10L, NA, 5L)
+  )
+  original_land_use <- data.table::copy(land_use_data)
+
+  merge_by_reference(data, land_use_data, "jobs", "to_id", na_as_zero = TRUE)
+  expect_identical(data$jobs, c(10L, 0L, 5L, 0L))
+
+  merge_by_reference(data, land_use_data, "jobs", "to_id")
+  expect_identical(data$jobs, c(10L, NA, 5L, NA))
+
+  expect_identical(land_use_data, original_land_use)
+})

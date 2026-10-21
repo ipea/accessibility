@@ -289,8 +289,9 @@ test_that("doubly-constrained: results don't depend on row order or sparsity", {
   expect_identical(result[from_id == "1" & to_id == "3"]$flow, 0)
 })
 
-test_that("doubly-constrained: errors when land_use_data misses an id", {
-  # the validators also warn about the missing id
+test_that("doubly-constrained: errors when totals don't match", {
+  # the missing id counts as 0, so the totals no longer match. the validators
+  # also warn about the missing id
 
   expect_error(
     suppressWarnings(constrained_accessibility(
@@ -303,7 +304,68 @@ test_that("doubly-constrained: errors when land_use_data misses an id", {
       supply = "jobs",
       detailed_results = TRUE
     )),
-    regexp = "must list a non-NA demand"
+    regexp = "sum[[:space:]]+of[[:space:]]+origins[[:space:]]+must"
+  )
+})
+
+test_that("doubly-constrained: NA values and missing ids count as 0", {
+  # id "4" is in travel_matrix but has NA demand and supply (or is missing from
+  # land_use_data). it counts as 0, so it gets no flows and the flows between
+  # the other ids are the same as without it
+
+  tm_4 <- data.table::data.table(
+    expand.grid(from_id = c("1", "2", "3", "4"), to_id = c("1", "2", "3", "4"))
+  )
+  tm_4[, travel_time := 10 + 5 * abs(as.integer(from_id) - as.integer(to_id))]
+  tm_3 <- tm_4[from_id != "4" & to_id != "4"]
+
+  lu_na <- rbind(
+    make_lu_match20(),
+    data.table::data.table(id = "4", population = NA, jobs = NA)
+  )
+
+  run <- function(tm, lu) {
+    suppressWarnings(constrained_accessibility(
+      constraint = "doubly",
+      travel_matrix = tm,
+      land_use_data = lu,
+      travel_cost = "travel_time",
+      decay_function = exp_decay_01,
+      demand = "population",
+      supply = "jobs",
+      detailed_results = TRUE
+    ))
+  }
+
+  expected <- run(tm_3, make_lu_match20())
+
+  for (lu in list(lu_na, make_lu_match20())) {
+    result <- run(tm_4, lu)
+
+    expect_identical(result[from_id == "4" | to_id == "4"]$flow, rep(0, 7))
+    expect_equal(
+      result[from_id != "4" & to_id != "4"]$flow,
+      expected$flow,
+      tolerance = 1e-6
+    )
+  }
+})
+
+test_that("doubly-constrained: errors when total demand and supply are 0", {
+  lu_zero <- make_lu_match20()[, `:=`(population = NA, jobs = 0)]
+
+  expect_error(
+    suppressWarnings(constrained_accessibility(
+      constraint = "doubly",
+      travel_matrix = make_tm_3x3(),
+      land_use_data = lu_zero,
+      travel_cost = "travel_time",
+      decay_function = exp_decay_01,
+      demand = "population",
+      supply = "jobs",
+      detailed_results = TRUE
+    )),
+    regexp = "total[[:space:]]+demand[[:space:]]+and[[:space:]]+supply"
   )
 })
 

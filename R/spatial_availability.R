@@ -110,8 +110,20 @@ spatial_availability <- function(travel_matrix,
     land_use_data <- data.table::as.data.table(land_use_data)
   }
 
-  merge_by_reference(data, land_use_data, opportunity, left_df_idcol = "to_id")
-  merge_by_reference(data, land_use_data, demand, left_df_idcol = "from_id")
+  merge_by_reference(
+    data,
+    land_use_data,
+    opportunity,
+    left_df_idcol = "to_id",
+    na_as_zero = TRUE
+  )
+  merge_by_reference(
+    data,
+    land_use_data,
+    demand,
+    left_df_idcol = "from_id",
+    na_as_zero = TRUE
+  )
 
   data <- apply_gravity_measure(data, decay_function, travel_cost)
 

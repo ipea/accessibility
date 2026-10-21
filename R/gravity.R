@@ -80,7 +80,8 @@ gravity <- function(travel_matrix,
     data,
     land_use_data,
     opportunity,
-    left_df_idcol = ifelse(active, "to_id", "from_id")
+    left_df_idcol = ifelse(active, "to_id", "from_id"),
+    na_as_zero = TRUE
   )
 
   data <- apply_gravity_measure(data, decay_function, travel_cost)

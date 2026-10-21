@@ -55,8 +55,20 @@ doubly_constrained <- function(travel_matrix,
   }
 
   # Merge demand and supply
-  merge_by_reference(data, land_use_data, demand, left_df_idcol = "from_id")
-  merge_by_reference(data, land_use_data, supply, left_df_idcol = "to_id")
+  merge_by_reference(
+    data,
+    land_use_data,
+    demand,
+    left_df_idcol = "from_id",
+    na_as_zero = TRUE
+  )
+  merge_by_reference(
+    data,
+    land_use_data,
+    supply,
+    left_df_idcol = "to_id",
+    na_as_zero = TRUE
+  )
 
   # Apply decay
   data <- apply_gravity_measure(data, decay_function, travel_cost)
@@ -67,20 +79,25 @@ doubly_constrained <- function(travel_matrix,
   O <- land_use_data[[demand]][match(origins, land_use_data$id)]
   D <- land_use_data[[supply]][match(destinations, land_use_data$id)]
 
-  if (anyNA(O) || anyNA(D)) {
-    cli::cli_abort(
-      "For doubly-constrained, {.arg land_use_data} must list a non-NA demand
-      for every origin and a non-NA supply for every destination in
-      {.arg travel_matrix}.",
-      call = NULL
-    )
-  }
+  # NA values and ids missing from land_use_data count as 0 demand/supply
+
+  O[is.na(O)] <- 0
+  D[is.na(D)] <- 0
 
   # Validate totals match
   if (abs(sum(O) - sum(D)) > 1e-6) {
     cli::cli_abort(
       "For doubly-constrained, the sum of origins must equal the sum of
-      destinations.",
+      destinations. NA values and ids missing from {.arg land_use_data} count
+      as 0.",
+      call = NULL
+    )
+  }
+
+  if (sum(O) <= 0) {
+    cli::cli_abort(
+      "For doubly-constrained, the total demand and supply must be greater
+      than 0.",
       call = NULL
     )
   }

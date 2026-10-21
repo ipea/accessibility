@@ -16,6 +16,13 @@
   factor with the bounds of the whole accessibility distribution, instead of
   the bounds of each `group_by` group, so groups are corrected on a common
   scale. Results only change when `group_by` is used.
+- Accessibility functions now treat `NA` values in `land_use_data`
+  (opportunities, demand and supply) and ids of `travel_matrix` missing from
+  `land_use_data` as 0, and their warnings say so. Previously, such a value
+  made the results of every id that reached it `NA`, except when
+  `fill_missing_ids = TRUE` had to fill other missing ids, in which case
+  those `NA` results became 0. When every value is `NA`, results are now the
+  same as when every value is 0 (which can be `NaN`).
 
 ## Bug fixes
 
@@ -35,8 +42,7 @@
   position instead of by id. Results were only correct when `travel_matrix`
   listed every origin-destination pair ordered by destination and
   `land_use_data` was ordered like the travel matrix. Pairs missing from
-  `travel_matrix` are now treated as unreachable, and ids missing from
-  `land_use_data` raise an informative error.
+  `travel_matrix` are now treated as unreachable.
 - Fixed a bug in `theil_t()` in which observations with no access were
   wrongly handled: without `socioeconomic_groups` they were excluded from the
   index (but not from the average accessibility), and with
@@ -44,14 +50,14 @@
   the index, following the usual `0 * log(0) = 0` convention. `group_by`
   levels in which no one has access are now kept in the output with `NA`,
   instead of being dropped.
+- Fixed a bug in `spatial_availability()` in which an `NA` demand in
+  `land_use_data` made every result `NA`, even when the id with the `NA` was
+  not in `travel_matrix`.
 - Fixed two bugs in `balancing_cost()`: origins only balanced when they reached
   more opportunities than people (instead of as many opportunities as people),
   and origins that balanced at a cost greater than the last multiple of
   `cost_increment` were reported as `NA`. `cost_increment` must now be greater
   than 0.
-- Fixed a bug in `spatial_availability()` in which an `NA` demand in
-  `land_use_data` made every result `NA`, even when the id with the `NA` was
-  not in `travel_matrix`.
 - Fixed a bug in `constrained_accessibility(constraint = "doubly")` in which
   a small constant added to the balancing factors distorted the results when
   impedance weights were very small (e.g. with steep decay functions or long

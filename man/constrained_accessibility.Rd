@@ -29,7 +29,8 @@ and any others specified in \code{travel_cost}.}
 
 \item{land_use_data}{A data frame. The distribution of opportunities within
 the study area cells. Must contain the columns \code{id} and any others
-specified in \code{opportunity}.}
+specified in \code{opportunity}. \code{NA} values, and ids in \code{travel_matrix} that
+are missing from this table, are treated as 0.}
 
 \item{travel_cost}{A string. The name of the column in \code{travel_matrix} with
 the travel cost between origins and destinations. The notion of cost

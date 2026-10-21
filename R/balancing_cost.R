@@ -97,13 +97,23 @@ balancing_cost <- function(travel_matrix,
     land_use_data <- data.table::as.data.table(land_use_data)
   }
 
-  merge_by_reference(data, land_use_data, opportunity, left_df_idcol = "to_id")
+  merge_by_reference(
+    data,
+    land_use_data,
+    opportunity,
+    left_df_idcol = "to_id",
+    na_as_zero = TRUE
+  )
 
   groups <- c("from_id", group_by)
   warn_extra_cols(travel_matrix, travel_cost, "from_id", groups)
 
-  lookup_vec <- land_use_data[[demand]]
-  names(lookup_vec) <- land_use_data$id
+  # demand of each origin, matched by id. NA values and ids missing from
+  # land_use_data count as 0 people
+
+  origins <- unique(data$from_id)
+  origin_demand <- land_use_data[[demand]][match(origins, land_use_data$id)]
+  origin_demand[is.na(origin_demand)] <- 0
 
   max_lookup_cost <- if (length(data[[travel_cost]]) > 0) {
     max(data[[travel_cost]], na.rm = TRUE)
@@ -122,9 +132,7 @@ balancing_cost <- function(travel_matrix,
 
   # origins with 0 people should always have a balancing time of 0
 
-  .demand_colname <- demand
-  no_pop_origins <- land_use_data[get(.demand_colname) == 0]$id
-  no_pop_origins_in_ttm <- no_pop_origins[no_pop_origins %in% data$from_id]
+  no_pop_origins_in_ttm <- origins[origin_demand == 0]
 
   grouped_no_pop_origins <- lapply(
     groups,
@@ -143,7 +151,13 @@ balancing_cost <- function(travel_matrix,
   for (i in lookup_costs) {
     cum_opps <- calc_cum_cutoff(data, groups, opportunity, travel_cost, i)
 
-    cum_opps[, did_balance := access >= lookup_vec[as.character(from_id)]]
+    # set() keeps origin_demand from being shadowed by a column of cum_opps
+
+    data.table::set(
+      cum_opps,
+      j = "did_balance",
+      value = cum_opps$access >= origin_demand[match(cum_opps$from_id, origins)]
+    )
     balanced <- cum_opps[did_balance == TRUE]
 
     if (nrow(balanced) > 0) {

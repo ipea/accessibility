@@ -97,7 +97,8 @@ cost_to_closest <- function(travel_matrix,
     data,
     land_use_data,
     opportunity,
-    left_df_idcol = ifelse(active, "to_id", "from_id")
+    left_df_idcol = ifelse(active, "to_id", "from_id"),
+    na_as_zero = TRUE
   )
 
   group_id <- ifelse(active, "from_id", "to_id")

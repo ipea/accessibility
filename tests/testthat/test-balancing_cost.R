@@ -292,3 +292,47 @@ test_that("works even if travel_matrix and land_use has specific colnames", {
 
   land_use_data[, demand := NULL]
 })
+
+test_that("NA demand and missing ids count as 0 people", {
+  # "a" has NA population, "b" has 0 and "d" is missing from land_use_data, so
+  # they all balance at cost 0. "c" (30 people) reaches 5 jobs at cost 0, 25 at
+  # 15 and 35 at 20, so it balances at 20 (and at 40 when costs are doubled)
+
+  travel_matrix <- data.table::data.table(
+    from_id = rep(c("a", "b", "c", "d"), each = 4),
+    to_id = rep(c("a", "b", "c", "d"), times = 4),
+    travel_time = c(0, 10, 20, 30, 10, 0, 15, 25, 20, 15, 0, 10, 30, 25, 10, 0)
+  )
+  land_use_data <- data.table::data.table(
+    id = c("a", "b", "c"),
+    jobs = c(10, 20, 5),
+    population = c(NA, 0, 30)
+  )
+
+  result <- suppressWarnings(
+    tester(travel_matrix, land_use_data, group_by = character(0))
+  )
+  data.table::setkey(result, NULL)
+  data.table::setorderv(result, "id")
+  expect_identical(result$id, c("a", "b", "c", "d"))
+  expect_identical(result$travel_time, c(0, 0, 20, 0))
+
+  doubled_matrix <- data.table::copy(travel_matrix)[
+    ,
+    travel_time := travel_time * 2
+  ]
+  two_modes <- rbind(
+    data.table::copy(travel_matrix)[, mode := "walk"],
+    doubled_matrix[, mode := "slow_walk"]
+  )
+
+  result <- suppressWarnings(
+    tester(two_modes, land_use_data, fill_missing_ids = FALSE)
+  )
+  expect_identical(nrow(result), 8L)
+  expect_identical(
+    result[id == "c"][order(mode)]$travel_time,
+    c(40, 20)
+  )
+  expect_true(all(result[id != "c"]$travel_time == 0))
+})

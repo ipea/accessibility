@@ -2,7 +2,8 @@
 merge_by_reference <- function(data,
                                land_use_data,
                                opportunity,
-                               left_df_idcol) {
+                               left_df_idcol,
+                               na_as_zero = FALSE) {
   # when calculating active accessibility, we want the number of opportunities
   # in the destination. if passive, the number of opportunities in the origin
 
@@ -20,9 +21,13 @@ merge_by_reference <- function(data,
     match(left_ids, right_ids)
   }
 
-  data.table::set(
-    data,
-    j = opportunity,
-    value = land_use_data[[opportunity]][match_index]
-  )
+  values <- land_use_data[[opportunity]][match_index]
+
+  # in accessibility measures, NA values and ids missing from land_use_data
+  # count as 0 opportunities (or 0 demand/supply). the inequality and poverty
+  # functions keep the NAs
+
+  if (na_as_zero && anyNA(values)) values[is.na(values)] <- 0L
+
+  data.table::set(data, j = opportunity, value = values)
 }

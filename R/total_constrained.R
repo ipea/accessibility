@@ -93,7 +93,13 @@ total_constrained <- function(travel_matrix,
   }
 
   # Merge land use data
-  merge_by_reference(data, land_use_data, opportunity_col, left_df_idcol = merge_id)
+  merge_by_reference(
+    data,
+    land_use_data,
+    opportunity_col,
+    left_df_idcol = merge_id,
+    na_as_zero = TRUE
+  )
 
   # Apply decay
   data <- apply_gravity_measure(data, decay_function, travel_cost)
