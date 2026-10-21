@@ -131,6 +131,14 @@
   `decay_logistic()` now calculate each weight once per unique travel cost
   when costs are repeated (e.g. rounded travel times), which makes them about
   2 to 6 times faster, with identical results.
+- `gravity()` and `floating_catchment_area()` are faster, especially with
+  several decay function values (e.g. `gravity()` with three values is about 4
+  times faster on large travel matrices), because the travel matrix is no
+  longer copied once per value and sums are optimized by `{data.table}`.
+  Results may differ from previous versions by floating point rounding only
+  (relative differences below 1e-14). `gravity()` with integer opportunities
+  and `decay_binary()` no longer fails when accessibility exceeds the largest
+  integer.
 - Errors and warnings raised by the package now use `{cli}`, with consistent
   formatting of argument names and values. Long lists of ids or columns in
   messages are abbreviated. `{cli}` and `{rlang}` are new dependencies.

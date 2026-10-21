@@ -97,10 +97,10 @@ ci
 \insertAllCited{}
 }
 \seealso{
-Other inequality:
+Other equity:
 \code{\link[=fgt_poverty]{fgt_poverty()}},
 \code{\link[=gini_index]{gini_index()}},
 \code{\link[=palma_ratio]{palma_ratio()}},
 \code{\link[=theil_t]{theil_t()}}
 }
-\concept{inequality}
+\concept{equity}
