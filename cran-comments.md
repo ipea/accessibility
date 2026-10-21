@@ -1,7 +1,8 @@
-── R CMD check results ─────────────────────────────────────────────────────────── accessibility 1.5.0 ────
-Duration: 3m 1.3s
+── R CMD check results ──────────────────────────────── accessibility 2.0.0 ────
+Duration: 1m 57.1s
 
 0 errors ✔ | 0 warnings ✔ | 0 notes ✔
+
 
 ## New features
 
