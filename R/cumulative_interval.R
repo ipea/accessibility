@@ -114,7 +114,6 @@ cumulative_interval <- function(travel_matrix,
   )
   cutoffs <- unique(unlist(interval_cutoffs))
   cutoffs <- cutoffs[order(cutoffs)]
-  names(cutoffs) <- as.character(cutoffs)
 
   # small optimization: we can ditch anything that costs more than the highest
   # cost cutoff value, since it won't affect the results anyway
@@ -135,33 +134,38 @@ cumulative_interval <- function(travel_matrix,
 
   warn_extra_cols(travel_matrix, travel_cost, group_id, groups)
 
-  .opportunity_colname <- opportunity
-  access_list <- lapply(
-    cutoffs,
-    function(x) {
-      data[
-        get(.cost_colname) <= x,
-        .(access = sum(get(.opportunity_colname))),
-        by = eval(groups, envir = env)
-      ]
-    }
-  )
+  # accessibility is calculated for every cutoff at once from the sums of
+  # opportunities by cost bin. every combination of ids and groups gets a row
+  # for each cutoff, with 0 opportunities where nothing is reached, otherwise
+  # the summary measure would be miscalculated (e.g. think of median of 1 3 5
+  # and median of 0 1 3 5)
 
-  # some of the estimates for lower thresholds may have less number of rows
-  # because some origins may not reach any destinations when the travel cost
-  # restrictions are harder. in such case, we have to fill these datasets with
-  # the missing combinations having accessibility 0, otherwise the summary
-  # measure would be miscalculated (e.g. think of median of 1 3 5 and median of
-  # 0 1 3 5)
+  binned_sums <- sum_by_cost_bin(
+    data,
+    groups,
+    opportunity,
+    travel_cost,
+    cutoffs
+  )
 
   # ids that can't reach any opportunity at any cutoff are filled as well, and
   # only dropped at the end if fill_missing_ids is FALSE
 
-  reached_ids <- unique(data.table::rbindlist(access_list)[, ..groups])
+  reached_ids <- unique(binned_sums[, ..groups])
 
-  access_list <- fill_access_list(access_list, travel_matrix, groups)
-  access_list <- data.table::rbindlist(access_list, idcol = "cutoffs")
-  access_list[, cutoffs := as.numeric(cutoffs)]
+  unique_values <- lapply(groups, function(x) unique(travel_matrix[[x]]))
+  names(unique_values) <- groups
+
+  grid_groups <- do.call(data.table::CJ, unique_values)
+
+  access_list <- cumulative_sums_grid(
+    binned_sums,
+    grid_groups,
+    groups,
+    n_cutoffs = length(cutoffs),
+    integer_opportunity = is.integer(data[[opportunity]])
+  )
+  data.table::set(access_list, j = "cutoffs", value = cutoffs[access_list$.bin])
 
   # the summary is returned as a double: summary functions such as median()
   # may return integers for some groups and doubles for others, and the summary
@@ -192,35 +196,4 @@ cumulative_interval <- function(travel_matrix,
   if (exists("original_class")) class(access) <- original_class
 
   return(access[])
-}
-
-
-#' @keywords internal
-fill_access_list <- function(access, travel_matrix, groups) {
-  unique_values <- lapply(groups, function(x) unique(travel_matrix[[x]]))
-  names(unique_values) <- groups
-  possible_combinations <- do.call(data.table::CJ, unique_values)
-
-  access_nrows <- vapply(access, nrow, integer(1))
-  possible_nrows <- nrow(possible_combinations)
-  should_fill <- access_nrows < possible_nrows
-
-  filled_access <- mapply(
-    do_fill = should_fill,
-    access_df = access,
-    SIMPLIFY = FALSE,
-    FUN = function(do_fill, access_df) {
-      if (!do_fill) return(access_df)
-
-      filled_access_df <- do_fill_missing_ids(
-        access_df,
-        possible_combinations,
-        groups
-      )
-
-      return(filled_access_df[])
-    }
-  )
-
-  return(filled_access)
 }

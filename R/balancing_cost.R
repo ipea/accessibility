@@ -148,29 +148,41 @@ balancing_cost <- function(travel_matrix,
 
   data <- data[!(from_id %in% no_pop_origins_in_ttm)]
 
-  for (i in lookup_costs) {
-    cum_opps <- calc_cum_cutoff(data, groups, opportunity, travel_cost, i)
+  # the opportunities reached by each origin are summed by cost bin (the first
+  # lookup cost that each travel cost is lower than or equal to) and
+  # accumulated. an origin balances at the first lookup cost at which it
+  # reaches as many opportunities as people. the cumulative sum only changes
+  # at bins that contain some travel cost, so the first of those bins that
+  # balances is the balancing cost
 
-    # set() keeps origin_demand from being shadowed by a column of cum_opps
+  binned_sums <- sum_by_cost_bin(
+    data,
+    groups,
+    opportunity,
+    travel_cost,
+    lookup_costs
+  )
+  data.table::setorderv(binned_sums, c(groups, ".bin"))
+  binned_sums[, .cum_opp := cumsum(.opp), by = c(groups)]
 
-    data.table::set(
-      cum_opps,
-      j = "did_balance",
-      value = cum_opps$access >= origin_demand[match(cum_opps$from_id, origins)]
-    )
-    balanced <- cum_opps[did_balance == TRUE]
+  # set() keeps origin_demand from being shadowed by a column of binned_sums
 
-    if (nrow(balanced) > 0) {
-      balanced[, c("access", "did_balance") := NULL]
-      balanced[, cost := i]
+  data.table::set(
+    binned_sums,
+    j = ".demand",
+    value = origin_demand[match(binned_sums$from_id, origins)]
+  )
 
-      access <- rbind(access, balanced)
+  # warnings are suppressed outside of j (so min() is still optimized), because
+  # data.table evaluates min() on an empty vector when no rows are selected
 
-      data <- data[!balanced, on = groups]
+  balanced <- suppressWarnings(
+    binned_sums[.cum_opp >= .demand, .(.bin = min(.bin)), by = c(groups)]
+  )
+  data.table::set(balanced, j = "cost", value = lookup_costs[balanced$.bin])
+  balanced[, .bin := NULL]
 
-      if (nrow(data) == 0) break
-    }
-  }
+  if (nrow(balanced) > 0) access <- rbind(access, balanced)
 
   if (fill_missing_ids) {
     unique_values <- lapply(groups, function(x) unique(travel_matrix[[x]]))
@@ -199,21 +211,4 @@ balancing_cost <- function(travel_matrix,
   if (exists("original_class")) class(access) <- original_class
 
   return(access[])
-}
-
-
-calc_cum_cutoff <- function(data, groups, opportunity, travel_cost, .cutoff) {
-  env <- environment()
-  .opportunity_colname <- opportunity
-  .cost_colname <- travel_cost
-
-  data <- data[get(.cost_colname) <= .cutoff]
-
-  cum_cutoff_access <- data[
-    ,
-    .(access = sum(get(.opportunity_colname))),
-    by = eval(groups, envir = env)
-  ]
-
-  return(cum_cutoff_access)
 }

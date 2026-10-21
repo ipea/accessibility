@@ -336,3 +336,31 @@ test_that("NA demand and missing ids count as 0 people", {
   )
   expect_true(all(result[id != "c"]$travel_time == 0))
 })
+
+test_that("origins that never balance are filled with NA or dropped", {
+  # a has 100 people but only reaches 30 jobs
+
+  toy_matrix <- data.table::data.table(
+    from_id = c("a", "a", "b"),
+    to_id = c("a", "b", "b"),
+    travel_time = c(0, 10, 0)
+  )
+  toy_land_use <- data.table::data.table(
+    id = c("a", "b"),
+    jobs = c(10, 20),
+    population = c(100, 5)
+  )
+
+  result <- tester(toy_matrix, toy_land_use, group_by = character(0))
+  expect_identical(result$id, c("a", "b"))
+  expect_identical(result$travel_time, c(NA, 0))
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    group_by = character(0),
+    fill_missing_ids = FALSE
+  )
+  expect_identical(result$id, "b")
+  expect_identical(result$travel_time, 0)
+})

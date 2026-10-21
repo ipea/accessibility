@@ -469,4 +469,83 @@ test_that("result is not keyed, even when missing ids are filled", {
   )
   expect_identical(result$jobs, c(30, 0))
   expect_null(data.table::key(result))
+
+  for (fill in c(TRUE, FALSE)) {
+    result <- tester(
+      as.data.frame(toy_matrix),
+      toy_land_use,
+      cutoff = c(30, 60),
+      group_by = character(0),
+      fill_missing_ids = fill
+    )
+    expect_null(attr(result, "sorted"))
+  }
+})
+
+test_that("edge cases of cutoffs and travel costs are handled", {
+  # costs equal to infinity or NA are never reached. b reaches a destination
+  # within 30 minutes, but it has no opportunities. c reaches nothing
+
+  toy_matrix <- data.table::data.table(
+    from_id = c("a", "a", "a", "a", "b", "b", "c"),
+    to_id = c("a", "b", "c", "d", "b", "a", "a"),
+    travel_time = c(0, 30, NA, Inf, 0, 45, 100)
+  )
+  toy_land_use <- data.table::data.table(
+    id = c("a", "b", "c", "d"),
+    jobs = c(10, 0, 7, 5)
+  )
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    cutoff = c(60, 30),
+    group_by = character(0),
+    fill_missing_ids = FALSE
+  )
+  expect_identical(result$id, c("a", "a", "b", "b"))
+  expect_identical(result$travel_time, c(30, 60, 30, 60))
+  expect_identical(result$jobs, c(10, 10, 0, 10))
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    cutoff = c(60, 30),
+    group_by = character(0)
+  )
+  expect_identical(result$id, c("a", "a", "b", "b", "c", "c"))
+  expect_identical(result$jobs, c(10, 10, 0, 10, 0, 0))
+})
+
+test_that("large integer sums don't overflow", {
+  # a reaches 10 jobs and b reaches more jobs than the largest integer, which
+  # used to raise an error when sums of different ids had different types
+
+  toy_matrix <- data.table::data.table(
+    from_id = c("a", "b", "b"),
+    to_id = c("a", "a", "b"),
+    travel_time = c(0, 0, 20)
+  )
+  toy_land_use <- data.table::data.table(
+    id = c("a", "b"),
+    jobs = c(10L, .Machine$integer.max)
+  )
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    cutoff = c(30, 60),
+    group_by = character(0),
+    fill_missing_ids = FALSE
+  )
+  expect_identical(result$jobs, c(10, 10, rep(.Machine$integer.max + 10, 2)))
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    cutoff = 30,
+    group_by = character(0),
+    fill_missing_ids = FALSE
+  )
+  expect_identical(result$jobs, c(10, .Machine$integer.max + 10))
 })

@@ -26,6 +26,10 @@
 
 ## Bug fixes
 
+- Fixed a bug in `cumulative_interval()` in which some cutoffs were left out
+  of the summary when `interval_increment` produced cutoffs with floating
+  point noise (e.g. `interval_increment = 0.1`, whose fourth cutoff is
+  `0.30000000000000004`).
 - Fixed a bug in `balancing_cost()` in which numeric ids (e.g. `101`, `102`)
   were used as positions to look up each origin's population, which resulted
   in `NA` or wrong balancing costs.
@@ -161,6 +165,19 @@
 - `cost_to_closest()` is about 1.3 to 2.3 times faster, especially with
   several values of `n`, because the travel matrix is now filtered and sorted
   only once, with identical results.
+- `cumulative_cutoff()` (with several cutoffs of a single travel cost),
+  `cumulative_interval()` and `balancing_cost()` are much faster on large
+  travel matrices (e.g. about 10 times with 30 cutoffs, 4 times with an
+  interval of 40 minutes and 6 to 20 times with `cost_increment = 0.1`),
+  because the opportunities are summed once by travel cost instead of once
+  per cutoff, so their running time and memory barely depend on the number of
+  cutoffs. With non-integer opportunities, results may differ from previous
+  versions by floating point rounding. In `cumulative_cutoff()` and
+  `cumulative_interval()`, integer accessibility levels larger than the
+  largest integer are now returned as doubles, instead of raising an error
+  when only some ids exceeded it.
+  `cumulative_interval()` now returns its rows sorted by interval, id and
+  `group_by` columns in every case.
 - Errors and warnings raised by the package now use `{cli}`, with consistent
   formatting of argument names and values. Long lists of ids or columns in
   messages are abbreviated. `{cli}` and `{rlang}` are new dependencies.

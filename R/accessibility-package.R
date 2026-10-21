@@ -51,7 +51,6 @@ utils::globalVariables(
     "combined_bal_fac",
     "decay_function_arg",
     "cost",
-    "did_balance",
     "avg_access",
     "i.avg_access",
     ".palma_group",
@@ -101,7 +100,13 @@ utils::globalVariables(
     ".weighted_ppr",
     ".total_weight",
     ".opp",
-    ".cost"
+    ".cost",
+    ".bin",
+    ".n",
+    "i..opp",
+    "i..n",
+    ".cum_opp",
+    ".demand"
   )
 )
 

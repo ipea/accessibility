@@ -196,6 +196,7 @@ test_that("active and passive accessibility is correctly calculated", {
     mode = rep(c("transit", "transit2"), each = 5),
     jobs = rep(c(82, 517, 517, 304, 0), 2)
   )
+  data.table::setorderv(expected_result, c("id", "mode"))
   expect_identical(result, expected_result)
 
   result <- tester(
@@ -210,6 +211,7 @@ test_that("active and passive accessibility is correctly calculated", {
     mode = rep(c("transit", "transit2"), each = 5),
     population = rep(c(1946.5, 3457.5, 2363, 4552, 0), 2)
   )
+  data.table::setorderv(expected_result, c("id", "mode"))
   expect_identical(result, expected_result)
 
   # with more than one interval
@@ -228,6 +230,7 @@ test_that("active and passive accessibility is correctly calculated", {
       rep(c(82, 599, 599, 499, 0), 2)
     )
   )
+  data.table::setorderv(expected_result, c("interval", "id", "mode"))
   expect_identical(result, expected_result)
 
   result <- tester(
@@ -246,6 +249,7 @@ test_that("active and passive accessibility is correctly calculated", {
       rep(c(5404, 4552, 2363, 4552, 0), 2)
     )
   )
+  data.table::setorderv(expected_result, c("interval", "id", "mode"))
   expect_identical(result, expected_result)
 })
 
@@ -272,6 +276,7 @@ test_that("summarizes the result according to summary function", {
     mode = rep(c("transit", "transit2"), each = 5),
     jobs = rep(c(82, 408, 408, 109, 0), 2)
   )
+  data.table::setorderv(expected_result, c("id", "mode"))
   expect_identical(result, expected_result)
 
   result <- tester(
@@ -285,6 +290,7 @@ test_that("summarizes the result according to summary function", {
     mode = rep(c("transit", "transit2"), each = 5),
     jobs = rep(c(82, 512.5, 508, 304, 0), 2)
   )
+  data.table::setorderv(expected_result, c("id", "mode"))
   expect_identical(result, expected_result)
 })
 
@@ -439,6 +445,71 @@ test_that("fill_missing_ids arg works correctly", {
   result <- toy_tester(interval = c(0, 20), fill_missing_ids = FALSE)
   expect_identical(result$id, c("a", "b", "c"))
   expect_equal(result$jobs, c(100 / 3, 80 / 3, 100 / 3))
+  expect_identical(result, result[order(id)])
+  expect_null(data.table::key(result))
+})
+
+test_that("float cutoffs are all used in the summary", {
+  # the cutoffs are seq(0, 0.5, 0.1), whose 4th element is
+  # 0.30000000000000004. a reaches 0, 1, 3, 7, 7 and 7 jobs
+
+  toy_matrix <- data.table::data.table(
+    from_id = c("a", "a", "a"),
+    to_id = c("a", "b", "c"),
+    travel_time = c(0.1, 0.2, 0.3)
+  )
+  toy_land_use <- data.table::data.table(
+    id = c("a", "b", "c"),
+    jobs = c(1, 2, 4)
+  )
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    interval = c(0, 0.5),
+    interval_increment = 0.1,
+    summary_function = length,
+    group_by = character(0),
+    fill_missing_ids = FALSE
+  )
+  expect_identical(result$jobs, 6)
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    interval = c(0, 0.5),
+    interval_increment = 0.1,
+    group_by = character(0),
+    fill_missing_ids = FALSE
+  )
+  expect_identical(result$jobs, 5)
+})
+
+test_that("works when nothing is reached within the interval", {
+  toy_matrix <- data.table::data.table(
+    from_id = c("a", "b"),
+    to_id = c("b", "a"),
+    travel_time = c(70, 80)
+  )
+  toy_land_use <- data.table::data.table(id = c("a", "b"), jobs = c(1, 2))
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    interval = c(10, 20),
+    group_by = character(0)
+  )
+  expect_identical(result$id, c("a", "b"))
+  expect_identical(result$jobs, c(0, 0))
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    interval = c(10, 20),
+    group_by = character(0),
+    fill_missing_ids = FALSE
+  )
+  expect_identical(nrow(result), 0L)
 })
 
 test_that("the upper limit of the interval is always considered", {

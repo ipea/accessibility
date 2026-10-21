@@ -147,6 +147,112 @@ cumulative_cutoff <- function(travel_matrix,
   names(cutoff_list) <- travel_cost
   cutoff_df <- do.call(data.table::CJ, cutoff_list)
 
+  # with several cutoffs of a single travel cost, the opportunities are summed
+  # by cost bin once and accumulated. with a single cutoff (or several travel
+  # costs), filtering the travel matrix is faster
+
+  if (length(travel_cost) == 1 && nrow(cutoff_df) > 1) {
+    access <- cumulative_by_cutoff(
+      data,
+      travel_matrix,
+      groups,
+      opportunity,
+      travel_cost,
+      cutoffs = sort(cutoff_list[[1]]),
+      fill_missing_ids = fill_missing_ids
+    )
+  } else {
+    access <- cumulative_by_filtering(
+      data,
+      travel_matrix,
+      groups,
+      group_id,
+      opportunity,
+      travel_cost,
+      cutoff_df,
+      cutoff_list,
+      fill_missing_ids
+    )
+  }
+
+  data.table::setnames(access, c(group_id, "access"), c("id", opportunity))
+  data.table::setcolorder(
+    access,
+    c("id", setdiff(groups, group_id), travel_cost, opportunity)
+  )
+  data.table::setorderv(access, c("id", setdiff(groups, group_id), travel_cost))
+
+  env <- environment()
+  if (length(travel_cost) == 1 && length(cutoff) == 1) {
+    access[, get("travel_cost", envir = env) := NULL]
+  }
+
+  # the table of all id and cutoff combinations is keyed, but results are
+  # returned unkeyed
+
+  data.table::setkey(access, NULL)
+
+  if (exists("original_class")) class(access) <- original_class
+
+  return(access[])
+}
+
+
+#' @keywords internal
+cumulative_by_cutoff <- function(data,
+                                 travel_matrix,
+                                 groups,
+                                 opportunity,
+                                 travel_cost,
+                                 cutoffs,
+                                 fill_missing_ids) {
+  binned_sums <- sum_by_cost_bin(
+    data,
+    groups,
+    opportunity,
+    travel_cost,
+    cutoffs
+  )
+
+  # with fill_missing_ids, every combination of ids and groups gets a row for
+  # each cutoff. otherwise, only the combinations that reach some destination
+  # within the cutoff, even if it has no opportunities
+
+  if (fill_missing_ids) {
+    unique_values <- lapply(groups, function(x) unique(travel_matrix[[x]]))
+    names(unique_values) <- groups
+    grid_groups <- do.call(data.table::CJ, unique_values)
+  } else {
+    grid_groups <- unique(binned_sums[, ..groups])
+  }
+
+  access <- cumulative_sums_grid(
+    binned_sums,
+    grid_groups,
+    groups,
+    n_cutoffs = length(cutoffs),
+    integer_opportunity = is.integer(data[[opportunity]])
+  )
+
+  if (!fill_missing_ids) access <- access[.n > 0]
+
+  data.table::set(access, j = travel_cost, value = cutoffs[access$.bin])
+  access[, c(".bin", ".n") := NULL]
+
+  return(access[])
+}
+
+
+#' @keywords internal
+cumulative_by_filtering <- function(data,
+                                    travel_matrix,
+                                    groups,
+                                    group_id,
+                                    opportunity,
+                                    travel_cost,
+                                    cutoff_df,
+                                    cutoff_list,
+                                    fill_missing_ids) {
   env <- environment()
   .opportunity_colname <- opportunity
 
@@ -178,9 +284,11 @@ cumulative_cutoff <- function(travel_matrix,
           cum_opps <- cum_opps[cum_opps[, .I[1], by = .od_group]$V1]
         }
 
+        # opportunities are summed as doubles, so integer sums don't overflow
+
         cum_opps <- cum_opps[
           ,
-          .(access = sum(get(.opportunity_colname))),
+          .(access = sum(as.numeric(get(.opportunity_colname)))),
           by = eval(groups, envir = env)
         ]
 
@@ -194,6 +302,11 @@ cumulative_cutoff <- function(travel_matrix,
   )
 
   access <- data.table::rbindlist(access)
+
+  is_integer_opportunity <- is.integer(data[[opportunity]])
+  if (is_integer_opportunity && all(access$access <= .Machine$integer.max)) {
+    data.table::set(access, j = "access", value = as.integer(access$access))
+  }
 
   if (fill_missing_ids) {
     unique_values <- lapply(groups, function(x) unique(travel_matrix[[x]]))
@@ -210,20 +323,6 @@ cumulative_cutoff <- function(travel_matrix,
       )
     }
   }
-
-  data.table::setnames(access, c(group_id, "access"), c("id", opportunity))
-  data.table::setcolorder(
-    access,
-    c("id", setdiff(groups, group_id), travel_cost, opportunity)
-  )
-  data.table::setorderv(access, c("id", setdiff(groups, group_id), travel_cost))
-
-  env <- environment()
-  if (length(travel_cost) == 1 && length(cutoff) == 1) {
-    access[, get("travel_cost", envir = env) := NULL]
-  }
-
-  if (exists("original_class")) class(access) <- original_class
 
   return(access[])
 }
