@@ -19,12 +19,23 @@ apply_gravity_measure <- function(data, decay_function, travel_cost) {
   } else {
     opp_weights <- decay_function(data[[travel_cost]])
 
-    access <- lapply(
-      opp_weights,
-      function(opp_weight) cbind(data, opp_weight)
-    )
-    access <- data.table::rbindlist(access, idcol = "decay_function_arg")
-    access[, decay_function_arg := try_to_convert_to_num(decay_function_arg)]
+    decay_function_args <- names(opp_weights)
+    if (is.null(decay_function_args)) {
+      decay_function_args <- seq_along(opp_weights)
+    }
+    decay_function_args <- try_to_convert_to_num(decay_function_args)
+
+    # stacking the data once and then assigning the weights is much cheaper
+    # than binding the weights to a copy of the data for each decay function
+    # argument
+
+    access <- data.table::rbindlist(rep(list(data), length(opp_weights)))
+    access[, opp_weight := unlist(opp_weights, use.names = FALSE)]
+    access[
+      ,
+      decay_function_arg := rep(decay_function_args, each = nrow(data))
+    ]
+    data.table::setcolorder(access, "decay_function_arg")
   }
 
   return(access[])

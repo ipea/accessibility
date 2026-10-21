@@ -94,10 +94,14 @@ gravity <- function(travel_matrix,
 
   warn_extra_cols(travel_matrix, travel_cost, group_id, groups)
 
+  # the weighted opportunities are calculated before aggregating, so the sum
+  # below is optimized by data.table (GForce)
+
   .opp_colname <- opportunity
+  data[, .weighted_opportunities := get(.opp_colname) * opp_weight]
   access <- data[
     ,
-    .(access = sum(get(.opp_colname) * opp_weight)),
+    .(access = sum(.weighted_opportunities)),
     by = eval(groups, envir = env)
   ]
 

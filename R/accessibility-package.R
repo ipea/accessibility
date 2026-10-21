@@ -95,7 +95,11 @@ utils::globalVariables(
     "share_of_total",
     ".block_share",
     "..groups",
-    "..group_by"
+    "..group_by",
+    ".weighted_opportunities",
+    ".weighted_demand",
+    ".weighted_ppr",
+    ".total_weight"
   )
 )
 

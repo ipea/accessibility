@@ -156,11 +156,16 @@ fca_2sfca <- function(data, opportunity, demand, group_by) {
   # step 1a - calculate the demand to each destination as the weight between
   # each od pair multiplied by the number of people at the origin
 
+  # products are calculated before aggregating, so the sums are optimized by
+  # data.table (GForce)
+
+  data[, .weighted_demand := get(.demand_colname) * opp_weight]
   data[
     ,
-    pop_served := sum(get(.demand_colname) * opp_weight, na.rm = TRUE),
+    pop_served := sum(.weighted_demand, na.rm = TRUE),
     by = c("to_id", group_by)
   ]
+  data[, .weighted_demand := NULL]
 
   # step 1b - calculate the provider-to-population ratio (ppr) of a destination
   # as number of opportunities/resources located at it divided by the
@@ -172,9 +177,10 @@ fca_2sfca <- function(data, opportunity, demand, group_by) {
   # multiplication between the ppr of destination j and the weight between od
   # pair ij
 
+  data[, .weighted_ppr := ppr * opp_weight]
   access <- data[
     ,
-    .(access = sum(ppr * opp_weight, na.rm = TRUE)),
+    .(access = sum(.weighted_ppr, na.rm = TRUE)),
     by = c("from_id", group_by)
   ]
 
@@ -187,30 +193,26 @@ fca_bfca <- function(data, opportunity, demand, group_by) {
   .opportunity_colname <- opportunity
   .demand_colname <- demand
 
-  # calculate balanced (normalized) opp_weight by origin and by destination
+  # calculate balanced (normalized) opp_weight by origin and by destination.
+  # products and totals are calculated in separate steps, so the sums are
+  # optimized by data.table (GForce)
 
-  data[
-    ,
-    balanced_opp_weight_i := opp_weight / sum(opp_weight),
-    by = c("from_id", group_by)
-  ]
-  data[
-    ,
-    balanced_opp_weight_j := opp_weight / sum(opp_weight),
-    by = c("to_id", group_by)
-  ]
+  data[, .total_weight := sum(opp_weight), by = c("from_id", group_by)]
+  data[, balanced_opp_weight_i := opp_weight / .total_weight]
+  data[, .total_weight := sum(opp_weight), by = c("to_id", group_by)]
+  data[, balanced_opp_weight_j := opp_weight / .total_weight]
+  data[, .total_weight := NULL]
 
   # step 1a - calculate the balanced demand to each destination as the balanced
   # weight by origin multiplied by the number of people at the origin
 
+  data[, .weighted_demand := get(.demand_colname) * balanced_opp_weight_i]
   data[
     ,
-    balanced_pop_served := sum(
-      get(.demand_colname) * balanced_opp_weight_i,
-      na.rm = TRUE
-    ),
+    balanced_pop_served := sum(.weighted_demand, na.rm = TRUE),
     by = c("to_id", group_by)
   ]
+  data[, .weighted_demand := NULL]
 
   # step 1b - calculate the balanced provider-to-population ratio
   # (balanced_ppr) of a destination as number of opportunities/resources
@@ -222,9 +224,10 @@ fca_bfca <- function(data, opportunity, demand, group_by) {
   # multiplication between the balanced_ppr of destination j and the balanced
   # weight by destination between od pair ij
 
+  data[, .weighted_ppr := balanced_ppr * balanced_opp_weight_j]
   access <- data[
     ,
-    .(access = sum(balanced_ppr * balanced_opp_weight_j, na.rm = TRUE)),
+    .(access = sum(.weighted_ppr, na.rm = TRUE)),
     by = c("from_id", group_by)
   ]
 
