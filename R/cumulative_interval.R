@@ -104,12 +104,17 @@ cumulative_interval <- function(travel_matrix,
 
   # each interval is summarised over its own cutoffs only, which always include
   # the interval's upper limit (even if it's not a multiple of the increment).
+  # with fractional increments, the last value of the sequence may be the upper
+  # limit with floating point noise (e.g. 0.8999999999999999 instead of 0.9),
+  # so values that close to the limit are dropped before adding the limit.
   # accessibility is calculated once for the union of all cutoffs
 
   interval_cutoffs <- lapply(
     interval,
     function(pair) {
-      unique(c(seq.int(pair[1], pair[2], by = interval_increment), pair[2]))
+      steps <- seq.int(pair[1], pair[2], by = interval_increment)
+      steps <- steps[pair[2] - steps > interval_increment * 1e-6]
+      c(steps, pair[2])
     }
   )
   cutoffs <- unique(unlist(interval_cutoffs))
