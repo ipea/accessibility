@@ -337,3 +337,26 @@ test_that("only returns the group_by combinations present in the data", {
   expect_setequal(paste(result$mode, result$period), c("car am", "bus pm"))
   expect_null(data.table::key(result))
 })
+
+test_that("large integer populations don't overflow", {
+  # with equal populations, the 40% and 90% income quantiles are 4.6 and 9.1,
+  # so ids 1 to 4 are the poorest and id 10 is the wealthiest. the palma ratio
+  # is 10 / mean(1:4) = 4
+
+  accessibility_data <- data.table::data.table(
+    id = as.character(1:10),
+    jobs = as.numeric(1:10)
+  )
+  sociodemographic_data <- data.table::data.table(
+    id = as.character(1:10),
+    population = rep(1000000000L, 10),
+    income_per_capita = as.numeric(1:10)
+  )
+
+  result <- tester(
+    accessibility_data,
+    sociodemographic_data,
+    group_by = character(0)
+  )
+  expect_equal(result$palma_ratio, 4)
+})

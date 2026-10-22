@@ -158,7 +158,9 @@
 #' to match; otherwise, the model will not converge.
 #'  - `active` must be `NULL`. Since supply must match demand, their units are
 #'  the same and there is no distinction between 'active' and 'passive' notions.
-#' - Only accepts `detailed_results = TRUE`.
+#' - Should be used with `detailed_results = TRUE`. With
+#'   `detailed_results = FALSE`, it only returns the demand and supply
+#'   marginals, with a warning.
 #'
 #' ### Interpretation:
 #' - Results include OD-level flows (`flow`) along with balancing factors (`A_i`,
@@ -171,12 +173,40 @@
 #' "What is the count of A->1 flows given A->1's region-relative travel impedance,
 #'  demand and supply?"
 #'
+#' @return A data frame of the same class as `travel_matrix` (`data.table`,
+#'   `data.frame` or `tibble`). Its columns depend on `constraint`, `active`
+#'   and `detailed_results`:
+#'
+#' - `constraint = "total"` or `"singly"`, `detailed_results = FALSE`: one
+#'   row per origin (`from_id`, when `active = TRUE`) or destination (`to_id`,
+#'   when `active = FALSE`), plus the `group_by` columns. Accessibility is in a
+#'   column named `supply` (active) or `demand` (passive).
+#' - `constraint = "total"`, `detailed_results = TRUE`: one row per
+#'   origin-destination pair, with the columns `from_id`, `to_id`, the weighted
+#'   opportunities (`weighted_supply` or `weighted_demand`), the share of the
+#'   regional total allocated to the pair (`kappa_total` or `hatkappa_total`),
+#'   the allocated flow (`supply` or `demand`) and the scaling constant
+#'   (`K_total` or `hatK_total`).
+#' - `constraint = "singly"`, `detailed_results = TRUE`: one row per
+#'   origin-destination pair, with the columns `from_id`, `to_id`, the
+#'   allocation share (`kappa_singly` or `hatkappa_singly`), the allocated flow
+#'   (`supply` or `demand`) and the balancing factor (`B_j` or `A_i`).
+#' - `constraint = "doubly"`, `detailed_results = TRUE`: one row per
+#'   origin-destination pair, with the columns `from_id`, `to_id`, `flow`, the
+#'   balancing factors `A_i` and `B_j`, `kappa_doubly` and the final balancing
+#'   `error`.
+#' - `constraint = "doubly"`, `detailed_results = FALSE`: the columns `id`
+#'   and `flow`, holding the demand of each origin followed by the supply of
+#'   each destination (so an id can appear twice).
+#'
+#' Detailed results don't include the `group_by` columns.
+#'
 #' @references
 #' \insertAllCited{}
-
+#'
 #' @family Constrained accessibility
 #'
-#' @examples
+#' @examplesIf identical(tolower(Sys.getenv("NOT_CRAN")), "true")
 #' # Load demo data shipped with the package
 #' data_dir <- system.file("extdata", package = "accessibility")
 #' travel_matrix <- readRDS(file.path(data_dir, "travel_matrix.rds"))

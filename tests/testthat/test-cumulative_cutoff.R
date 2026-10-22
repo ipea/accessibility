@@ -118,25 +118,25 @@ test_that("result has correct structure", {
   expect_true(ncol(result) == 3)
   expect_is(result$id, "character")
   expect_is(result$mode, "character")
-  expect_is(result$jobs, "integer")
+  expect_is(result$jobs, "numeric")
 
   result <- tester(opportunity = "schools")
   expect_true(ncol(result) == 3)
   expect_is(result$id, "character")
   expect_is(result$mode, "character")
-  expect_is(result$schools, "integer")
+  expect_is(result$schools, "numeric")
 
   result <- tester(cutoff = c(15, 30))
   expect_true(ncol(result) == 4)
   expect_is(result$id, "character")
   expect_is(result$mode, "character")
   expect_is(result$travel_time, "numeric")
-  expect_is(result$jobs, "integer")
+  expect_is(result$jobs, "numeric")
 
   suppressWarnings(result <- tester(group_by = character(0)))
   expect_true(ncol(result) == 2)
   expect_is(result$id, "character")
-  expect_is(result$jobs, "integer")
+  expect_is(result$jobs, "numeric")
 
   result <- tester(
     data.table::data.table(
@@ -150,7 +150,7 @@ test_that("result has correct structure", {
   expect_true(nrow(result) == 0)
   expect_is(result$id, "character")
   expect_is(result$mode, "character")
-  expect_is(result$jobs, "integer")
+  expect_is(result$jobs, "numeric")
 
   result <- tester(
     data.table::data.table(
@@ -166,7 +166,7 @@ test_that("result has correct structure", {
   expect_is(result$id, "character")
   expect_is(result$mode, "character")
   expect_is(result$travel_time, "numeric")
-  expect_is(result$jobs, "integer")
+  expect_is(result$jobs, "numeric")
 
   result <- tester_with_cost()
   expect_true(ncol(result) == 5)
@@ -174,14 +174,14 @@ test_that("result has correct structure", {
   expect_is(result$mode, "character")
   expect_is(result$travel_time, "numeric")
   expect_is(result$monetary_cost, "numeric")
-  expect_is(result$jobs, "integer")
+  expect_is(result$jobs, "numeric")
 
   suppressWarnings(result <- tester_with_cost(group_by = character()))
   expect_true(ncol(result) == 4)
   expect_is(result$id, "character")
   expect_is(result$travel_time, "numeric")
   expect_is(result$monetary_cost, "numeric")
-  expect_is(result$jobs, "integer")
+  expect_is(result$jobs, "numeric")
 
   result <- tester_with_cost(small_frontier[0])
   expect_true(ncol(result) == 5)
@@ -189,7 +189,7 @@ test_that("result has correct structure", {
   expect_is(result$mode, "character")
   expect_is(result$travel_time, "numeric")
   expect_is(result$monetary_cost, "numeric")
-  expect_is(result$jobs, "integer")
+  expect_is(result$jobs, "numeric")
 })
 
 test_that("input data sets remain unchanged", {
@@ -221,7 +221,7 @@ test_that("active and passive accessibility is correctly calculated", {
   expected_result <- data.table::data.table(
     id = rep(selected_ids, each = 2),
     mode = rep(c("transit", "transit2"), 5),
-    jobs = rep(as.integer(c(0, 82, 408, 408, 109)), each = 2)
+    jobs = rep(as.numeric(c(0, 82, 408, 408, 109)), each = 2)
   )
   expect_identical(result, expected_result)
 
@@ -234,7 +234,7 @@ test_that("active and passive accessibility is correctly calculated", {
   expected_result <- data.table::data.table(
     id = rep(selected_ids, each = 2),
     mode = rep(c("transit", "transit2"), 5),
-    population = rep(as.integer(c(0, 5404, 4552, 2363, 4552)), each = 2)
+    population = rep(as.numeric(c(0, 5404, 4552, 2363, 4552)), each = 2)
   )
   expect_identical(result, expected_result)
 
@@ -252,7 +252,7 @@ test_that("active and passive accessibility is correctly calculated", {
     mode = rep(rep(c("transit", "transit2"), each = 2), times = 5),
     travel_time = 120,
     monetary_cost = rep(c(5, 15), 10),
-    jobs = rep(as.integer(c(499, 599, 499, 599, rep(599, 16))))
+    jobs = rep(as.numeric(c(499, 599, 499, 599, rep(599, 16))))
   )
   expect_identical(result, expected_result)
 
@@ -267,7 +267,7 @@ test_that("active and passive accessibility is correctly calculated", {
     mode = rep(rep(c("transit", "transit2"), each = 2), times = 5),
     travel_time = 120,
     monetary_cost = rep(c(5, 15), 10),
-    population = rep(as.integer(c(3435, 5404, 3435, 5404, rep(5404, 16))))
+    population = rep(as.numeric(c(3435, 5404, 3435, 5404, rep(5404, 16))))
   )
   expect_identical(result, expected_result)
 })
@@ -289,7 +289,7 @@ test_that("fill_missing_ids arg works correctly", {
     data.table::data.table(
       id = rep(c("89a88cdb57bffff", "89a88cdb597ffff"), each = 2),
       mode = rep(c("transit", "transit2"), times = 2),
-      jobs = rep(as.integer(c(0, 36567)), each = 2)
+      jobs = rep(as.numeric(c(0, 36567)), each = 2)
     )
   )
 
@@ -304,7 +304,7 @@ test_that("fill_missing_ids arg works correctly", {
     data.table::data.table(
       id = rep("89a88cdb597ffff", each = 2),
       mode = c("transit", "transit2"),
-      jobs = rep(36567L, each = 2)
+      jobs = rep(36567, each = 2)
     )
   )
 
@@ -316,7 +316,7 @@ test_that("fill_missing_ids arg works correctly", {
     id = rep(c("89a88cdb57bffff", "89a88cdb597ffff"), each = 4),
     mode = rep(rep(c("transit", "transit2"), each = 2), times = 2),
     travel_time = rep(c(15, 50), times = 4),
-    jobs = as.integer(c(rep(c(0, 187799), 2), rep(c(3008, 257648), 2)))
+    jobs = as.numeric(c(rep(c(0, 187799), 2), rep(c(3008, 257648), 2)))
   )
 
   expect_identical(result, expected_result)
@@ -342,7 +342,7 @@ test_that("fill_missing_ids arg works correctly", {
     mode = c("transit", "transit2"),
     travel_time = 10,
     monetary_cost = 10,
-    jobs = as.integer(c(323, 0))
+    jobs = as.numeric(c(323, 0))
   )
   data.table::setkey(result, NULL)
   expect_identical(result, expected_result)

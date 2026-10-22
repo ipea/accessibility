@@ -100,18 +100,18 @@ test_that("result has correct structure", {
   expect_true(ncol(result) == 3)
   expect_is(result$id, "character")
   expect_is(result$mode, "character")
-  expect_is(result$jobs, "integer")
+  expect_is(result$jobs, "numeric")
 
   result <- tester(opportunity = "schools")
   expect_true(ncol(result) == 3)
   expect_is(result$id, "character")
   expect_is(result$mode, "character")
-  expect_is(result$schools, "integer")
+  expect_is(result$schools, "numeric")
 
   suppressWarnings(result <- tester(group_by = character(0)))
   expect_true(ncol(result) == 2)
   expect_is(result$id, "character")
-  expect_is(result$jobs, "integer")
+  expect_is(result$jobs, "numeric")
 
   result <- tester(
     data.table::data.table(
@@ -125,7 +125,7 @@ test_that("result has correct structure", {
   expect_true(nrow(result) == 0)
   expect_is(result$id, "character")
   expect_is(result$mode, "character")
-  expect_is(result$jobs, "integer")
+  expect_is(result$jobs, "numeric")
 })
 
 test_that("input data sets remain unchanged", {
@@ -206,7 +206,7 @@ test_that("accepts custom decay function", {
   ]
   expected_result <- expected_result[
     ,
-    .(jobs = sum(jobs)),
+    .(jobs = sum(as.numeric(jobs))),
     by = .(id = from_id, mode)
   ]
 
@@ -232,7 +232,7 @@ test_that("fill_missing_ids arg works correctly", {
     data.table::data.table(
       id = rep(c("89a88cdb57bffff", "89a88cdb597ffff"), each = 2),
       mode = rep(c("transit", "transit2"), times = 2),
-      jobs = c(22239L, 0L, 36567L, 36567L)
+      jobs = c(22239, 0, 36567, 36567)
     )
   )
 
@@ -246,7 +246,7 @@ test_that("fill_missing_ids arg works correctly", {
     data.table::data.table(
       id = c("89a88cdb57bffff", "89a88cdb597ffff", "89a88cdb597ffff"),
       mode = c("transit", "transit", "transit2"),
-      jobs = c(22239L, 36567L, 36567L)
+      jobs = c(22239, 36567, 36567)
     )
   )
 })
@@ -336,4 +336,27 @@ test_that("raises an error if travel_matrix contains negative travel costs", {
   na_matrix <- data.table::copy(smaller_matrix)
   na_matrix[1, travel_time := NA]
   expect_error(tester(travel_matrix = na_matrix), NA)
+})
+
+test_that("large integer opportunity counts don't overflow or warn", {
+  travel_matrix <- data.table::data.table(
+    from_id = "a",
+    to_id = c("a", "b"),
+    travel_time = c(10, 20)
+  )
+  land_use_data <- data.table::data.table(
+    id = c("a", "b"),
+    jobs = c(1L, .Machine$integer.max)
+  )
+
+  expect_silent(
+    result <- gravity(
+      travel_matrix,
+      land_use_data,
+      opportunity = "jobs",
+      travel_cost = "travel_time",
+      decay_function = decay_binary(30)
+    )
+  )
+  expect_identical(result$jobs, .Machine$integer.max + 1)
 })

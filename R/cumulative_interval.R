@@ -162,8 +162,7 @@ cumulative_interval <- function(travel_matrix,
     binned_sums,
     grid_groups,
     groups,
-    n_cutoffs = length(cutoffs),
-    integer_opportunity = is.integer(data[[opportunity]])
+    n_cutoffs = length(cutoffs)
   )
   data.table::set(access_list, j = "cutoffs", value = cutoffs[access_list$.bin])
 

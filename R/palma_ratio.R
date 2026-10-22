@@ -86,11 +86,13 @@ palma_ratio <- function(
   warn_extra_access_cols(accessibility_data, opportunity, group_by)
 
   # normwt = TRUE treats population as relative weights, so the quantiles don't
-  # depend on its scale (e.g. counts vs. shares)
+  # depend on its scale (e.g. counts vs. shares). integer weights are converted
+  # to doubles, because Hmisc multiplies them by the number of observations,
+  # which may overflow
 
   income_quantiles <- Hmisc::wtd.quantile(
     sociodemographic_data[[income]],
-    weights = sociodemographic_data[[population]],
+    weights = as.numeric(sociodemographic_data[[population]]),
     probs = c(0.4, 0.9),
     normwt = TRUE
   )

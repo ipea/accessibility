@@ -106,11 +106,15 @@ concentration_index <- function(
 
   warn_extra_access_cols(accessibility_data, opportunity, group_by)
 
-  # integer opportunities and population counts may overflow when multiplied,
-  # so we convert them to doubles first
+  # integer opportunities may overflow when multiplied by the population, so
+  # they are converted to doubles first (merge_by_reference() already converts
+  # the population)
 
-  .numeric_cols <- c(opportunity, population)
-  data[, (.numeric_cols) := lapply(.SD, as.numeric), .SDcols = .numeric_cols]
+  data.table::set(
+    data,
+    j = opportunity,
+    value = as.numeric(data[[opportunity]])
+  )
 
   .opp_colname <- opportunity
   .pop_colname <- population

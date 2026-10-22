@@ -230,8 +230,7 @@ cumulative_by_cutoff <- function(data,
     binned_sums,
     grid_groups,
     groups,
-    n_cutoffs = length(cutoffs),
-    integer_opportunity = is.integer(data[[opportunity]])
+    n_cutoffs = length(cutoffs)
   )
 
   if (!fill_missing_ids) access <- access[.n > 0]
@@ -284,11 +283,9 @@ cumulative_by_filtering <- function(data,
           cum_opps <- cum_opps[cum_opps[, .I[1], by = .od_group]$V1]
         }
 
-        # opportunities are summed as doubles, so integer sums don't overflow
-
         cum_opps <- cum_opps[
           ,
-          .(access = sum(as.numeric(get(.opportunity_colname)))),
+          .(access = sum(get(.opportunity_colname))),
           by = eval(groups, envir = env)
         ]
 
@@ -302,11 +299,6 @@ cumulative_by_filtering <- function(data,
   )
 
   access <- data.table::rbindlist(access)
-
-  is_integer_opportunity <- is.integer(data[[opportunity]])
-  if (is_integer_opportunity && all(access$access <= .Machine$integer.max)) {
-    data.table::set(access, j = "access", value = as.integer(access$access))
-  }
 
   if (fill_missing_ids) {
     unique_values <- lapply(groups, function(x) unique(travel_matrix[[x]]))

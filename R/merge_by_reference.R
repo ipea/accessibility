@@ -21,13 +21,20 @@ merge_by_reference <- function(data,
     match(left_ids, right_ids)
   }
 
-  values <- land_use_data[[opportunity]][match_index]
+  # integer counts (opportunities, demand, supply, population) are converted to
+  # doubles, so that sums and products in the measures don't overflow. they are
+  # converted before matching, because land_use_data is usually much shorter
+  # than the travel matrix
+
+  values <- land_use_data[[opportunity]]
+  if (is.integer(values)) values <- as.numeric(values)
+  values <- values[match_index]
 
   # in accessibility measures, NA values and ids missing from land_use_data
   # count as 0 opportunities (or 0 demand/supply). the inequality and poverty
   # functions keep the NAs
 
-  if (na_as_zero && anyNA(values)) values[is.na(values)] <- 0L
+  if (na_as_zero && anyNA(values)) values[is.na(values)] <- 0
 
   data.table::set(data, j = opportunity, value = values)
 }

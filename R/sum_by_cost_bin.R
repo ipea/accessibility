@@ -18,9 +18,10 @@ sum_by_cost_bin <- function(data, groups, opportunity, travel_cost, cutoffs) {
   names(binned) <- groups
   binned$.bin <- bin[keep]
 
-  # opportunities are summed as doubles, so integer sums don't overflow
+  # the opportunities are doubles (merge_by_reference() converts integers), so
+  # their sums don't overflow
 
-  binned$.opp <- as.numeric(data[[opportunity]][keep])
+  binned$.opp <- data[[opportunity]][keep]
   binned <- data.table::setDT(binned)
 
   binned_sums <- binned[
@@ -37,12 +38,9 @@ sum_by_cost_bin <- function(data, groups, opportunity, travel_cost, cutoffs) {
 cumulative_sums_grid <- function(binned_sums,
                                  grid_groups,
                                  groups,
-                                 n_cutoffs,
-                                 integer_opportunity) {
+                                 n_cutoffs) {
   # one row per group (from grid_groups) and cutoff. bins that no row falls
-  # into get 0 opportunities and 0 rows. the cumulative sums are doubles, so
-  # they don't overflow, and are converted back to integers when the
-  # opportunities are integers and the sums fit
+  # into get 0 opportunities and 0 rows
 
   grid <- grid_groups[rep(seq_len(nrow(grid_groups)), each = n_cutoffs)]
   data.table::set(
@@ -68,10 +66,6 @@ cumulative_sums_grid <- function(binned_sums,
   data.table::set(grid, j = ".n", value = data.table::fcoalesce(grid$.n, 0L))
   grid[, `:=`(access = cumsum(.opp), .n = cumsum(.n)), by = c(groups)]
   grid[, .opp := NULL]
-
-  if (integer_opportunity && all(grid$access <= .Machine$integer.max)) {
-    data.table::set(grid, j = "access", value = as.integer(grid$access))
-  }
 
   return(grid[])
 }

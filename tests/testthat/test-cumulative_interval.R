@@ -535,3 +535,28 @@ test_that("the upper limit of the interval is always considered", {
   )
   expect_equal(result$jobs, c(32.5, 27.5, 32.5))
 })
+
+test_that("large integer sums don't overflow", {
+  # a reaches 10 jobs within 10 minutes and 10 + the largest integer within 20
+
+  travel_matrix <- data.table::data.table(
+    from_id = "a",
+    to_id = c("a", "b"),
+    travel_time = c(10, 20)
+  )
+  land_use_data <- data.table::data.table(
+    id = c("a", "b"),
+    jobs = c(10L, .Machine$integer.max)
+  )
+
+  result <- cumulative_interval(
+    travel_matrix,
+    land_use_data,
+    opportunity = "jobs",
+    travel_cost = "travel_time",
+    interval = c(10, 20),
+    interval_increment = 10,
+    summary_function = max
+  )
+  expect_identical(result$jobs, .Machine$integer.max + 10)
+})

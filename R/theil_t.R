@@ -120,11 +120,15 @@ theil_t <- function(
 
   warn_extra_access_cols(accessibility_data, opportunity, group_by)
 
-  # integer opportunities and population counts may overflow when multiplied,
-  # so we convert them to doubles first
+  # integer opportunities may overflow when multiplied by the population, so
+  # they are converted to doubles first (merge_by_reference() already converts
+  # the population)
 
-  .numeric_cols <- c(opportunity, population)
-  data[, (.numeric_cols) := lapply(.SD, as.numeric), .SDcols = .numeric_cols]
+  data.table::set(
+    data,
+    j = opportunity,
+    value = as.numeric(data[[opportunity]])
+  )
 
   if (is.null(socioeconomic_groups)) {
     result <- theil_without_groups(data, opportunity, population, group_by)
@@ -212,9 +216,7 @@ theil_with_groups <- function(
 
   summarized_data <- data[,
     .(
-      group_tot_access = as.numeric(
-        sum(get(..opportunity) * get(..population))
-      ),
+      group_tot_access = sum(get(..opportunity) * get(..population)),
       group_tot_pop = sum(get(..population)),
       group_theil_t = calc_theil_t(
         get(..opportunity),
