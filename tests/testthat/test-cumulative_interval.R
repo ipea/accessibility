@@ -485,6 +485,38 @@ test_that("float cutoffs are all used in the summary", {
   expect_identical(result$jobs, 5)
 })
 
+test_that("the upper limit is counted once when the sequence has noise", {
+  # seq(0, 0.9, 0.3) ends at 0.8999999999999999, not 0.9. the cutoffs are 0,
+  # 0.3, 0.6 and 0.9, and a reaches 1, 1, 1 and 11 jobs, so the mean is 3.5
+
+  toy_matrix <- data.table::data.table(
+    from_id = "a",
+    to_id = c("a", "b"),
+    travel_time = c(0, 0.8)
+  )
+  toy_land_use <- data.table::data.table(id = c("a", "b"), jobs = c(1, 10))
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    interval = c(0, 0.9),
+    interval_increment = 0.3,
+    summary_function = length,
+    group_by = character(0)
+  )
+  expect_identical(result$jobs, 4)
+
+  result <- tester(
+    toy_matrix,
+    toy_land_use,
+    interval = c(0, 0.9),
+    interval_increment = 0.3,
+    summary_function = mean,
+    group_by = character(0)
+  )
+  expect_identical(result$jobs, 3.5)
+})
+
 test_that("works when nothing is reached within the interval", {
   toy_matrix <- data.table::data.table(
     from_id = c("a", "b"),
@@ -534,4 +566,29 @@ test_that("the upper limit of the interval is always considered", {
     group_by = character(0)
   )
   expect_equal(result$jobs, c(32.5, 27.5, 32.5))
+})
+
+test_that("large integer sums don't overflow", {
+  # a reaches 10 jobs within 10 minutes and 10 + the largest integer within 20
+
+  travel_matrix <- data.table::data.table(
+    from_id = "a",
+    to_id = c("a", "b"),
+    travel_time = c(10, 20)
+  )
+  land_use_data <- data.table::data.table(
+    id = c("a", "b"),
+    jobs = c(10L, .Machine$integer.max)
+  )
+
+  result <- cumulative_interval(
+    travel_matrix,
+    land_use_data,
+    opportunity = "jobs",
+    travel_cost = "travel_time",
+    interval = c(10, 20),
+    interval_increment = 10,
+    summary_function = max
+  )
+  expect_identical(result$jobs, .Machine$integer.max + 10)
 })

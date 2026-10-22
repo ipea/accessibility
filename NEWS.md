@@ -11,6 +11,10 @@
 - Accessibility functions now treat `NA` opportunity, demand and supply
   values, and `travel_matrix` ids missing from `land_use_data`, as 0.
   Previously, they could make results `NA`.
+- Integer opportunity, demand, supply and population columns are now
+  converted to doubles, so sums no longer overflow. As a result,
+  `cumulative_cutoff()` and `gravity()` (with `decay_binary()`) return doubles
+  instead of integers when opportunities are integers.
 - `concentration_index(type = "corrected")` now uses the bounds of the whole
   accessibility distribution, not of each `group_by` group, to calculate the
   correction factor.
@@ -40,6 +44,8 @@
     `fill_missing_ids = TRUE` and `group_by` leave combinations missing.
   - `constraint = "total"` no longer adds an index to the user's
     `land_use_data`.
+- `cost_to_closest()` no longer returns `Inf` due to integer overflow with
+  large opportunity counts.
 - `cumulative_cutoff()`: cutoffs with floating point noise (e.g. from
   `seq(0, 0.5, by = 0.1)`) could be zeroed when filling missing ids. Travel
   cost columns with non-syntactic names now work.
@@ -77,9 +83,7 @@
   strings. With `constraint = "doubly"`, it is about 2 to 4 times faster and
   uses much less memory.
 - `cost_to_closest()` is about 1.3 to 2.3 times faster.
-- `cumulative_cutoff()` and `cumulative_interval()` return accessibility
-  above the largest integer as doubles instead of erroring.
-  `cumulative_interval()` always sorts rows by interval, id and `group_by`.
+- `cumulative_interval()` always sorts rows by interval, id and `group_by`.
 - `decay_exponential()`, `decay_logistic()`, `decay_power()` and
   `decay_stepped()` are about 2 to 200 times faster.
 - `decay_linear()` requires `cutoff` greater than 0.
@@ -89,9 +93,7 @@
   `poor_below_threshold`, and warns when `poor_below_threshold = FALSE` and
   `accessibility_data` has `Inf` values (e.g. from `cost_to_closest()`).
 - `floating_catchment_area()` and `gravity()` are faster with several decay
-  values (about 4 times with three). `gravity()` with integer opportunities and
-  `decay_binary()` no longer fails when accessibility exceeds the largest
-  integer.
+  values (about 4 times with three).
 - `spatial_availability()` is about 2 times faster.
 
 ## Notes

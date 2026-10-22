@@ -94,6 +94,36 @@ performance penalty.}
 
 \item{detailed_results}{Logical. Whether to return detailed OD-level results.}
 }
+\value{
+A data frame of the same class as \code{travel_matrix} (\code{data.table},
+\code{data.frame} or \code{tibble}). Its columns depend on \code{constraint}, \code{active}
+and \code{detailed_results}:
+\itemize{
+\item \code{constraint = "total"} or \code{"singly"}, \code{detailed_results = FALSE}: one
+row per origin (\code{from_id}, when \code{active = TRUE}) or destination (\code{to_id},
+when \code{active = FALSE}), plus the \code{group_by} columns. Accessibility is in a
+column named \code{supply} (active) or \code{demand} (passive).
+\item \code{constraint = "total"}, \code{detailed_results = TRUE}: one row per
+origin-destination pair, with the columns \code{from_id}, \code{to_id}, the weighted
+opportunities (\code{weighted_supply} or \code{weighted_demand}), the share of the
+regional total allocated to the pair (\code{kappa_total} or \code{hatkappa_total}),
+the allocated flow (\code{supply} or \code{demand}) and the scaling constant
+(\code{K_total} or \code{hatK_total}).
+\item \code{constraint = "singly"}, \code{detailed_results = TRUE}: one row per
+origin-destination pair, with the columns \code{from_id}, \code{to_id}, the
+allocation share (\code{kappa_singly} or \code{hatkappa_singly}), the allocated flow
+(\code{supply} or \code{demand}) and the balancing factor (\code{B_j} or \code{A_i}).
+\item \code{constraint = "doubly"}, \code{detailed_results = TRUE}: one row per
+origin-destination pair, with the columns \code{from_id}, \code{to_id}, \code{flow}, the
+balancing factors \code{A_i} and \code{B_j}, \code{kappa_doubly} and the final balancing
+\code{error}.
+\item \code{constraint = "doubly"}, \code{detailed_results = FALSE}: the columns \code{id}
+and \code{flow}, holding the demand of each origin followed by the supply of
+each destination (so an id can appear twice).
+}
+
+Detailed results don't include the \code{group_by} columns.
+}
 \description{
 Calculates accessibility using constraints, as proposed in
 \insertCite{soukhov2025family;textual}{accessibility}. Accessibility is
@@ -245,7 +275,9 @@ travel  impedance.
 to match; otherwise, the model will not converge.
 \item \code{active} must be \code{NULL}. Since supply must match demand, their units are
 the same and there is no distinction between 'active' and 'passive' notions.
-\item Only accepts \code{detailed_results = TRUE}.
+\item Should be used with \code{detailed_results = TRUE}. With
+\code{detailed_results = FALSE}, it only returns the demand and supply
+marginals, with a warning.
 }
 }
 
@@ -270,6 +302,7 @@ demand and supply?"
 }
 
 \examples{
+\dontshow{if (identical(tolower(Sys.getenv("NOT_CRAN")), "true")) withAutoprint(\{ # examplesIf}
 # Load demo data shipped with the package
 data_dir <- system.file("extdata", package = "accessibility")
 travel_matrix <- readRDS(file.path(data_dir, "travel_matrix.rds"))
@@ -341,7 +374,7 @@ constrained_accessibility(
   supply          = "jobs",
   detailed_results = TRUE
 )
-
+\dontshow{\}) # examplesIf}
 }
 \references{
 \insertAllCited{}

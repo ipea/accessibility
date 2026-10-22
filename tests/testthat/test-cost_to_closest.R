@@ -331,3 +331,27 @@ test_that("works even if travel_matrix and land_use has specific colnames", {
 
   land_use_data[, opportunity := NULL]
 })
+
+test_that("large integer opportunity counts don't overflow", {
+  # the cumulative opportunities at costs 1, 2 and 3 are 1e9, 2e9 and 3e9, so
+  # 2.5e9 opportunities are first reached at cost 3
+
+  travel_matrix <- data.table::data.table(
+    from_id = "a",
+    to_id = c("a", "b", "c"),
+    travel_time = c(1, 2, 3)
+  )
+  land_use_data <- data.table::data.table(
+    id = c("a", "b", "c"),
+    jobs = rep(1000000000L, 3)
+  )
+
+  result <- cost_to_closest(
+    travel_matrix,
+    land_use_data,
+    opportunity = "jobs",
+    travel_cost = "travel_time",
+    n = 2.5e9
+  )
+  expect_identical(result$travel_time, 3)
+})

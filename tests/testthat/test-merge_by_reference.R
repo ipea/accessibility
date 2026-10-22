@@ -30,7 +30,7 @@ test_that("matches numeric and factor ids", {
   land_use_data <- data.table::data.table(id = c(1, 2), jobs = c(5L, 7L))
 
   tester(data, land_use_data)
-  expect_identical(data$jobs, c(7L, 5L, NA))
+  expect_identical(data$jobs, c(7, 5, NA))
 
   data <- data.table::data.table(to_id = factor(c("b", "a")))
   land_use_data <- data.frame(id = c("a", "b"), jobs = c(1, 2))
@@ -48,10 +48,28 @@ test_that("na_as_zero turns NA values and missing ids into 0", {
   original_land_use <- data.table::copy(land_use_data)
 
   merge_by_reference(data, land_use_data, "jobs", "to_id", na_as_zero = TRUE)
-  expect_identical(data$jobs, c(10L, 0L, 5L, 0L))
+  expect_identical(data$jobs, c(10, 0, 5, 0))
 
   merge_by_reference(data, land_use_data, "jobs", "to_id")
-  expect_identical(data$jobs, c(10L, NA, 5L, NA))
+  expect_identical(data$jobs, c(10, NA, 5, NA))
 
   expect_identical(land_use_data, original_land_use)
+})
+
+test_that("converts integer columns to doubles and keeps other types", {
+  data <- data.table::data.table(to_id = c("a", "b"))
+  land_use_data <- data.table::data.table(
+    id = c("a", "b"),
+    jobs = c(1L, .Machine$integer.max),
+    group = c("low", "high")
+  )
+
+  merge_by_reference(data, land_use_data, "jobs", "to_id")
+  expect_identical(data$jobs, c(1, .Machine$integer.max))
+  expect_identical(sum(data$jobs), .Machine$integer.max + 1)
+
+  merge_by_reference(data, land_use_data, "group", "to_id")
+  expect_identical(data$group, c("low", "high"))
+
+  expect_is(land_use_data$jobs, "integer")
 })
