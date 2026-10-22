@@ -14,6 +14,14 @@
 - Accessibility functions now treat `NA` opportunity, demand and supply
   values, and `travel_matrix` ids missing from `land_use_data`, as 0.
   Previously, they could make results `NA`.
+- Integer opportunity, demand, supply and population columns are now
+  converted to doubles, so sums no longer overflow. As a result,
+  [`cumulative_cutoff()`](https://ipea.github.io/accessibility/dev/reference/cumulative_cutoff.md)
+  and
+  [`gravity()`](https://ipea.github.io/accessibility/dev/reference/gravity.md)
+  (with
+  [`decay_binary()`](https://ipea.github.io/accessibility/dev/reference/decay_binary.md))
+  return doubles instead of integers when opportunities are integers.
 - `concentration_index(type = "corrected")` now uses the bounds of the
   whole accessibility distribution, not of each `group_by` group, to
   calculate the correction factor.
@@ -51,6 +59,9 @@
     `fill_missing_ids = TRUE` and `group_by` leave combinations missing.
   - `constraint = "total"` no longer adds an index to the user’s
     `land_use_data`.
+- [`cost_to_closest()`](https://ipea.github.io/accessibility/dev/reference/cost_to_closest.md)
+  no longer returns `Inf` due to integer overflow with large opportunity
+  counts.
 - [`cumulative_cutoff()`](https://ipea.github.io/accessibility/dev/reference/cumulative_cutoff.md):
   cutoffs with floating point noise (e.g. from `seq(0, 0.5, by = 0.1)`)
   could be zeroed when filling missing ids. Travel cost columns with
@@ -102,12 +113,7 @@
   less memory.
 - [`cost_to_closest()`](https://ipea.github.io/accessibility/dev/reference/cost_to_closest.md)
   is about 1.3 to 2.3 times faster.
-- [`cumulative_cutoff()`](https://ipea.github.io/accessibility/dev/reference/cumulative_cutoff.md)
-  and
-  [`cumulative_interval()`](https://ipea.github.io/accessibility/dev/reference/cumulative_interval.md)
-  return accessibility above the largest integer as doubles instead of
-  erroring.
-  [`cumulative_interval()`](https://ipea.github.io/accessibility/dev/reference/cumulative_interval.md)
+- [`cumulative_interval()`](https://ipea.github.io/accessibility/dev/reference/cumulative_interval.md)
   always sorts rows by interval, id and `group_by`.
 - [`decay_exponential()`](https://ipea.github.io/accessibility/dev/reference/decay_exponential.md),
   [`decay_logistic()`](https://ipea.github.io/accessibility/dev/reference/decay_logistic.md),
@@ -130,10 +136,6 @@
   and
   [`gravity()`](https://ipea.github.io/accessibility/dev/reference/gravity.md)
   are faster with several decay values (about 4 times with three).
-  [`gravity()`](https://ipea.github.io/accessibility/dev/reference/gravity.md)
-  with integer opportunities and
-  [`decay_binary()`](https://ipea.github.io/accessibility/dev/reference/decay_binary.md)
-  no longer fails when accessibility exceeds the largest integer.
 - [`spatial_availability()`](https://ipea.github.io/accessibility/dev/reference/spatial_availability.md)
   is about 2 times faster.
 

@@ -185,6 +185,33 @@ performance penalty.</p></dd>
 
 </dl></div>
     <div class="section level2">
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+    <p>A data frame of the same class as <code>travel_matrix</code> (<code>data.table</code>,
+<code>data.frame</code> or <code>tibble</code>). Its columns depend on <code>constraint</code>, <code>active</code>
+and <code>detailed_results</code>:</p><ul><li><p><code>constraint = "total"</code> or <code>"singly"</code>, <code>detailed_results = FALSE</code>: one
+row per origin (<code>from_id</code>, when <code>active = TRUE</code>) or destination (<code>to_id</code>,
+when <code>active = FALSE</code>), plus the <code>group_by</code> columns. Accessibility is in a
+column named <code>supply</code> (active) or <code>demand</code> (passive).</p></li>
+<li><p><code>constraint = "total"</code>, <code>detailed_results = TRUE</code>: one row per
+origin-destination pair, with the columns <code>from_id</code>, <code>to_id</code>, the weighted
+opportunities (<code>weighted_supply</code> or <code>weighted_demand</code>), the share of the
+regional total allocated to the pair (<code>kappa_total</code> or <code>hatkappa_total</code>),
+the allocated flow (<code>supply</code> or <code>demand</code>) and the scaling constant
+(<code>K_total</code> or <code>hatK_total</code>).</p></li>
+<li><p><code>constraint = "singly"</code>, <code>detailed_results = TRUE</code>: one row per
+origin-destination pair, with the columns <code>from_id</code>, <code>to_id</code>, the
+allocation share (<code>kappa_singly</code> or <code>hatkappa_singly</code>), the allocated flow
+(<code>supply</code> or <code>demand</code>) and the balancing factor (<code>B_j</code> or <code>A_i</code>).</p></li>
+<li><p><code>constraint = "doubly"</code>, <code>detailed_results = TRUE</code>: one row per
+origin-destination pair, with the columns <code>from_id</code>, <code>to_id</code>, <code>flow</code>, the
+balancing factors <code>A_i</code> and <code>B_j</code>, <code>kappa_doubly</code> and the final balancing
+<code>error</code>.</p></li>
+<li><p><code>constraint = "doubly"</code>, <code>detailed_results = FALSE</code>: the columns <code>id</code>
+and <code>flow</code>, holding the demand of each origin followed by the supply of
+each destination (so an id can appear twice).</p></li>
+</ul><p>Detailed results don't include the <code>group_by</code> columns.</p>
+    </div>
+    <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
 
 
@@ -327,7 +354,9 @@ travel  impedance.</p><div class="section">
 to match; otherwise, the model will not converge.</p></li>
 <li><p><code>active</code> must be <code>NULL</code>. Since supply must match demand, their units are
 the same and there is no distinction between 'active' and 'passive' notions.</p></li>
-<li><p>Only accepts <code>detailed_results = TRUE</code>.</p></li>
+<li><p>Should be used with <code>detailed_results = TRUE</code>. With
+<code>detailed_results = FALSE</code>, it only returns the demand and supply
+marginals, with a warning.</p></li>
 </ul></div>
 
 <div class="section">
@@ -503,7 +532,6 @@ demand and supply?"</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 7:       3      1 2.31964604 0.1737245 1.424797   0.33137801 0.0007282429</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 8:       3      2 0.24941474 0.1737245 0.583010   0.04988295 0.0007282429</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 9:       3      3 3.43481370 0.1737245 1.119684   0.42935171 0.0007282429</span>
-<span class="r-in"><span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

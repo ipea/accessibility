@@ -53,6 +53,7 @@
 <div class="section level3">
 <h3 id="breaking-changes-development-version">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-development-version"></a></h3>
 <ul><li>Accessibility functions now treat <code>NA</code> opportunity, demand and supply values, and <code>travel_matrix</code> ids missing from <code>land_use_data</code>, as 0. Previously, they could make results <code>NA</code>.</li>
+<li>Integer opportunity, demand, supply and population columns are now converted to doubles, so sums no longer overflow. As a result, <code><a href="../reference/cumulative_cutoff.html">cumulative_cutoff()</a></code> and <code><a href="../reference/gravity.html">gravity()</a></code> (with <code><a href="../reference/decay_binary.html">decay_binary()</a></code>) return doubles instead of integers when opportunities are integers.</li>
 <li>
 <code>concentration_index(type = "corrected")</code> now uses the bounds of the whole accessibility distribution, not of each <code>group_by</code> group, to calculate the correction factor.</li>
 <li>
@@ -79,6 +80,8 @@
 <li>
 <code>constraint = "total"</code> no longer adds an index to the user’s <code>land_use_data</code>.</li>
 </ul></li>
+<li>
+<code><a href="../reference/cost_to_closest.html">cost_to_closest()</a></code> no longer returns <code>Inf</code> due to integer overflow with large opportunity counts.</li>
 <li>
 <code><a href="../reference/cumulative_cutoff.html">cumulative_cutoff()</a></code>: cutoffs with floating point noise (e.g. from <code>seq(0, 0.5, by = 0.1)</code>) could be zeroed when filling missing ids. Travel cost columns with non-syntactic names now work.</li>
 <li>
@@ -109,7 +112,7 @@
 <li>
 <code><a href="../reference/cost_to_closest.html">cost_to_closest()</a></code> is about 1.3 to 2.3 times faster.</li>
 <li>
-<code><a href="../reference/cumulative_cutoff.html">cumulative_cutoff()</a></code> and <code><a href="../reference/cumulative_interval.html">cumulative_interval()</a></code> return accessibility above the largest integer as doubles instead of erroring. <code><a href="../reference/cumulative_interval.html">cumulative_interval()</a></code> always sorts rows by interval, id and <code>group_by</code>.</li>
+<code><a href="../reference/cumulative_interval.html">cumulative_interval()</a></code> always sorts rows by interval, id and <code>group_by</code>.</li>
 <li>
 <code><a href="../reference/decay_exponential.html">decay_exponential()</a></code>, <code><a href="../reference/decay_logistic.html">decay_logistic()</a></code>, <code><a href="../reference/decay_power.html">decay_power()</a></code> and <code><a href="../reference/decay_stepped.html">decay_stepped()</a></code> are about 2 to 200 times faster.</li>
 <li>
@@ -119,7 +122,7 @@
 <li>
 <code><a href="../reference/fgt_poverty.html">fgt_poverty()</a></code> raises an error on invalid <code>poverty_line</code> or <code>poor_below_threshold</code>, and warns when <code>poor_below_threshold = FALSE</code> and <code>accessibility_data</code> has <code>Inf</code> values (e.g. from <code><a href="../reference/cost_to_closest.html">cost_to_closest()</a></code>).</li>
 <li>
-<code><a href="../reference/floating_catchment_area.html">floating_catchment_area()</a></code> and <code><a href="../reference/gravity.html">gravity()</a></code> are faster with several decay values (about 4 times with three). <code><a href="../reference/gravity.html">gravity()</a></code> with integer opportunities and <code><a href="../reference/decay_binary.html">decay_binary()</a></code> no longer fails when accessibility exceeds the largest integer.</li>
+<code><a href="../reference/floating_catchment_area.html">floating_catchment_area()</a></code> and <code><a href="../reference/gravity.html">gravity()</a></code> are faster with several decay values (about 4 times with three).</li>
 <li>
 <code><a href="../reference/spatial_availability.html">spatial_availability()</a></code> is about 2 times faster.</li>
 </ul></div>

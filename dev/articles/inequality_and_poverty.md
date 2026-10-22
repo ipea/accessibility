@@ -29,7 +29,7 @@ access <- cumulative_cutoff(
 )
 head(access)
 #>                 id  jobs
-#>             <char> <int>
+#>             <char> <num>
 #> 1: 89a881a5a2bffff 14561
 #> 2: 89a881a5a2fffff 29452
 #> 3: 89a881a5a67ffff 16647

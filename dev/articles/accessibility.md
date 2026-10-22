@@ -219,7 +219,7 @@ cum_cutoff <- cumulative_cutoff(
 )
 head(cum_cutoff)
 #>                 id  jobs
-#>             <char> <int>
+#>             <char> <num>
 #> 1: 89a881a5a2bffff 14561
 #> 2: 89a881a5a2fffff 29452
 #> 3: 89a881a5a67ffff 16647
@@ -246,7 +246,7 @@ passive_cum_cutoff <- cumulative_cutoff(
 )
 head(passive_cum_cutoff)
 #>                 id population
-#>             <char>      <int>
+#>             <char>      <num>
 #> 1: 89a881a5a2bffff      11053
 #> 2: 89a881a5a2fffff      31903
 #> 3: 89a881a5a67ffff      12488

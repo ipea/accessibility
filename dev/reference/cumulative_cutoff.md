@@ -124,7 +124,7 @@ df <- cumulative_cutoff(
 )
 head(df)
 #>                 id schools
-#>             <char>   <int>
+#>             <char>   <num>
 #> 1: 89a881a5a2bffff       1
 #> 2: 89a881a5a2fffff      10
 #> 3: 89a881a5a67ffff       1
@@ -141,7 +141,7 @@ df <- cumulative_cutoff(
 )
 head(df)
 #>                 id travel_time schools
-#>             <char>       <num>   <int>
+#>             <char>       <num>   <num>
 #> 1: 89a881a5a2bffff          30       1
 #> 2: 89a881a5a2bffff          60      76
 #> 3: 89a881a5a2fffff          30      10
@@ -160,7 +160,7 @@ df <- cumulative_cutoff(
 )
 head(df)
 #>                 id population
-#>             <char>      <int>
+#>             <char>      <num>
 #> 1: 89a881a5a2bffff      11053
 #> 2: 89a881a5a2fffff      31903
 #> 3: 89a881a5a67ffff      12488
@@ -180,7 +180,7 @@ df <- cumulative_cutoff(
 )
 head(df)
 #>                 id travel_time monetary_cost  jobs
-#>             <char>       <num>         <num> <int>
+#>             <char>       <num>         <num> <num>
 #> 1: 89a881a5a2bffff          20             0   397
 #> 2: 89a881a5a2bffff          20             5   397
 #> 3: 89a881a5a2bffff          20            10   397
