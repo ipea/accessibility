@@ -51,11 +51,8 @@ total_constrained <- function(travel_matrix,
       )
     }
     merge_id <- "to_id"
-    group_id <- "from_id"
     weighted_col <- "weighted_supply"
     kappa_col <- "kappa_total"
-    total_col <- "K_total"
-    result_col <- "supply"
     opportunity_col <- supply
   } else {
     #passive accessibility
@@ -67,11 +64,8 @@ total_constrained <- function(travel_matrix,
       )
     }
     merge_id <- "from_id"
-    group_id <- "to_id"
     weighted_col <- "weighted_demand"
     kappa_col <- "hatkappa_total"
-    total_col <- "hatK_total"
-    result_col <- "demand"
     opportunity_col <- demand
   }
 
@@ -103,11 +97,15 @@ total_constrained <- function(travel_matrix,
 
   # Apply decay
   data <- apply_gravity_measure(data, decay_function, travel_cost)
+  if ("decay_function_arg" %in% names(data)) {
+    group_by <- c(group_by, "decay_function_arg")
+  }
 
   # Core calculation
   data[, (weighted_col) := get(opportunity_col) * opp_weight]
-  total_weighted_system <- data[, sum(get(weighted_col))]
+  data[, total_weighted_system := sum(get(weighted_col)), by = group_by]
   data[, (kappa_col) := get(weighted_col) / total_weighted_system]
+
 
   ids_for_total <- unique(data[[merge_id]])                   # e.g., A,B,C when active=TRUE
   total_opportunities_region <- sum(

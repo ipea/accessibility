@@ -64,6 +64,9 @@ singly_constrained <- function(travel_matrix,
 
   # Apply decay
   data <- apply_gravity_measure(data, decay_function, travel_cost)
+  if ("decay_function_arg" %in% names(data)) {
+    group_by <- c(group_by, "decay_function_arg")
+  }
 
   if (active) {
     # Supply-constrained (returns units of supply).. V_ij = (O_i f(c_ij) / sum_i O_i f(c_ij)) * D_j
