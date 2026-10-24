@@ -19,7 +19,7 @@ utils::globalVariables(c(
   # common ids / columns
   "from_id", "to_id", "id", "opp_weight", "supply", "demand", "weighted_demand", "weighted_supply",
   # total-constrained
-  "kappa_total", "hatkappa_total", "K_total", "hatK_total", "constrained_opportunity",
+  "kappa_total", "hatkappa_total", "K_total", "hatK_total", "constrained_opportunity", "total_weighted_system",
   # singly-constrained
   "denom_i", "denom_j", "kappa_singly", "hatkappa_singly", "A_i", "B_j", "singly_access",
   # doubly-constrained
@@ -115,26 +115,58 @@ total_constrained <- function(travel_matrix,
 
   data[, constrained_opportunity := get(kappa_col) * total_opportunities_region]
 
+  detail_cols <- c(
+    "from_id",
+    "to_id",
+    group_by
+  )
+
   if (detailed_results) {
     if (!active) {
-      access <- data[, .(
-        from_id,
-        to_id,
-        weighted_demand,
-        hatkappa_total,
-        demand = constrained_opportunity,
-        hatK_total = total_opportunities_region / total_weighted_system
-      )]
+      access <- data[, c(
+        detail_cols,
+        "weighted_demand",
+        "hatkappa_total",
+        "constrained_opportunity",
+        "total_weighted_system"
+      ), with = FALSE]
+
+      data.table::setnames(access, "constrained_opportunity", "demand")
+
+      access[, hatK_total := total_opportunities_region / total_weighted_system]
+      access[, total_weighted_system := NULL]
+      # access <- data[, .(
+      #   from_id,
+      #   to_id,
+      #   weighted_demand,
+      #   hatkappa_total,
+      #   demand = constrained_opportunity,
+      #   hatK_total = total_opportunities_region / total_weighted_system
+      # )]
     } else {
       # supply-side details (active accessibility)
-      access <- data[, .(
-        from_id,
-        to_id,
-        weighted_supply,
-        kappa_total,
-        supply = constrained_opportunity,
-        K_total = total_opportunities_region / total_weighted_system
-      )]
+      access <- data[, c(
+        detail_cols,
+        "weighted_supply",
+        "kappa_total",
+        "constrained_opportunity",
+        "total_weighted_system"
+      ), with = FALSE]
+
+      data.table::setnames(access, "constrained_opportunity", "supply")
+
+      access[, K_total := total_opportunities_region / total_weighted_system]
+      access[, total_weighted_system := NULL]
+
+      # supply-side details (active accessibility)
+      # access <- data[, .(
+      #   from_id,
+      #   to_id,
+      #   weighted_supply,
+      #   kappa_total,
+      #   supply = constrained_opportunity,
+      #   K_total = total_opportunities_region / total_weighted_system
+      # )]
     }
   } else {
     if (active) {
@@ -148,6 +180,7 @@ total_constrained <- function(travel_matrix,
           access_col = "supply"
         )
       }
+
     } else {
       # demand aggregated by destination (to_id)
       access <- data[, .(demand = sum(constrained_opportunity)), by = c("to_id", group_by)]

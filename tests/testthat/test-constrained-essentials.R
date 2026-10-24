@@ -24,7 +24,7 @@ make_lu_match20 <- function() {
 exp_decay_01 <- decay_exponential(decay_value = 0.1)
 pow_decay_3  <- decay_power(decay_value = 3)
 
-# # ------------------------------- TOTAL -------------------------------
+# # ------------------------------- TOTAL (5 tests) -------------------------------
 # test_that("total-constrained: preserves totals on supply/demand sides", {
 #   tm <- make_tm_3x3()
 #   lu <- make_lu_large()
@@ -82,8 +82,290 @@ pow_decay_3  <- decay_power(decay_value = 3)
 #   expect_equal(sum(det_demand$demand), sum(lu$population))
 #   expect_equal(sum(agg_demand$demand), sum(lu$population))
 # })
+
+# test_that("total-constrained active multiple decay results equal single-decay runs", {
 #
-# # ------------------------------ SINGLY -------------------------------
+#   # creating a 11x11 OD matrix, meaning 121 OD pairs
+#   ids <- as.character(1:11)
+#
+#   tm <- data.table::CJ(
+#     from_id = ids,
+#     to_id = ids
+#   )
+#
+#   # assigning travel times that are abs(i-j) * 15, and 180 between 1->11 and 11->1
+#   tm[, travel_time := abs(
+#     as.integer(from_id) - as.integer(to_id)) * 15]
+#
+#   tm[from_id == "1" & to_id == "11", travel_time := 180]
+#   tm[from_id == "11" & to_id == "1", travel_time := 180]
+#
+#   #assigning population, and jobs to each id.
+#   lu <- data.table(
+#     id = ids,
+#     population = c(
+#       100, 0, 250, 50, 0,
+#       400, 120, 80, 0, 200, 25
+#     ), # sums to 1225
+#     jobs = c(
+#       0, 500, 50, 0, 100,
+#       250, 0, 300, 75, 0, 150
+#     ) # sums to 1425
+#   )
+#
+#   multi <- constrained_accessibility(
+#     constraint = "total",
+#     travel_matrix = tm,
+#     land_use_data = lu,
+#     travel_cost = "travel_time",
+#     decay_function = decay_exponential(c(0.05, 0.20)),
+#     supply = "jobs",
+#     active = TRUE
+#   )
+#
+#   run_005 <- constrained_accessibility(
+#     constraint = "total",
+#     travel_matrix = tm,
+#     land_use_data = lu,
+#     travel_cost = "travel_time",
+#     decay_function = decay_exponential(0.05),
+#     supply = "jobs",
+#     active = TRUE
+#   )
+#
+#   run_020 <- constrained_accessibility(
+#     constraint = "total",
+#     travel_matrix = tm,
+#     land_use_data = lu,
+#     travel_cost = "travel_time",
+#     decay_function = decay_exponential(0.20),
+#     supply = "jobs",
+#     active = TRUE
+#   )
+#
+#   # Does the multi-decay run result exactly the same values as a standalone run with decay=0.05?
+#   expect_equal(
+#     multi[decay_function_arg == 0.05][order(from_id)]$supply,
+#     run_005[order(from_id)]$supply
+#   )
+#
+#   # Does the multi-decay run result exactly the same values as a standalone run with decay=0.20?
+#   expect_equal(
+#     multi[decay_function_arg == 0.20][order(from_id)]$supply,
+#     run_020[order(from_id)]$supply
+#   )
+#
+#   # Does each decay scenario preserve the regional total opportunities?
+#   totals <- multi[
+#     ,
+#     .(total_supply = sum(supply)),
+#     by = decay_function_arg
+#   ]
+#
+#   expect_equal(
+#     totals$total_supply,
+#     rep(sum(lu$jobs), 2)
+#   )
+# })
+#
+# test_that("total-constrained passive multiple decay values equal separate runs", {
+#
+#   ids <- as.character(1:11)
+#
+#   tm <- data.table::CJ(
+#     from_id = ids,
+#     to_id = ids
+#   )
+#
+#   tm[, travel_time := abs(
+#     as.integer(from_id) - as.integer(to_id)
+#   ) * 15]
+#
+#   lu <- data.table(
+#     id = ids,
+#     population = c(
+#       100, 0, 250, 50, 0,
+#       400, 120, 80, 0, 200, 25
+#     ),
+#     jobs = c(
+#       0, 500, 50, 0, 100,
+#       250, 0, 300, 75, 0, 150
+#     )
+#   )
+#
+#   multi <- constrained_accessibility(
+#     constraint = "total",
+#     travel_matrix = tm,
+#     land_use_data = lu,
+#     travel_cost = "travel_time",
+#     decay_function = decay_exponential(c(0.05, 0.20)),
+#     demand = "population",
+#     active = FALSE
+#   )
+#
+#   run_005 <- constrained_accessibility(
+#     constraint = "total",
+#     travel_matrix = tm,
+#     land_use_data = lu,
+#     travel_cost = "travel_time",
+#     decay_function = decay_exponential(0.05),
+#     demand = "population",
+#     active = FALSE
+#   )
+#
+#   run_020 <- constrained_accessibility(
+#     constraint = "total",
+#     travel_matrix = tm,
+#     land_use_data = lu,
+#     travel_cost = "travel_time",
+#     decay_function = decay_exponential(0.20),
+#     demand = "population",
+#     active = FALSE
+#   )
+#
+#   expect_equal(
+#     multi[decay_function_arg == 0.05][order(to_id)]$demand,
+#     run_005[order(to_id)]$demand
+#   )
+#
+#   expect_equal(
+#     multi[decay_function_arg == 0.20][order(to_id)]$demand,
+#     run_020[order(to_id)]$demand
+#   )
+#
+#   totals <- multi[
+#     ,
+#     .(total_demand = sum(demand)),
+#     by = decay_function_arg
+#   ]
+#
+#   expect_equal(
+#     totals$total_demand,
+#     rep(sum(lu$population), 2)
+#   )
+# })
+#
+# test_that("total-constrained grouped results equal standalone results", {
+#
+#   tm <- make_tm_3x3()
+#   lu <- make_lu_match20()
+#
+#   tm_modes <- data.table::rbindlist(
+#     list(
+#       car = data.table::copy(tm),
+#       bus = data.table::copy(tm)
+#     ),
+#     idcol = "mode"
+#   )
+#
+#   grouped <- constrained_accessibility(
+#     constraint = "total",
+#     travel_matrix = tm_modes,
+#     land_use_data = lu,
+#     travel_cost = "travel_time",
+#     decay_function = exp_decay_01,
+#     supply = "jobs",
+#     active = TRUE,
+#     group_by = "mode"
+#   )
+#
+#   standalone <- constrained_accessibility(
+#     constraint = "total",
+#     travel_matrix = tm,
+#     land_use_data = lu,
+#     travel_cost = "travel_time",
+#     decay_function = exp_decay_01,
+#     supply = "jobs",
+#     active = TRUE
+#   )
+#
+#   expect_equal(
+#     grouped[mode == "car"][order(from_id)]$supply,
+#     standalone[order(from_id)]$supply
+#   )
+#
+#   expect_equal(
+#     grouped[mode == "bus"][order(from_id)]$supply,
+#     standalone[order(from_id)]$supply
+#   )
+# })
+#
+# test_that("total-constrained preserves grouping variables in detailed and aggregated outputs", {
+#
+#   tm <- make_tm_3x3()
+#   lu <- make_lu_match20()
+#
+#   tm_modes <- data.table::rbindlist(
+#     list(
+#       car = data.table::copy(tm),
+#       bus = data.table::copy(tm)
+#     ),
+#     idcol = "mode"
+#   )
+#
+#   decay <- decay_exponential(c(0.1, 0.5))
+#
+#   detailed <- constrained_accessibility(
+#     constraint = "total",
+#     travel_matrix = tm_modes,
+#     land_use_data = lu,
+#     travel_cost = "travel_time",
+#     decay_function = decay,
+#     supply = "jobs",
+#     active = TRUE,
+#     group_by = "mode",
+#     detailed_results = TRUE
+#   )
+#
+#   aggregated <- constrained_accessibility(
+#     constraint = "total",
+#     travel_matrix = tm_modes,
+#     land_use_data = lu,
+#     travel_cost = "travel_time",
+#     decay_function = decay,
+#     supply = "jobs",
+#     active = TRUE,
+#     group_by = "mode",
+#     detailed_results = FALSE
+#   )
+#
+#   # detailed output preserves grouping variables
+#
+#   expect_true("mode" %in% names(detailed))
+#   expect_true("decay_function_arg" %in% names(detailed))
+#
+#   expect_equal(
+#     sort(unique(detailed$mode)),
+#     c("bus", "car")
+#   )
+#
+#   expect_equal(
+#     sort(unique(detailed$decay_function_arg)),
+#     c(0.1, 0.5)
+#   )
+#
+#   # aggregated output preserves grouping variables
+#
+#   expect_true("mode" %in% names(aggregated))
+#   expect_true("decay_function_arg" %in% names(aggregated))
+#
+#   expect_equal(
+#     sort(unique(aggregated$mode)),
+#     c("bus", "car")
+#   )
+#
+#   expect_equal(
+#     sort(unique(aggregated$decay_function_arg)),
+#     c(0.1, 0.5)
+#   )
+#
+#   # 3 origins × 2 modes × 2 decay values
+#
+#   expect_equal(nrow(aggregated), 12L)
+# })
+
+
+# # ------------------------------ SINGLY (5 tests)-------------------------------
 # test_that("singly-constrained: preserves totals and kappa properties", {
 #   tm <- make_tm_3x3()
 #   lu <- make_lu_large()
@@ -151,6 +433,322 @@ pow_decay_3  <- decay_power(decay_value = 3)
 #   expect_equal(sum(det_demand$hatkappa_singly), length(unique(det_demand$from_id)))
 # })
 #
+# # test_that("singly-constrained active multiple decay values equal separate runs", {
+#
+#   ids <- as.character(1:11)
+#
+#   tm <- data.table::CJ(
+#     from_id = ids,
+#     to_id = ids
+#   )
+#
+#   tm[, travel_time := abs(
+#     as.integer(from_id) - as.integer(to_id)
+#   ) * 15]
+#
+#   tm[from_id == "1" & to_id == "11", travel_time := 180]
+#   tm[from_id == "11" & to_id == "1", travel_time := 180]
+#
+#   lu <- data.table(
+#     id = ids,
+#     population = c(
+#       100, 0, 250, 50, 0,
+#       400, 120, 80, 0, 200, 25
+#     ),
+#     jobs = c(
+#       0, 500, 50, 0, 100,
+#       250, 0, 300, 75, 0, 150
+#     )
+#   )
+#
+#   multi <- constrained_accessibility(
+#     constraint = "singly",
+#     travel_matrix = tm,
+#     land_use_data = lu,
+#     travel_cost = "travel_time",
+#     decay_function = decay_exponential(c(0.05, 0.20)),
+#     demand = "population",
+#     supply = "jobs",
+#     active = TRUE
+#   )
+#
+#   run_005 <- constrained_accessibility(
+#     constraint = "singly",
+#     travel_matrix = tm,
+#     land_use_data = lu,
+#     travel_cost = "travel_time",
+#     decay_function = decay_exponential(0.05),
+#     demand = "population",
+#     supply = "jobs",
+#     active = TRUE
+#   )
+#
+#   run_020 <- constrained_accessibility(
+#     constraint = "singly",
+#     travel_matrix = tm,
+#     land_use_data = lu,
+#     travel_cost = "travel_time",
+#     decay_function = decay_exponential(0.20),
+#     demand = "population",
+#     supply = "jobs",
+#     active = TRUE
+#   )
+#   # Does the multi-decay run result exactly the same values as a standalone run with decay=0.05?
+#   expect_equal(
+#     multi[decay_function_arg == 0.05][order(from_id)]$supply,
+#     run_005[order(from_id)]$supply
+#   )
+#   # Does the multi-decay run result exactly the same values as a standalone run with decay=0.20?
+#   expect_equal(
+#     multi[decay_function_arg == 0.20][order(from_id)]$supply,
+#     run_020[order(from_id)]$supply
+#   )
+#   # Does each decay scenario preserve the regional total opportunities?
+#   totals <- multi[
+#     ,
+#     .(total_supply = sum(supply)),
+#     by = decay_function_arg
+#   ]
+#
+#   expect_equal(
+#     totals$total_supply,
+#     rep(sum(lu$jobs), 2)
+#   )
+# })
+#
+# test_that("singly-constrained passive multiple decay values equal separate runs", {
+#
+#   ids <- as.character(1:11)
+#
+#   tm <- data.table::CJ(
+#     from_id = ids,
+#     to_id = ids
+#   )
+#
+#   tm[, travel_time := abs(
+#     as.integer(from_id) - as.integer(to_id)
+#   ) * 15]
+#
+#   lu <- data.table(
+#     id = ids,
+#     population = c(
+#       100, 0, 250, 50, 0,
+#       400, 120, 80, 0, 200, 25
+#     ),
+#     jobs = c(
+#       0, 500, 50, 0, 100,
+#       250, 0, 300, 75, 0, 150
+#     )
+#   )
+#
+#   multi <- constrained_accessibility(
+#     constraint = "singly",
+#     travel_matrix = tm,
+#     land_use_data = lu,
+#     travel_cost = "travel_time",
+#     decay_function = decay_exponential(c(0.05, 0.20)),
+#     demand = "population",
+#     supply = "jobs",
+#     active = FALSE
+#   )
+#
+#   run_005 <- constrained_accessibility(
+#     constraint = "singly",
+#     travel_matrix = tm,
+#     land_use_data = lu,
+#     travel_cost = "travel_time",
+#     decay_function = decay_exponential(0.05),
+#     demand = "population",
+#     supply = "jobs",
+#     active = FALSE
+#   )
+#
+#   run_020 <- constrained_accessibility(
+#     constraint = "singly",
+#     travel_matrix = tm,
+#     land_use_data = lu,
+#     travel_cost = "travel_time",
+#     decay_function = decay_exponential(0.20),
+#     demand = "population",
+#     supply = "jobs",
+#     active = FALSE
+#   )
+#
+#   expect_equal(
+#     multi[decay_function_arg == 0.05][order(to_id)]$demand,
+#     run_005[order(to_id)]$demand
+#   )
+#
+#   expect_equal(
+#     multi[decay_function_arg == 0.20][order(to_id)]$demand,
+#     run_020[order(to_id)]$demand
+#   )
+#
+#   totals <- multi[
+#     ,
+#     .(total_demand = sum(demand)),
+#     by = decay_function_arg
+#   ]
+#
+#   expect_equal(
+#     totals$total_demand,
+#     rep(sum(lu$population), 2)
+#   )
+# })
+
+
+# test_that("singly-constrained preserves grouping variables in detailed outputs", {
+#
+#   tm <- make_tm_3x3()
+#   lu <- make_lu_match20()
+#
+#   tm_modes <- data.table::rbindlist(
+#     list(
+#       car = data.table::copy(tm),
+#       bus = data.table::copy(tm)
+#     ),
+#     idcol = "mode"
+#   )
+#
+#   decay <- decay_exponential(c(0.1, 0.5))
+#
+#   # active detailed output
+#   result_active <- constrained_accessibility(
+#     constraint = "singly",
+#     travel_matrix = tm_modes,
+#     land_use_data = lu,
+#     travel_cost = "travel_time",
+#     decay_function = decay,
+#     demand = "population",
+#     supply = "jobs",
+#     active = TRUE,
+#     group_by = "mode",
+#     detailed_results = TRUE
+#   )
+#
+#   expect_true("mode" %in% names(result_active))
+#   expect_true("decay_function_arg" %in% names(result_active))
+#
+#   expect_equal(
+#     sort(unique(result_active$mode)),
+#     c("bus", "car")
+#   )
+#
+#   expect_equal(
+#     sort(unique(result_active$decay_function_arg)),
+#     c(0.1, 0.5)
+#   )
+#
+#   # passive detailed output
+#   result_passive <- constrained_accessibility(
+#     constraint = "singly",
+#     travel_matrix = tm_modes,
+#     land_use_data = lu,
+#     travel_cost = "travel_time",
+#     decay_function = decay,
+#     demand = "population",
+#     supply = "jobs",
+#     active = FALSE,
+#     group_by = "mode",
+#     detailed_results = TRUE
+#   )
+#
+#   expect_true("mode" %in% names(result_passive))
+#   expect_true("decay_function_arg" %in% names(result_passive))
+#
+#   expect_equal(
+#     sort(unique(result_passive$mode)),
+#     c("bus", "car")
+#   )
+#
+#   expect_equal(
+#     sort(unique(result_passive$decay_function_arg)),
+#     c(0.1, 0.5)
+#   )
+# })
+#
+# test_that("singly-constrained grouped results equal standalone results", {
+#
+#   tm <- make_tm_3x3()
+#   lu <- make_lu_match20()
+#
+#   tm_modes <- data.table::rbindlist(
+#     list(
+#       car = data.table::copy(tm),
+#       bus = data.table::copy(tm)
+#     ),
+#     idcol = "mode"
+#   )
+#
+#   # active
+#   grouped_active <- constrained_accessibility(
+#     constraint = "singly",
+#     travel_matrix = tm_modes,
+#     land_use_data = lu,
+#     travel_cost = "travel_time",
+#     decay_function = exp_decay_01,
+#     demand = "population",
+#     supply = "jobs",
+#     active = TRUE,
+#     group_by = "mode"
+#   )
+#
+#   standalone_active <- constrained_accessibility(
+#     constraint = "singly",
+#     travel_matrix = tm,
+#     land_use_data = lu,
+#     travel_cost = "travel_time",
+#     decay_function = exp_decay_01,
+#     demand = "population",
+#     supply = "jobs",
+#     active = TRUE
+#   )
+#
+#   expect_equal(
+#     grouped_active[mode == "car"][order(from_id)]$supply,
+#     standalone_active[order(from_id)]$supply
+#   )
+#
+#   expect_equal(
+#     grouped_active[mode == "bus"][order(from_id)]$supply,
+#     standalone_active[order(from_id)]$supply
+#   )
+#
+#   # passive
+#   grouped_passive <- constrained_accessibility(
+#     constraint = "singly",
+#     travel_matrix = tm_modes,
+#     land_use_data = lu,
+#     travel_cost = "travel_time",
+#     decay_function = exp_decay_01,
+#     demand = "population",
+#     supply = "jobs",
+#     active = FALSE,
+#     group_by = "mode"
+#   )
+#
+#   standalone_passive <- constrained_accessibility(
+#     constraint = "singly",
+#     travel_matrix = tm,
+#     land_use_data = lu,
+#     travel_cost = "travel_time",
+#     decay_function = exp_decay_01,
+#     demand = "population",
+#     supply = "jobs",
+#     active = FALSE
+#   )
+#
+#   expect_equal(
+#     grouped_passive[mode == "car"][order(to_id)]$demand,
+#     standalone_passive[order(to_id)]$demand
+#   )
+#
+#   expect_equal(
+#     grouped_passive[mode == "bus"][order(to_id)]$demand,
+#     standalone_passive[order(to_id)]$demand
+#   )
+# })
+
 # # ------------------------------ DOUBLY -------------------------------
 # test_that("doubly-constrained: errors when totals mismatch", {
 #   tm <- make_tm_3x3()
@@ -483,328 +1081,3 @@ pow_decay_3  <- decay_power(decay_value = 3)
 #
 #   expect_true(is.null(attr(lu, "index")))
 # })
-
-# test_that("total-constrained active multiple decay resultes equal single-decay runs", {
-#
-#   # creating a 11x11 OD matrix, meaning 121 OD pairs
-#   ids <- as.character(1:11)
-#
-#   tm <- data.table::CJ(
-#     from_id = ids,
-#     to_id = ids
-#   )
-#
-#   # assigning travel times that are abs(i-j) * 15, and 180 between 1->11 and 11->1
-#   tm[, travel_time := abs(
-#     as.integer(from_id) - as.integer(to_id)) * 15]
-#
-#   tm[from_id == "1" & to_id == "11", travel_time := 180]
-#   tm[from_id == "11" & to_id == "1", travel_time := 180]
-#
-#   #assigning population, and jobs to each id.
-#   lu <- data.table(
-#     id = ids,
-#     population = c(
-#       100, 0, 250, 50, 0,
-#       400, 120, 80, 0, 200, 25
-#     ), # sums to 1225
-#     jobs = c(
-#       0, 500, 50, 0, 100,
-#       250, 0, 300, 75, 0, 150
-#     ) # sums to 1425
-#   )
-#
-#   multi <- constrained_accessibility(
-#     constraint = "total",
-#     travel_matrix = tm,
-#     land_use_data = lu,
-#     travel_cost = "travel_time",
-#     decay_function = decay_exponential(c(0.05, 0.20)),
-#     supply = "jobs",
-#     active = TRUE
-#   )
-#
-#   run_005 <- constrained_accessibility(
-#     constraint = "total",
-#     travel_matrix = tm,
-#     land_use_data = lu,
-#     travel_cost = "travel_time",
-#     decay_function = decay_exponential(0.05),
-#     supply = "jobs",
-#     active = TRUE
-#   )
-#
-#   run_020 <- constrained_accessibility(
-#     constraint = "total",
-#     travel_matrix = tm,
-#     land_use_data = lu,
-#     travel_cost = "travel_time",
-#     decay_function = decay_exponential(0.20),
-#     supply = "jobs",
-#     active = TRUE
-#   )
-#
-#   # Does the multi-decay run result exactly the same values as a standalone run with decay=0.05?
-#   expect_equal(
-#     multi[decay_function_arg == 0.05][order(from_id)]$supply,
-#     run_005[order(from_id)]$supply
-#   )
-#
-#   # Does the multi-decay run result exactly the same values as a standalone run with decay=0.20?
-#   expect_equal(
-#     multi[decay_function_arg == 0.20][order(from_id)]$supply,
-#     run_020[order(from_id)]$supply
-#   )
-#
-#   # Does each decay scenario preserve the regional total opportunities?
-#   totals <- multi[
-#     ,
-#     .(total_supply = sum(supply)),
-#     by = decay_function_arg
-#   ]
-#
-#   expect_equal(
-#     totals$total_supply,
-#     rep(sum(lu$jobs), 2)
-#   )
-# })
-
-test_that("total-constrained passive multiple decay values equal separate runs", {
-
-  ids <- as.character(1:11)
-
-  tm <- data.table::CJ(
-    from_id = ids,
-    to_id = ids
-  )
-
-  tm[, travel_time := abs(
-    as.integer(from_id) - as.integer(to_id)
-  ) * 15]
-
-  lu <- data.table(
-    id = ids,
-    population = c(
-      100, 0, 250, 50, 0,
-      400, 120, 80, 0, 200, 25
-    ),
-    jobs = c(
-      0, 500, 50, 0, 100,
-      250, 0, 300, 75, 0, 150
-    )
-  )
-
-  multi <- constrained_accessibility(
-    constraint = "total",
-    travel_matrix = tm,
-    land_use_data = lu,
-    travel_cost = "travel_time",
-    decay_function = decay_exponential(c(0.05, 0.20)),
-    demand = "population",
-    active = FALSE
-  )
-
-  run_005 <- constrained_accessibility(
-    constraint = "total",
-    travel_matrix = tm,
-    land_use_data = lu,
-    travel_cost = "travel_time",
-    decay_function = decay_exponential(0.05),
-    demand = "population",
-    active = FALSE
-  )
-
-  run_020 <- constrained_accessibility(
-    constraint = "total",
-    travel_matrix = tm,
-    land_use_data = lu,
-    travel_cost = "travel_time",
-    decay_function = decay_exponential(0.20),
-    demand = "population",
-    active = FALSE
-  )
-
-  expect_equal(
-    multi[decay_function_arg == 0.05][order(to_id)]$demand,
-    run_005[order(to_id)]$demand
-  )
-
-  expect_equal(
-    multi[decay_function_arg == 0.20][order(to_id)]$demand,
-    run_020[order(to_id)]$demand
-  )
-
-  totals <- multi[
-    ,
-    .(total_demand = sum(demand)),
-    by = decay_function_arg
-  ]
-
-  expect_equal(
-    totals$total_demand,
-    rep(sum(lu$population), 2)
-  )
-})
-#
-# test_that("singly-constrained active multiple decay values equal separate runs", {
-#
-#   ids <- as.character(1:11)
-#
-#   tm <- data.table::CJ(
-#     from_id = ids,
-#     to_id = ids
-#   )
-#
-#   tm[, travel_time := abs(
-#     as.integer(from_id) - as.integer(to_id)
-#   ) * 15]
-#
-#   tm[from_id == "1" & to_id == "11", travel_time := 180]
-#   tm[from_id == "11" & to_id == "1", travel_time := 180]
-#
-#   lu <- data.table(
-#     id = ids,
-#     population = c(
-#       100, 0, 250, 50, 0,
-#       400, 120, 80, 0, 200, 25
-#     ),
-#     jobs = c(
-#       0, 500, 50, 0, 100,
-#       250, 0, 300, 75, 0, 150
-#     )
-#   )
-#
-#   multi <- constrained_accessibility(
-#     constraint = "singly",
-#     travel_matrix = tm,
-#     land_use_data = lu,
-#     travel_cost = "travel_time",
-#     decay_function = decay_exponential(c(0.05, 0.20)),
-#     demand = "population",
-#     supply = "jobs",
-#     active = TRUE
-#   )
-#
-#   run_005 <- constrained_accessibility(
-#     constraint = "singly",
-#     travel_matrix = tm,
-#     land_use_data = lu,
-#     travel_cost = "travel_time",
-#     decay_function = decay_exponential(0.05),
-#     demand = "population",
-#     supply = "jobs",
-#     active = TRUE
-#   )
-#
-#   run_020 <- constrained_accessibility(
-#     constraint = "singly",
-#     travel_matrix = tm,
-#     land_use_data = lu,
-#     travel_cost = "travel_time",
-#     decay_function = decay_exponential(0.20),
-#     demand = "population",
-#     supply = "jobs",
-#     active = TRUE
-#   )
-#   # Does the multi-decay run result exactly the same values as a standalone run with decay=0.05?
-#   expect_equal(
-#     multi[decay_function_arg == 0.05][order(from_id)]$supply,
-#     run_005[order(from_id)]$supply
-#   )
-#   # Does the multi-decay run result exactly the same values as a standalone run with decay=0.20?
-#   expect_equal(
-#     multi[decay_function_arg == 0.20][order(from_id)]$supply,
-#     run_020[order(from_id)]$supply
-#   )
-#   # Does each decay scenario preserve the regional total opportunities?
-#   totals <- multi[
-#     ,
-#     .(total_supply = sum(supply)),
-#     by = decay_function_arg
-#   ]
-#
-#   expect_equal(
-#     totals$total_supply,
-#     rep(sum(lu$jobs), 2)
-#   )
-# })
-
-test_that("singly-constrained passive multiple decay values equal separate runs", {
-
-  ids <- as.character(1:11)
-
-  tm <- data.table::CJ(
-    from_id = ids,
-    to_id = ids
-  )
-
-  tm[, travel_time := abs(
-    as.integer(from_id) - as.integer(to_id)
-  ) * 15]
-
-  lu <- data.table(
-    id = ids,
-    population = c(
-      100, 0, 250, 50, 0,
-      400, 120, 80, 0, 200, 25
-    ),
-    jobs = c(
-      0, 500, 50, 0, 100,
-      250, 0, 300, 75, 0, 150
-    )
-  )
-
-  multi <- constrained_accessibility(
-    constraint = "singly",
-    travel_matrix = tm,
-    land_use_data = lu,
-    travel_cost = "travel_time",
-    decay_function = decay_exponential(c(0.05, 0.20)),
-    demand = "population",
-    supply = "jobs",
-    active = FALSE
-  )
-
-  run_005 <- constrained_accessibility(
-    constraint = "singly",
-    travel_matrix = tm,
-    land_use_data = lu,
-    travel_cost = "travel_time",
-    decay_function = decay_exponential(0.05),
-    demand = "population",
-    supply = "jobs",
-    active = FALSE
-  )
-
-  run_020 <- constrained_accessibility(
-    constraint = "singly",
-    travel_matrix = tm,
-    land_use_data = lu,
-    travel_cost = "travel_time",
-    decay_function = decay_exponential(0.20),
-    demand = "population",
-    supply = "jobs",
-    active = FALSE
-  )
-
-  expect_equal(
-    multi[decay_function_arg == 0.05][order(to_id)]$demand,
-    run_005[order(to_id)]$demand
-  )
-
-  expect_equal(
-    multi[decay_function_arg == 0.20][order(to_id)]$demand,
-    run_020[order(to_id)]$demand
-  )
-
-  totals <- multi[
-    ,
-    .(total_demand = sum(demand)),
-    by = decay_function_arg
-  ]
-
-  expect_equal(
-    totals$total_demand,
-    rep(sum(lu$population), 2)
-  )
-})
