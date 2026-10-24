@@ -24,7 +24,7 @@ make_lu_match20 <- function() {
 exp_decay_01 <- decay_exponential(decay_value = 0.1)
 pow_decay_3  <- decay_power(decay_value = 3)
 
-# # ------------------------------- TOTAL (5 tests) -------------------------------
+# # ------------------------------- TOTAL (6 tests) -------------------------------
 # test_that("total-constrained: preserves totals on supply/demand sides", {
 #   tm <- make_tm_3x3()
 #   lu <- make_lu_large()
@@ -363,9 +363,38 @@ pow_decay_3  <- decay_power(decay_value = 3)
 #
 #   expect_equal(nrow(aggregated), 12L)
 # })
-
-
-# # ------------------------------ SINGLY (5 tests)-------------------------------
+#
+# test_that("total-constrained (active) fills missing group combinations", {
+#
+#   tm <- make_tm_3x3()
+#
+#   tm_modes <- data.table::rbindlist(
+#     list(
+#       car = data.table::copy(tm),
+#       bus = data.table::copy(tm)[from_id != "3"]
+#     ),
+#     idcol = "mode"
+#   )
+#
+#   result <- constrained_accessibility(
+#     constraint = "total",
+#     travel_matrix = tm_modes,
+#     land_use_data = make_lu_match20(),
+#     travel_cost = "travel_time",
+#     decay_function = exp_decay_01,
+#     supply = "jobs",
+#     active = TRUE,
+#     group_by = "mode",
+#     fill_missing_ids = TRUE
+#   )
+#
+#   expect_equal(
+#     result[from_id == "3" & mode == "bus"]$supply,
+#     0
+#   )
+# })
+#
+# # ------------------------------ SINGLY (6 tests)-------------------------------
 # test_that("singly-constrained: preserves totals and kappa properties", {
 #   tm <- make_tm_3x3()
 #   lu <- make_lu_large()
@@ -746,6 +775,37 @@ pow_decay_3  <- decay_power(decay_value = 3)
 #   expect_equal(
 #     grouped_passive[mode == "bus"][order(to_id)]$demand,
 #     standalone_passive[order(to_id)]$demand
+#   )
+# })
+#
+# test_that("singly-constrained (active) fills missing group combinations", {
+#
+#   tm <- make_tm_3x3()
+#
+#   tm_modes <- data.table::rbindlist(
+#     list(
+#       car = data.table::copy(tm),
+#       bus = data.table::copy(tm)[from_id != "3"]
+#     ),
+#     idcol = "mode"
+#   )
+#
+#   result <- constrained_accessibility(
+#     constraint = "singly",
+#     travel_matrix = tm_modes,
+#     land_use_data = make_lu_match20(),
+#     travel_cost = "travel_time",
+#     decay_function = exp_decay_01,
+#     demand = "population",
+#     supply = "jobs",
+#     active = TRUE,
+#     group_by = "mode",
+#     fill_missing_ids = TRUE
+#   )
+#
+#   expect_equal(
+#     result[from_id == "3" & mode == "bus"]$supply,
+#     0
 #   )
 # })
 
