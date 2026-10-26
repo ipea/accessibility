@@ -53,12 +53,11 @@ single value. Can be any function that takes an arbitrary number of
 numeric values as input and returns a single number as output. Defaults
 to \code{\link[stats:median]{stats::median()}}.}
 
-\item{group_by}{A \code{character} vector. When not \code{character(0)} (the default),
-indicates the \code{travel_matrix} columns that should be used to group the
-accessibility estimates by. For example, if \code{travel_matrix} includes a
-departure time column, that specifies the departure time of each entry in
-the data frame, passing \code{"departure_time"} to this parameter results in
-accessibility estimates grouped by origin and by departure time.}
+\item{group_by}{A string referring to a column in the input data frame.
+Calculations are performed separately for each unique value (or
+combination of values) in \code{group_by}, and the results are stacked in the
+output. This is equivalent to splitting the input data by group, running
+the function separately for each group, and combining the results.}
 
 \item{active}{A logical. When \code{TRUE}, the function calculates active
 accessibility (the quantity of opportunities that can be reached from
@@ -115,7 +114,7 @@ head(df)
 \insertAllCited{}
 }
 \seealso{
-Other cumulative access:
-\code{\link[=cumulative_cutoff]{cumulative_cutoff()}}
+Other cumulative access: 
+\code{\link{cumulative_cutoff}()}
 }
 \concept{cumulative access}

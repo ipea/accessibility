@@ -54,3 +54,4 @@ Encoding: UTF-8
 NeedsCompilation: no
 Roxygen: list(markdown = TRUE)
 Config/roxygen2/version: 8.1.0
+RoxygenNote: 7.3.3

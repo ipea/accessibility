@@ -55,7 +55,14 @@ same length as the input. For convenience, the package currently includes
 the following functions: \code{\link[=decay_binary]{decay_binary()}}, \code{\link[=decay_exponential]{decay_exponential()}},
 \code{\link[=decay_linear]{decay_linear()}}, \code{\link[=decay_logistic]{decay_logistic()}}, \code{\link[=decay_power]{decay_power()}} and
 \code{\link[=decay_stepped]{decay_stepped()}}. See the documentation of each decay function for more
-details.}
+details.
+
+When a decay function is specified with multiple parameter values (e.g.
+\code{decay_exponential(c(0.1, 0.5))}), calculations are performed separately
+for each parameter value and the results are stacked in the output. This
+is equivalent to running the function separately for each parameter value
+and combining the results. A \code{decay_function_arg} column identifies the
+parameter value associated with each result.}
 
 \item{active}{A logical. When \code{TRUE}, the function calculates active
 accessibility (the quantity of opportunities that can be reached from
@@ -75,12 +82,11 @@ used only for calibration in the doubly-constrained case
 \item{max_iterations}{Integer. Maximum iterations used only for calibration
 in the doubly-constrained case (\code{constraint = "doubly"}).}
 
-\item{group_by}{A \code{character} vector. When not \code{character(0)} (the default),
-indicates the \code{travel_matrix} columns that should be used to group the
-accessibility estimates by. For example, if \code{travel_matrix} includes a
-departure time column, that specifies the departure time of each entry in
-the data frame, passing \code{"departure_time"} to this parameter results in
-accessibility estimates grouped by origin and by departure time.}
+\item{group_by}{A string referring to a column in the input data frame.
+Calculations are performed separately for each unique value (or
+combination of values) in \code{group_by}, and the results are stacked in the
+output. This is equivalent to splitting the input data by group, running
+the function separately for each group, and combining the results.}
 
 \item{fill_missing_ids}{A \code{logical}. When calculating grouped accessibility
 estimates (i.e. when \code{group_by} is not empty), some combinations of groups
@@ -122,7 +128,9 @@ and \code{flow}, holding the demand of each origin followed by the supply of
 each destination (so an id can appear twice).
 }
 
-Detailed results don't include the \code{group_by} columns.
+Detailed results include the \code{group_by} columns (and \code{decay_function_arg},
+when present) so results from different groups or decay values can be
+distinguished.
 }
 \description{
 Calculates accessibility using constraints, as proposed in
@@ -134,6 +142,21 @@ constraint cases. Please see the Details section for more information.
 
 This function covers the family of constrained accessibility measures
 proposed in \insertCite{soukhov2025family;textual}{accessibility}.
+\subsection{Grouping variables and multiple decay values}{
+
+When \code{group_by} is supplied, calculations are performed separately for each
+unique group and the results are stacked in the output. Likewise, when a
+decay function is specified with multiple parameter values (e.g.
+\code{decay_exponential(c(0.1, 0.5))}), calculations are performed separately
+for each parameter value and the results are stacked in the output.
+
+For constrained accessibility measures, each group or decay value is treated
+as an independent transportation system. This does not represent a
+multimodal model that splits demand and/or supply across groups. Instead,
+each group receives the full demand and/or supply totals and is evaluated
+independently.
+}
+
 \subsection{Total Constrained Accessibility}{
 
 Allocates the system-wide total proportionally based on travel impedance
@@ -273,10 +296,11 @@ travel  impedance.
 \item Both \code{demand} and \code{supply} must be provided.
 \item Unlike \code{total} and \code{singly}, \code{doubly} requires the sum of demand and supply
 to match; otherwise, the model will not converge.
-\item \code{active} must be \code{NULL}. Since supply must match demand, their units are
-the same and there is no distinction between 'active' and 'passive' notions.
-\item Should be used with \code{detailed_results = TRUE}. With
-\code{detailed_results = FALSE}, it only returns the demand and supply
+\item \code{active} is ignored. Since supply must match demand, there is no
+distinction between active and passive accessibility.
+\item \code{detailed_results = TRUE} is recommended, as the primary output
+of the doubly-constrained model is the OD flow matrix. When
+\code{detailed_results = FALSE}, the function returns the demand and supply
 marginals, with a warning.
 }
 }
@@ -380,7 +404,7 @@ constrained_accessibility(
 \insertAllCited{}
 }
 \seealso{
-Other Constrained accessibility:
-\code{\link[=spatial_availability]{spatial_availability()}}
+Other Constrained accessibility: 
+\code{\link{spatial_availability}()}
 }
 \concept{Constrained accessibility}

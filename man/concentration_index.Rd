@@ -97,10 +97,10 @@ ci
 \insertAllCited{}
 }
 \seealso{
-Other equity:
-\code{\link[=fgt_poverty]{fgt_poverty()}},
-\code{\link[=gini_index]{gini_index()}},
-\code{\link[=palma_ratio]{palma_ratio()}},
-\code{\link[=theil_t]{theil_t()}}
+Other equity: 
+\code{\link{fgt_poverty}()},
+\code{\link{gini_index}()},
+\code{\link{palma_ratio}()},
+\code{\link{theil_t}()}
 }
 \concept{equity}

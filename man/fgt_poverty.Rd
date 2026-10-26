@@ -126,10 +126,10 @@ poverty
 \insertAllCited{}
 }
 \seealso{
-Other equity:
-\code{\link[=concentration_index]{concentration_index()}},
-\code{\link[=gini_index]{gini_index()}},
-\code{\link[=palma_ratio]{palma_ratio()}},
-\code{\link[=theil_t]{theil_t()}}
+Other equity: 
+\code{\link{concentration_index}()},
+\code{\link{gini_index}()},
+\code{\link{palma_ratio}()},
+\code{\link{theil_t}()}
 }
 \concept{equity}

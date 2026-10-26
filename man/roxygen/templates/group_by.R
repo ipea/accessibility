@@ -1,6 +1,5 @@
-#' @param group_by A `character` vector. When not `character(0)` (the default),
-#'   indicates the `travel_matrix` columns that should be used to group the
-#'   accessibility estimates by. For example, if `travel_matrix` includes a
-#'   departure time column, that specifies the departure time of each entry in
-#'   the data frame, passing `"departure_time"` to this parameter results in
-#'   accessibility estimates grouped by origin and by departure time.
+#' @param group_by A string referring to a column in the input data frame.
+#'   Calculations are performed separately for each unique value (or
+#'   combination of values) in `group_by`, and the results are stacked in the
+#'   output. This is equivalent to splitting the input data by group, running
+#'   the function separately for each group, and combining the results.

@@ -50,12 +50,11 @@ possibly benefit from a smaller increment of 0.05, for example, resulting
 in the function looking for balancing costs first at a cost of 0, then
 0.05, 0.10, ..., etc. Defaults to 1.}
 
-\item{group_by}{A \code{character} vector. When not \code{character(0)} (the default),
-indicates the \code{travel_matrix} columns that should be used to group the
-accessibility estimates by. For example, if \code{travel_matrix} includes a
-departure time column, that specifies the departure time of each entry in
-the data frame, passing \code{"departure_time"} to this parameter results in
-accessibility estimates grouped by origin and by departure time.}
+\item{group_by}{A string referring to a column in the input data frame.
+Calculations are performed separately for each unique value (or
+combination of values) in \code{group_by}, and the results are stacked in the
+output. This is equivalent to splitting the input data by group, running
+the function separately for each group, and combining the results.}
 
 \item{fill_missing_ids}{A \code{logical}. Origins that never reach as many
 opportunities as there are people residing in them, as well as (when
@@ -101,8 +100,8 @@ head(bc)
 \insertAllCited{}
 }
 \seealso{
-Other accessibility measures:
-\code{\link[=cost_to_closest]{cost_to_closest()}},
-\code{\link[=gravity]{gravity()}}
+Other accessibility measures: 
+\code{\link{cost_to_closest}()},
+\code{\link{gravity}()}
 }
 \concept{accessibility measures}
