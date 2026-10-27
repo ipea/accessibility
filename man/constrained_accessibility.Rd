@@ -92,7 +92,10 @@ the function identifies which combinations would be left out and fills
 their respective accessibility values with 0, which incurs a
 performance penalty.}
 
-\item{detailed_results}{Logical. Whether to return detailed OD-level results.}
+\item{detailed_results}{Logical. Whether to return detailed OD-level
+results for \code{constraint = "total"}- and \code{constraint = "singly"}
+accessibility. Currently ignored for \code{constraint = "doubly"} accessibility,
+which always returns OD-level flows.}
 }
 \value{
 A data frame of the same class as \code{travel_matrix} (\code{data.table},
@@ -113,16 +116,15 @@ the allocated flow (\code{supply} or \code{demand}) and the scaling constant
 origin-destination pair, with the columns \code{from_id}, \code{to_id}, the
 allocation share (\code{kappa_singly} or \code{hatkappa_singly}), the allocated flow
 (\code{supply} or \code{demand}) and the balancing factor (\code{B_j} or \code{A_i}).
-\item \code{constraint = "doubly"}, \code{detailed_results = TRUE}: one row per
-origin-destination pair, with the columns \code{from_id}, \code{to_id}, \code{flow}, the
-balancing factors \code{A_i} and \code{B_j}, \code{kappa_doubly} and the final balancing
-\code{error}.
-\item \code{constraint = "doubly"}, \code{detailed_results = FALSE}: the columns \code{id}
-and \code{flow}, holding the demand of each origin followed by the supply of
-each destination (so an id can appear twice).
+\item \code{constraint = "doubly"}: one row per origin-destination pair, with the
+columns \code{from_id}, \code{to_id}, \code{flow}, the balancing factors \code{A_i} and \code{B_j},
+\code{kappa_doubly} and the final balancing \code{error}. \code{detailed_results} and
+\code{active} are not read.
 }
 
-Detailed results don't include the \code{group_by} columns.
+Detailed results retain any grouping columns supplied through
+\code{group_by}, as well as \code{decay_function_arg} when multiple decay
+parameter values are used.
 }
 \description{
 Calculates accessibility using constraints, as proposed in
@@ -275,9 +277,8 @@ travel  impedance.
 to match; otherwise, the model will not converge.
 \item \code{active} must be \code{NULL}. Since supply must match demand, their units are
 the same and there is no distinction between 'active' and 'passive' notions.
-\item Should be used with \code{detailed_results = TRUE}. With
-\code{detailed_results = FALSE}, it only returns the demand and supply
-marginals, with a warning.
+\item \code{detailed_results} is currently ignored for doubly-constrained
+accessibility. OD-level flows are always returned.
 }
 }
 
@@ -351,7 +352,7 @@ constrained_accessibility(
 )
 
 # Doubly-constrained: returns units of flow (requires both demand and supply
-# (totals that match) and `detailed_results = TRUE`)
+# with matching totals)
 
 # Using a small toy dataset with matching totals.
 tm_small <- data.table::data.table(
@@ -380,7 +381,7 @@ constrained_accessibility(
 \insertAllCited{}
 }
 \seealso{
-Other Constrained accessibility:
-\code{\link[=spatial_availability]{spatial_availability()}}
+Other Constrained accessibility: 
+\code{\link{spatial_availability}()}
 }
 \concept{Constrained accessibility}

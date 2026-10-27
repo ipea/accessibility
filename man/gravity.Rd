@@ -105,8 +105,8 @@ head(df_exp)
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-Other accessibility measures:
-\code{\link[=balancing_cost]{balancing_cost()}},
-\code{\link[=cost_to_closest]{cost_to_closest()}}
+Other accessibility measures: 
+\code{\link{balancing_cost}()},
+\code{\link{cost_to_closest}()}
 }
 \concept{accessibility measures}

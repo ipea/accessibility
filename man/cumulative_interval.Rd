@@ -115,7 +115,7 @@ head(df)
 \insertAllCited{}
 }
 \seealso{
-Other cumulative access:
-\code{\link[=cumulative_cutoff]{cumulative_cutoff()}}
+Other cumulative access: 
+\code{\link{cumulative_cutoff}()}
 }
 \concept{cumulative access}

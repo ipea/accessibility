@@ -29,7 +29,10 @@
 #' in the doubly-constrained case (`constraint = "doubly"`).
 #' @template group_by
 #' @template fill_missing_ids_combinations
-#' @param detailed_results Logical. Whether to return detailed OD-level results.
+#' @param detailed_results Logical. Whether to return detailed OD-level
+#' results for `constraint = "total"`- and `constraint = "singly"`
+#' accessibility. Currently ignored for `constraint = "doubly"` accessibility,
+#' which always returns OD-level flows.
 #'
 #'
 #' @section Details:
@@ -156,11 +159,10 @@
 #' - Both `demand` and `supply` must be provided.
 #' - Unlike `total` and `singly`, `doubly` requires the sum of demand and supply
 #' to match; otherwise, the model will not converge.
-#'  - `active` must be `NULL`. Since supply must match demand, their units are
-#'  the same and there is no distinction between 'active' and 'passive' notions.
-#' - Should be used with `detailed_results = TRUE`. With
-#'   `detailed_results = FALSE`, it only returns the demand and supply
-#'   marginals, with a warning.
+#' - `active` must be `NULL`. Since supply must match demand, their units are
+#'   the same and there is no distinction between 'active' and 'passive' notions.
+#' - `detailed_results` is currently ignored for doubly-constrained
+#'   accessibility. OD-level flows are always returned.
 #'
 #' ### Interpretation:
 #' - Results include OD-level flows (`flow`) along with balancing factors (`A_i`,
@@ -191,15 +193,14 @@
 #'   origin-destination pair, with the columns `from_id`, `to_id`, the
 #'   allocation share (`kappa_singly` or `hatkappa_singly`), the allocated flow
 #'   (`supply` or `demand`) and the balancing factor (`B_j` or `A_i`).
-#' - `constraint = "doubly"`, `detailed_results = TRUE`: one row per
-#'   origin-destination pair, with the columns `from_id`, `to_id`, `flow`, the
-#'   balancing factors `A_i` and `B_j`, `kappa_doubly` and the final balancing
-#'   `error`.
-#' - `constraint = "doubly"`, `detailed_results = FALSE`: the columns `id`
-#'   and `flow`, holding the demand of each origin followed by the supply of
-#'   each destination (so an id can appear twice).
+#' - `constraint = "doubly"`: one row per origin-destination pair, with the
+#' columns `from_id`, `to_id`, `flow`, the balancing factors `A_i` and `B_j`,
+#' `kappa_doubly` and the final balancing `error`. `detailed_results` and
+#' `active` are not read.
 #'
-#' Detailed results don't include the `group_by` columns.
+#' Detailed results retain any grouping columns supplied through
+#' `group_by`, as well as `decay_function_arg` when multiple decay
+#' parameter values are used.
 #'
 #' @references
 #' \insertAllCited{}
@@ -255,7 +256,7 @@
 #' )
 #'
 #' # Doubly-constrained: returns units of flow (requires both demand and supply
-#' # (totals that match) and `detailed_results = TRUE`)
+#' # with matching totals)
 #'
 #' # Using a small toy dataset with matching totals.
 #' tm_small <- data.table::data.table(

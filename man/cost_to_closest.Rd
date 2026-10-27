@@ -100,8 +100,8 @@ head(df)
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-Other accessibility measures:
-\code{\link[=balancing_cost]{balancing_cost()}},
-\code{\link[=gravity]{gravity()}}
+Other accessibility measures: 
+\code{\link{balancing_cost}()},
+\code{\link{gravity}()}
 }
 \concept{accessibility measures}

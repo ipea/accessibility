@@ -101,8 +101,8 @@ head(bc)
 \insertAllCited{}
 }
 \seealso{
-Other accessibility measures:
-\code{\link[=cost_to_closest]{cost_to_closest()}},
-\code{\link[=gravity]{gravity()}}
+Other accessibility measures: 
+\code{\link{cost_to_closest}()},
+\code{\link{gravity}()}
 }
 \concept{accessibility measures}
