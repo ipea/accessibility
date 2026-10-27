@@ -394,6 +394,84 @@ test_that("total-constrained (active) fills missing group combinations", {
   )
 })
 
+test_that(
+  "total-constrained groups are allocated only opportunities present in that group's ids",
+  {
+
+    tm <- make_tm_3x3()
+    lu <- make_lu_match20()
+
+    # Active accessibility (bus has no trips to destination 3)
+    bus_active <- tm[to_id != "3"]
+
+    grouped_active <- constrained_accessibility(
+      constraint = "total",
+      travel_matrix = data.table::rbindlist(
+        list(
+          car = tm,
+          bus = bus_active
+        ),
+        idcol = "mode"
+      ),
+      land_use_data = lu,
+      travel_cost = "travel_time",
+      decay_function = exp_decay_01,
+      supply = "jobs",
+      active = TRUE,
+      group_by = "mode"
+    )
+
+    standalone_active <- constrained_accessibility(
+      constraint = "total",
+      travel_matrix = bus_active,
+      land_use_data = lu,
+      travel_cost = "travel_time",
+      decay_function = exp_decay_01,
+      supply = "jobs",
+      active = TRUE
+    )
+
+    expect_equal(
+      grouped_active[mode == "bus", sum(supply)],
+      standalone_active[, sum(supply)]
+    )
+
+    # Passive accessibility (bus has no trips from origin 3)
+    bus_passive <- tm[from_id != "3"]
+
+    grouped_passive <- constrained_accessibility(
+      constraint = "total",
+      travel_matrix = data.table::rbindlist(
+        list(
+          car = tm,
+          bus = bus_passive
+        ),
+        idcol = "mode"
+      ),
+      land_use_data = lu,
+      travel_cost = "travel_time",
+      decay_function = exp_decay_01,
+      demand = "population",
+      active = FALSE,
+      group_by = "mode"
+    )
+
+    standalone_passive <- constrained_accessibility(
+      constraint = "total",
+      travel_matrix = bus_passive,
+      land_use_data = lu,
+      travel_cost = "travel_time",
+      decay_function = exp_decay_01,
+      demand = "population",
+      active = FALSE
+    )
+
+    expect_equal(
+      grouped_passive[mode == "bus", sum(demand)],
+      standalone_passive[, sum(demand)]
+    )
+  }
+)
 
 # ------------------------------ SINGLY (6 tests)-------------------------------
 test_that("singly-constrained: preserves totals and kappa properties", {

@@ -114,10 +114,10 @@ ti
 \dontshow{\}) # examplesIf}
 }
 \seealso{
-Other equity: 
-\code{\link{concentration_index}()},
-\code{\link{fgt_poverty}()},
-\code{\link{gini_index}()},
-\code{\link{palma_ratio}()}
+Other equity:
+\code{\link[=concentration_index]{concentration_index()}},
+\code{\link[=fgt_poverty]{fgt_poverty()}},
+\code{\link[=gini_index]{gini_index()}},
+\code{\link[=palma_ratio]{palma_ratio()}}
 }
 \concept{equity}

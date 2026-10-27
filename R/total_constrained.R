@@ -106,12 +106,11 @@ total_constrained <- function(travel_matrix,
   data[, total_weighted_system := sum(get(weighted_col)), by = group_by]
   data[, (kappa_col) := get(weighted_col) / total_weighted_system]
 
-
-  ids_for_total <- unique(data[[merge_id]]) # e.g., A,B,C when active=TRUE
-  total_opportunities_region <- sum(
-    land_use_data[[opportunity_col]][match(ids_for_total, land_use_data$id)],
-    na.rm = TRUE
-  )
+  data[
+    ,
+    total_opportunities_region := sum(get(opportunity_col)[!duplicated(get(merge_id))]),
+    by = group_by
+  ]
 
   data[, constrained_opportunity := get(kappa_col) * total_opportunities_region]
 
@@ -128,13 +127,15 @@ total_constrained <- function(travel_matrix,
         "weighted_demand",
         "hatkappa_total",
         "constrained_opportunity",
-        "total_weighted_system"
+        "total_weighted_system",
+        "total_opportunities_region"
       ), with = FALSE]
 
       data.table::setnames(access, "constrained_opportunity", "demand")
 
       access[, hatK_total := total_opportunities_region / total_weighted_system]
       access[, total_weighted_system := NULL]
+      access[, total_opportunities_region := NULL]
 
     } else {
       # supply-side details (active accessibility)
@@ -143,13 +144,16 @@ total_constrained <- function(travel_matrix,
         "weighted_supply",
         "kappa_total",
         "constrained_opportunity",
-        "total_weighted_system"
+        "total_weighted_system",
+        "total_opportunities_region"
       ), with = FALSE]
 
       data.table::setnames(access, "constrained_opportunity", "supply")
 
       access[, K_total := total_opportunities_region / total_weighted_system]
       access[, total_weighted_system := NULL]
+      access[, total_opportunities_region := NULL]
+
 
     }
   } else {

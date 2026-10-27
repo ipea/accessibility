@@ -36,19 +36,16 @@
 #' This function covers the family of constrained accessibility measures
 #' proposed in \insertCite{soukhov2025family;textual}{accessibility}.
 #'
-#' ### Grouping variables and multiple decay values
+#' For these measures, each group or decay value is
+#' treated as an independent land-use-transportation system. This is not a multimodal
+#' model that splits demand or supply across groups. Instead, each group is
+#' calculated as if the function were run separately on that group's rows of
+#' `travel_matrix`. The total allocated within a group is the sum of the
+#' opportunities (or population) associated with the ids that appear in that
+#' group's rows.
 #'
-#' When `group_by` is supplied, calculations are performed separately for each
-#' unique group and the results are stacked in the output. Likewise, when a
-#' decay function is specified with multiple parameter values (e.g.
-#' `decay_exponential(c(0.1, 0.5))`), calculations are performed separately
-#' for each parameter value and the results are stacked in the output.
-#'
-#' For constrained accessibility measures, each group or decay value is treated
-#' as an independent transportation system. This does not represent a
-#' multimodal model that splits demand and/or supply across groups. Instead,
-#' each group receives the full demand and/or supply totals and is evaluated
-#' independently.
+#' As well, when `fill_missing_ids = TRUE`, ids that are absent from a particular
+#' group's rows are still returned with accessibility equal to 0.
 #'
 #' ## Total Constrained Accessibility
 #'
@@ -170,12 +167,11 @@
 #' - Both `demand` and `supply` must be provided.
 #' - Unlike `total` and `singly`, `doubly` requires the sum of demand and supply
 #' to match; otherwise, the model will not converge.
-#' - `active` is ignored. Since supply must match demand, there is no
-#' distinction between active and passive accessibility.
-#' - `detailed_results = TRUE` is recommended, as the primary output
-#' of the doubly-constrained model is the OD flow matrix. When
-#' `detailed_results = FALSE`, the function returns the demand and supply
-#' marginals, with a warning.
+#'  - `active` must be `NULL`. Since supply must match demand, their units are
+#'  the same and there is no distinction between 'active' and 'passive' notions.
+#' - Should be used with `detailed_results = TRUE`. With
+#'   `detailed_results = FALSE`, it only returns the demand and supply
+#'   marginals, with a warning.
 #'
 #' ### Interpretation:
 #' - Results include OD-level flows (`flow`) along with balancing factors (`A_i`,
@@ -214,9 +210,7 @@
 #'   and `flow`, holding the demand of each origin followed by the supply of
 #'   each destination (so an id can appear twice).
 #'
-#' Detailed results include the `group_by` columns (and `decay_function_arg`,
-#' when present) so results from different groups or decay values can be
-#' distinguished.
+#' Detailed results don't include the `group_by` columns.
 #'
 #' @references
 #' \insertAllCited{}

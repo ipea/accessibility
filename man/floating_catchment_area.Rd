@@ -51,20 +51,18 @@ same length as the input. For convenience, the package currently includes
 the following functions: \code{\link[=decay_binary]{decay_binary()}}, \code{\link[=decay_exponential]{decay_exponential()}},
 \code{\link[=decay_linear]{decay_linear()}}, \code{\link[=decay_logistic]{decay_logistic()}}, \code{\link[=decay_power]{decay_power()}} and
 \code{\link[=decay_stepped]{decay_stepped()}}. See the documentation of each decay function for more
-details.
+details.}
 
-When a decay function is specified with multiple parameter values (e.g.
-\code{decay_exponential(c(0.1, 0.5))}), calculations are performed separately
-for each parameter value and the results are stacked in the output. This
-is equivalent to running the function separately for each parameter value
-and combining the results. A \code{decay_function_arg} column identifies the
-parameter value associated with each result.}
+\item{group_by}{A \code{character} vector. When not \code{character(0)} (the default),
+indicates the \code{travel_matrix} columns that should be used to group the
+accessibility estimates by. For example, if \code{travel_matrix} includes a
+departure time column, that specifies the departure time of each entry in
+the data frame, passing \code{"departure_time"} to this parameter results in
+accessibility estimates grouped by origin and by departure time.
 
-\item{group_by}{A string referring to a column in the input data frame.
-Calculations are performed separately for each unique value (or
-combination of values) in \code{group_by}, and the results are stacked in the
-output. This is equivalent to splitting the input data by group, running
-the function separately for each group, and combining the results.}
+Accessibility is calculated separately for each unique combination of
+grouping variables. For constrained accessibility measures, each group is
+treated as an independent land-use-transportation system.}
 
 \item{fill_missing_ids}{A \code{logical}. When calculating grouped accessibility
 estimates (i.e. when \code{group_by} is not empty), some combinations of groups
