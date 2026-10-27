@@ -64,6 +64,15 @@ singly_constrained <- function(travel_matrix,
 
   # Apply decay
   data <- apply_gravity_measure(data, decay_function, travel_cost)
+  if ("decay_function_arg" %in% names(data)) {
+    group_by <- c(group_by, "decay_function_arg")
+  }
+
+  detail_cols <- c(
+    "from_id",
+    "to_id",
+    group_by
+  )
 
   if (active) {
     # Supply-constrained (returns units of supply).. V_ij = (O_i f(c_ij) / sum_i O_i f(c_ij)) * D_j
@@ -73,13 +82,17 @@ singly_constrained <- function(travel_matrix,
     data[, singly_access := kappa_singly * get(supply)]
 
     if (detailed_results) {
-      access <- data[, .(
-        from_id,
-        to_id,
-        kappa_singly,
-        supply = singly_access,
-        B_j = data.table::fifelse(denom_j > 0, 1 / denom_j, 0)
-      )]
+      access <- data[, c(
+        detail_cols,
+        "kappa_singly",
+        "singly_access",
+        "denom_j"
+      ), with = FALSE]
+
+      data.table::setnames(access, "singly_access", "supply")
+
+      access[, B_j := data.table::fifelse(denom_j > 0, 1 / denom_j, 0)]
+      access[, denom_j := NULL]
     } else {
       access <- data[, .(supply = sum(singly_access)), by = c("from_id", group_by)]
       if (fill_missing_ids) {
@@ -100,13 +113,17 @@ singly_constrained <- function(travel_matrix,
     data[, singly_access := hatkappa_singly * get(demand)]
 
     if (detailed_results) {
-      access <- data[, .(
-        from_id,
-        to_id,
-        hatkappa_singly,
-        demand = singly_access,
-        A_i = data.table::fifelse(denom_i > 0, 1 / denom_i, 0)
-      )]
+      access <- data[, c(
+        detail_cols,
+        "hatkappa_singly",
+        "singly_access",
+        "denom_i"
+      ), with = FALSE]
+
+      data.table::setnames(access, "singly_access", "demand")
+
+      access[, A_i := data.table::fifelse(denom_i > 0, 1 / denom_i, 0)]
+      access[, denom_i := NULL]
     } else {
       access <- data[, .(demand = sum(singly_access)), by = c("to_id", group_by)]
       if (fill_missing_ids) {

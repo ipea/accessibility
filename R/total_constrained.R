@@ -19,7 +19,8 @@ utils::globalVariables(c(
   # common ids / columns
   "from_id", "to_id", "id", "opp_weight", "supply", "demand", "weighted_demand", "weighted_supply",
   # total-constrained
-  "kappa_total", "hatkappa_total", "K_total", "hatK_total", "constrained_opportunity",
+  "kappa_total", "hatkappa_total", "K_total", "hatK_total", "constrained_opportunity", "total_weighted_system",
+  "total_opportunities_region",
   # singly-constrained
   "denom_i", "denom_j", "kappa_singly", "hatkappa_singly", "A_i", "B_j", "singly_access",
   # doubly-constrained
@@ -51,11 +52,8 @@ total_constrained <- function(travel_matrix,
       )
     }
     merge_id <- "to_id"
-    group_id <- "from_id"
     weighted_col <- "weighted_supply"
     kappa_col <- "kappa_total"
-    total_col <- "K_total"
-    result_col <- "supply"
     opportunity_col <- supply
   } else {
     #passive accessibility
@@ -67,11 +65,8 @@ total_constrained <- function(travel_matrix,
       )
     }
     merge_id <- "from_id"
-    group_id <- "to_id"
     weighted_col <- "weighted_demand"
     kappa_col <- "hatkappa_total"
-    total_col <- "hatK_total"
-    result_col <- "demand"
     opportunity_col <- demand
   }
 
@@ -103,40 +98,64 @@ total_constrained <- function(travel_matrix,
 
   # Apply decay
   data <- apply_gravity_measure(data, decay_function, travel_cost)
+  if ("decay_function_arg" %in% names(data)) {
+    group_by <- c(group_by, "decay_function_arg")
+  }
 
   # Core calculation
   data[, (weighted_col) := get(opportunity_col) * opp_weight]
-  total_weighted_system <- data[, sum(get(weighted_col))]
+  data[, total_weighted_system := sum(get(weighted_col)), by = group_by]
   data[, (kappa_col) := get(weighted_col) / total_weighted_system]
 
-  ids_for_total <- unique(data[[merge_id]])                   # e.g., A,B,C when active=TRUE
-  total_opportunities_region <- sum(
-    land_use_data[[opportunity_col]][match(ids_for_total, land_use_data$id)],
-    na.rm = TRUE
-  )
+  data[
+    ,
+    total_opportunities_region := sum(get(opportunity_col)[!duplicated(get(merge_id))]),
+    by = group_by
+  ]
 
   data[, constrained_opportunity := get(kappa_col) * total_opportunities_region]
 
+  detail_cols <- c(
+    "from_id",
+    "to_id",
+    group_by
+  )
+
   if (detailed_results) {
     if (!active) {
-      access <- data[, .(
-        from_id,
-        to_id,
-        weighted_demand,
-        hatkappa_total,
-        demand = constrained_opportunity,
-        hatK_total = total_opportunities_region / total_weighted_system
-      )]
+      access <- data[, c(
+        detail_cols,
+        "weighted_demand",
+        "hatkappa_total",
+        "constrained_opportunity",
+        "total_weighted_system",
+        "total_opportunities_region"
+      ), with = FALSE]
+
+      data.table::setnames(access, "constrained_opportunity", "demand")
+
+      access[, hatK_total := total_opportunities_region / total_weighted_system]
+      access[, total_weighted_system := NULL]
+      access[, total_opportunities_region := NULL]
+
     } else {
       # supply-side details (active accessibility)
-      access <- data[, .(
-        from_id,
-        to_id,
-        weighted_supply,
-        kappa_total,
-        supply = constrained_opportunity,
-        K_total = total_opportunities_region / total_weighted_system
-      )]
+      access <- data[, c(
+        detail_cols,
+        "weighted_supply",
+        "kappa_total",
+        "constrained_opportunity",
+        "total_weighted_system",
+        "total_opportunities_region"
+      ), with = FALSE]
+
+      data.table::setnames(access, "constrained_opportunity", "supply")
+
+      access[, K_total := total_opportunities_region / total_weighted_system]
+      access[, total_weighted_system := NULL]
+      access[, total_opportunities_region := NULL]
+
+
     }
   } else {
     if (active) {
@@ -150,6 +169,7 @@ total_constrained <- function(travel_matrix,
           access_col = "supply"
         )
       }
+
     } else {
       # demand aggregated by destination (to_id)
       access <- data[, .(demand = sum(constrained_opportunity)), by = c("to_id", group_by)]

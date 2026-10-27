@@ -44,6 +44,11 @@
     `fill_missing_ids = TRUE` and `group_by` leave combinations missing.
   - `constraint = "total"` no longer adds an index to the user's
     `land_use_data`.
+  - `constraint = "total"` and `"singly"` now treat each `group_by`
+    combination and each decay value as an independent system. Previously,
+    `"total"` split the regional total across groups and both blended
+    several decay values into one result. Detailed results now keep the
+    `group_by` and `decay_function_arg` columns (#66, @soukhova).
 - `cost_to_closest()` no longer returns `Inf` due to integer overflow with
   large opportunity counts.
 - `cumulative_cutoff()`: cutoffs with floating point noise (e.g. from

@@ -80,7 +80,11 @@ indicates the \code{travel_matrix} columns that should be used to group the
 accessibility estimates by. For example, if \code{travel_matrix} includes a
 departure time column, that specifies the departure time of each entry in
 the data frame, passing \code{"departure_time"} to this parameter results in
-accessibility estimates grouped by origin and by departure time.}
+accessibility estimates grouped by origin and by departure time.
+
+Accessibility is calculated separately for each unique combination of
+grouping variables. For constrained accessibility measures, each group is
+treated as an independent land-use-transportation system.}
 
 \item{fill_missing_ids}{A \code{logical}. When calculating grouped accessibility
 estimates (i.e. when \code{group_by} is not empty), some combinations of groups
@@ -122,7 +126,9 @@ and \code{flow}, holding the demand of each origin followed by the supply of
 each destination (so an id can appear twice).
 }
 
-Detailed results don't include the \code{group_by} columns.
+For \code{constraint = "total"} and \code{"singly"}, detailed results include the
+\code{group_by} columns and, when the decay function has several values,
+\code{decay_function_arg}.
 }
 \description{
 Calculates accessibility using constraints, as proposed in
@@ -134,6 +140,17 @@ constraint cases. Please see the Details section for more information.
 
 This function covers the family of constrained accessibility measures
 proposed in \insertCite{soukhov2025family;textual}{accessibility}.
+
+For these measures, each group or decay value is
+treated as an independent land-use-transportation system. This is not a multimodal
+model that splits demand or supply across groups. Instead, each group is
+calculated as if the function were run separately on that group's rows of
+\code{travel_matrix}. The total allocated within a group is the sum of the
+opportunities (or population) associated with the ids that appear in that
+group's rows.
+
+As well, when \code{fill_missing_ids = TRUE}, ids that are absent from a particular
+group's rows are still returned with accessibility equal to 0.
 \subsection{Total Constrained Accessibility}{
 
 Allocates the system-wide total proportionally based on travel impedance
