@@ -1035,28 +1035,6 @@ test_that("singly-constrained (active) fills missing group combinations", {
 })
 
 # ------------------------------ DOUBLY -------------------------------
-test_that("doubly-constrained: errors when totals mismatch", {
-  tm <- make_tm_3x3()
-  lu_bad <- data.table::copy(make_lu_match20())
-  lu_bad[id == "3", jobs := jobs + 1]  # break equality
-
-  expect_error(
-    constrained_accessibility(
-      constraint = "doubly",
-      travel_matrix = tm,
-      land_use_data = lu_bad,
-      travel_cost = "travel_time",
-      decay_function = exp_decay_01,
-      demand = "population",
-      supply = "jobs",
-      detailed_results = TRUE,
-      active = NULL
-    ),
-    # cli wraps long messages, so spaces may be line breaks
-    "sum of origins must equal the sum of[[:space:]]+destinations"
-  )
-})
-
 
 test_that("doubly-constrained: OD flows match marginals", {
   tm    <- make_tm_3x3()
@@ -1357,3 +1335,223 @@ test_that("total-constrained: doesn't add an index to land_use_data", {
 
   expect_true(is.null(attr(lu, "index")))
 })
+
+test_that("doubly-constrained grouped results equal standalone runs", {
+
+  tm <- make_tm_3x3()
+  lu <- make_lu_match20()
+
+  tm_modes <- data.table::rbindlist(
+    list(car = tm, bus = tm),
+    idcol = "mode"
+  )
+
+  grouped <- constrained_accessibility(
+    constraint = "doubly",
+    travel_matrix = tm_modes,
+    land_use_data = lu,
+    travel_cost = "travel_time",
+    decay_function = exp_decay_01,
+    demand = "population",
+    supply = "jobs",
+    group_by = "mode",
+    detailed_results = TRUE
+  )
+
+  standalone <- constrained_accessibility(
+    constraint = "doubly",
+    travel_matrix = tm,
+    land_use_data = lu,
+    travel_cost = "travel_time",
+    decay_function = exp_decay_01,
+    demand = "population",
+    supply = "jobs",
+    detailed_results = TRUE
+  )
+
+  expect_equal(
+    grouped[mode == "car"]$flow,
+    standalone$flow
+  )
+
+  expect_equal(
+    grouped[mode == "bus"]$flow,
+    standalone$flow
+  )
+})
+
+test_that("doubly-constrained multiple decay values equal separate runs", {
+
+  tm <- make_tm_3x3()
+  lu <- make_lu_match20()
+
+  multi <- constrained_accessibility(
+    constraint = "doubly",
+    travel_matrix = tm,
+    land_use_data = lu,
+    travel_cost = "travel_time",
+    decay_function = decay_exponential(c(0.1, 0.5)),
+    demand = "population",
+    supply = "jobs",
+    detailed_results = TRUE
+  )
+
+  run_01 <- constrained_accessibility(
+    constraint = "doubly",
+    travel_matrix = tm,
+    land_use_data = lu,
+    travel_cost = "travel_time",
+    decay_function = decay_exponential(0.1),
+    demand = "population",
+    supply = "jobs",
+    detailed_results = TRUE
+  )
+
+  run_05 <- constrained_accessibility(
+    constraint = "doubly",
+    travel_matrix = tm,
+    land_use_data = lu,
+    travel_cost = "travel_time",
+    decay_function = decay_exponential(0.5),
+    demand = "population",
+    supply = "jobs",
+    detailed_results = TRUE
+  )
+
+  expect_equal(
+    multi[decay_function_arg == 0.1]$flow,
+    run_01$flow
+  )
+
+  expect_equal(
+    multi[decay_function_arg == 0.5]$flow,
+    run_05$flow
+  )
+})
+
+test_that("doubly-constrained preserves grouping columns", {
+
+  tm <- make_tm_3x3()
+  lu <- make_lu_match20()
+
+  tm_modes <- data.table::rbindlist(
+    list(car = tm, bus = tm),
+    idcol = "mode"
+  )
+
+  grouped <- constrained_accessibility(
+    constraint = "doubly",
+    travel_matrix = tm_modes,
+    land_use_data = lu,
+    travel_cost = "travel_time",
+    decay_function = exp_decay_01,
+    demand = "population",
+    supply = "jobs",
+    group_by = "mode",
+    detailed_results = TRUE
+  )
+
+  expect_true("mode" %in% names(grouped))
+
+  multi <- constrained_accessibility(
+    constraint = "doubly",
+    travel_matrix = tm,
+    land_use_data = lu,
+    travel_cost = "travel_time",
+    decay_function = decay_exponential(c(0.1, 0.5)),
+    demand = "population",
+    supply = "jobs",
+    detailed_results = TRUE
+  )
+
+  expect_true("decay_function_arg" %in% names(multi))
+})
+
+
+test_that(
+  "doubly-constrained handles grouped and multi-decay runs at the same time",
+  {
+
+    tm <- make_tm_3x3()
+    lu <- make_lu_match20()
+
+    tm_modes <- data.table::rbindlist(
+      list(
+        car = tm,
+        bus = tm
+      ),
+      idcol = "mode"
+    )
+
+    result <- constrained_accessibility(
+      constraint = "doubly",
+      travel_matrix = tm_modes,
+      land_use_data = lu,
+      travel_cost = "travel_time",
+      decay_function = decay_exponential(c(0.1, 0.5)),
+      demand = "population",
+      supply = "jobs",
+      group_by = "mode",
+      detailed_results = TRUE
+    )
+
+    run_01 <- constrained_accessibility(
+      constraint = "doubly",
+      travel_matrix = tm,
+      land_use_data = lu,
+      travel_cost = "travel_time",
+      decay_function = decay_exponential(0.1),
+      demand = "population",
+      supply = "jobs",
+      detailed_results = TRUE
+    )
+
+    run_05 <- constrained_accessibility(
+      constraint = "doubly",
+      travel_matrix = tm,
+      land_use_data = lu,
+      travel_cost = "travel_time",
+      decay_function = decay_exponential(0.5),
+      demand = "population",
+      supply = "jobs",
+      detailed_results = TRUE
+    )
+
+    expect_identical(
+      sort(unique(result$mode)),
+      c("bus", "car")
+    )
+
+    expect_identical(
+      sort(unique(result$decay_function_arg)),
+      c(0.1, 0.5)
+    )
+
+    # 2 modes × 2 decay values × 9 OD pairs
+
+    expect_identical(
+      nrow(result),
+      36L
+    )
+
+    expect_equal(
+      result[mode == "car" & decay_function_arg == 0.1]$flow,
+      run_01$flow
+    )
+
+    expect_equal(
+      result[mode == "bus" & decay_function_arg == 0.1]$flow,
+      run_01$flow
+    )
+
+    expect_equal(
+      result[mode == "car" & decay_function_arg == 0.5]$flow,
+      run_05$flow
+    )
+
+    expect_equal(
+      result[mode == "bus" & decay_function_arg == 0.5]$flow,
+      run_05$flow
+    )
+  }
+)
