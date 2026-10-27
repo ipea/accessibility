@@ -473,6 +473,152 @@ test_that(
   }
 )
 
+test_that("total-constrained uses each group's own regional total", {
+
+  # with decay_binary(20) the reachable pairs (from -> to) of the full matrix
+  # are 1->1, 3->1, 2->2, 1->3 and 3->3. jobs = 7, 5, 8; population = 4, 10, 6
+  #
+  # active, "bus" has no trips to 3 (jobs in the region: 7 + 5 = 12)
+  # weighted supply: 1->1 = 7, 3->1 = 7, 2->2 = 5, total 19
+  # supply: 1 = 7 / 19 * 12, 2 = 5 / 19 * 12, 3 = 7 / 19 * 12
+  # with decay_binary(40) every pair is reachable: each origin gets 12 / 3
+  #
+  # "car" covers every pair (jobs in the region: 20)
+  # weighted supply: 1->1 = 7, 3->1 = 7, 2->2 = 5, 1->3 = 8, 3->3 = 8, total 35
+  # supply: 1 = 15 / 35 * 20, 2 = 5 / 35 * 20, 3 = 15 / 35 * 20
+
+  tm <- make_tm_3x3()
+  lu <- make_lu_match20()
+
+  tm_modes <- data.table::rbindlist(
+    list(
+      car = data.table::copy(tm),
+      bus = data.table::copy(tm)[to_id != "3"]
+    ),
+    idcol = "mode"
+  )
+
+  active <- constrained_accessibility(
+    constraint = "total",
+    travel_matrix = tm_modes,
+    land_use_data = lu,
+    travel_cost = "travel_time",
+    decay_function = decay_binary(c(20, 40)),
+    supply = "jobs",
+    active = TRUE,
+    group_by = "mode"
+  )
+  data.table::setorderv(active, c("mode", "decay_function_arg", "from_id"))
+
+  expect_equal(
+    active[mode == "bus" & decay_function_arg == 20]$supply,
+    c(7, 5, 7) / 19 * 12
+  )
+  expect_equal(
+    active[mode == "bus" & decay_function_arg == 40]$supply,
+    c(4, 4, 4)
+  )
+  expect_equal(
+    active[mode == "car" & decay_function_arg == 20]$supply,
+    c(15, 5, 15) / 35 * 20
+  )
+
+  # passive, "bike" has no trips from 3 (population in the region: 4 + 10 = 14)
+  # weighted demand: 1->1 = 4, 2->2 = 10, 1->3 = 4, total 18
+  # demand: 1 = 4 / 18 * 14, 2 = 10 / 18 * 14, 3 = 4 / 18 * 14
+
+  tm_bike <- data.table::rbindlist(
+    list(
+      car = data.table::copy(tm),
+      bike = data.table::copy(tm)[from_id != "3"]
+    ),
+    idcol = "mode"
+  )
+
+  passive <- constrained_accessibility(
+    constraint = "total",
+    travel_matrix = tm_bike,
+    land_use_data = lu,
+    travel_cost = "travel_time",
+    decay_function = decay_binary(20),
+    demand = "population",
+    active = FALSE,
+    group_by = "mode"
+  )
+
+  expect_equal(
+    passive[mode == "bike"][order(to_id)]$demand,
+    c(4, 10, 4) / 18 * 14
+  )
+
+  # the detailed results use the same per-group total
+  detailed <- constrained_accessibility(
+    constraint = "total",
+    travel_matrix = tm_modes,
+    land_use_data = lu,
+    travel_cost = "travel_time",
+    decay_function = decay_binary(20),
+    supply = "jobs",
+    active = TRUE,
+    group_by = "mode",
+    detailed_results = TRUE
+  )
+
+  expect_equal(unique(detailed[mode == "bus"]$K_total), 12 / 19)
+  expect_equal(unique(detailed[mode == "car"]$K_total), 20 / 35)
+  expect_equal(sum(detailed[mode == "bus"]$supply), 12)
+})
+
+test_that("total/singly-constrained: grouped results equal standalone runs when groups cover different ids", {
+
+  tm <- make_tm_3x3()
+  lu <- make_lu_match20()
+
+  # "bus" misses destination 3, "bike" misses origin 3, "walk" misses 1->2
+  subsets <- list(
+    car = data.table::copy(tm),
+    bus = data.table::copy(tm)[to_id != "3"],
+    bike = data.table::copy(tm)[from_id != "3"],
+    walk = data.table::copy(tm)[!(from_id == "1" & to_id == "2")]
+  )
+  tm_modes <- data.table::rbindlist(subsets, idcol = "mode")
+
+  run <- function(travel_matrix, constraint, active, ...) {
+    constrained_accessibility(
+      constraint = constraint,
+      travel_matrix = travel_matrix,
+      land_use_data = lu,
+      travel_cost = "travel_time",
+      decay_function = exp_decay_01,
+      demand = if (constraint == "singly" || !active) "population",
+      supply = if (constraint == "singly" || active) "jobs",
+      active = active,
+      fill_missing_ids = FALSE,
+      ...
+    )
+  }
+
+  for (constraint in c("total", "singly")) {
+    for (active in c(TRUE, FALSE)) {
+      id_col <- if (active) "from_id" else "to_id"
+      value_col <- if (active) "supply" else "demand"
+
+      grouped <- run(tm_modes, constraint, active, group_by = "mode")
+
+      for (m in names(subsets)) {
+        standalone <- run(subsets[[m]], constraint, active)
+
+        expect_equal(
+          grouped[mode == m][order(get(id_col))][[value_col]],
+          standalone[order(get(id_col))][[value_col]],
+          info = paste(constraint, active, m)
+        )
+      }
+    }
+  }
+})
+
+
 # ------------------------------ SINGLY (6 tests)-------------------------------
 test_that("singly-constrained: preserves totals and kappa properties", {
   tm <- make_tm_3x3()

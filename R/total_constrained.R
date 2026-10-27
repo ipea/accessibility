@@ -20,6 +20,7 @@ utils::globalVariables(c(
   "from_id", "to_id", "id", "opp_weight", "supply", "demand", "weighted_demand", "weighted_supply",
   # total-constrained
   "kappa_total", "hatkappa_total", "K_total", "hatK_total", "constrained_opportunity", "total_weighted_system",
+  "total_opportunities_region",
   # singly-constrained
   "denom_i", "denom_j", "kappa_singly", "hatkappa_singly", "A_i", "B_j", "singly_access",
   # doubly-constrained

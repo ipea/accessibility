@@ -126,7 +126,9 @@ and \code{flow}, holding the demand of each origin followed by the supply of
 each destination (so an id can appear twice).
 }
 
-Detailed results don't include the \code{group_by} columns.
+For \code{constraint = "total"} and \code{"singly"}, detailed results include the
+\code{group_by} columns and, when the decay function has several values,
+\code{decay_function_arg}.
 }
 \description{
 Calculates accessibility using constraints, as proposed in

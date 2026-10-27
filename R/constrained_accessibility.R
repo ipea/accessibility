@@ -210,7 +210,9 @@
 #'   and `flow`, holding the demand of each origin followed by the supply of
 #'   each destination (so an id can appear twice).
 #'
-#' Detailed results don't include the `group_by` columns.
+#' For `constraint = "total"` and `"singly"`, detailed results include the
+#' `group_by` columns and, when the decay function has several values,
+#' `decay_function_arg`.
 #'
 #' @references
 #' \insertAllCited{}

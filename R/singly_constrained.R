@@ -93,13 +93,6 @@ singly_constrained <- function(travel_matrix,
 
       access[, B_j := data.table::fifelse(denom_j > 0, 1 / denom_j, 0)]
       access[, denom_j := NULL]
-      # access <- data[, .(
-      #   from_id,
-      #   to_id,
-      #   kappa_singly,
-      #   supply = singly_access,
-      #   B_j = data.table::fifelse(denom_j > 0, 1 / denom_j, 0)
-      # )]
     } else {
       access <- data[, .(supply = sum(singly_access)), by = c("from_id", group_by)]
       if (fill_missing_ids) {
@@ -131,13 +124,6 @@ singly_constrained <- function(travel_matrix,
 
       access[, A_i := data.table::fifelse(denom_i > 0, 1 / denom_i, 0)]
       access[, denom_i := NULL]
-      # access <- data[, .(
-      #   from_id,
-      #   to_id,
-      #   hatkappa_singly,
-      #   demand = singly_access,
-      #   A_i = data.table::fifelse(denom_i > 0, 1 / denom_i, 0)
-      # )]
     } else {
       access <- data[, .(demand = sum(singly_access)), by = c("to_id", group_by)]
       if (fill_missing_ids) {
