@@ -24,7 +24,7 @@ make_lu_match20 <- function() {
 exp_decay_01 <- decay_exponential(decay_value = 0.1)
 pow_decay_3  <- decay_power(decay_value = 3)
 
-#------------------------------- TOTAL (6 tests) -------------------------------
+#------------------------------- TOTAL (9 tests) -------------------------------
 test_that("total-constrained: preserves totals on supply/demand sides", {
   tm <- make_tm_3x3()
   lu <- make_lu_large()
@@ -1034,7 +1034,7 @@ test_that("singly-constrained (active) fills missing group combinations", {
   )
 })
 
-# ------------------------------ DOUBLY -------------------------------
+# ------------------------------ DOUBLY (17 tests)-------------------------------
 
 test_that("doubly-constrained: OD flows match marginals", {
   tm    <- make_tm_3x3()

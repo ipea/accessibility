@@ -290,8 +290,9 @@ travel  impedance.
 \itemize{
 \item Both \code{demand} and \code{supply} must be provided.
 \item Unlike \code{total} and \code{singly}, \code{doubly} requires the sum of demand and supply
-to match; otherwise, an error is raised. With \code{group_by}, the totals must
-match within each group.
+to match; otherwise, an error is raised. When \code{group_by} or multiple decay
+values are used, the totals must match within each independently balanced
+system.
 \item \code{active} is ignored. Since supply must match demand, their units are
 the same and there is no distinction between 'active' and 'passive' notions.
 \item \code{detailed_results} is currently ignored for doubly-constrained

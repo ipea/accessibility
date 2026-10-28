@@ -171,8 +171,9 @@
 #' ### Requirements:
 #' - Both `demand` and `supply` must be provided.
 #' - Unlike `total` and `singly`, `doubly` requires the sum of demand and supply
-#'   to match; otherwise, an error is raised. With `group_by`, the totals must
-#'   match within each group.
+#'   to match; otherwise, an error is raised. When `group_by` or multiple decay
+#'   values are used, the totals must match within each independently balanced
+#'   system.
 #' - `active` is ignored. Since supply must match demand, their units are
 #'   the same and there is no distinction between 'active' and 'passive' notions.
 #' - `detailed_results` is currently ignored for doubly-constrained
