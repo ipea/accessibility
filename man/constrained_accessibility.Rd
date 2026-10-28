@@ -149,7 +149,9 @@ opportunities (or population) associated with the ids that appear in that
 group's rows.
 
 As well, when \code{fill_missing_ids = TRUE}, ids that are absent from a particular
-group's rows are still returned with accessibility equal to 0.
+group's rows are still returned with accessibility equal to 0. This doesn't
+apply to \code{constraint = "doubly"}, which ignores \code{fill_missing_ids} and
+returns every origin-destination pair of the ids in each group.
 \subsection{Total Constrained Accessibility}{
 
 Allocates the system-wide total proportionally based on travel impedance
@@ -288,8 +290,9 @@ travel  impedance.
 \itemize{
 \item Both \code{demand} and \code{supply} must be provided.
 \item Unlike \code{total} and \code{singly}, \code{doubly} requires the sum of demand and supply
-to match; otherwise, the model will not converge.
-\item \code{active} must be \code{NULL}. Since supply must match demand, their units are
+to match; otherwise, an error is raised. With \code{group_by}, the totals must
+match within each group.
+\item \code{active} is ignored. Since supply must match demand, their units are
 the same and there is no distinction between 'active' and 'passive' notions.
 \item \code{detailed_results} is currently ignored for doubly-constrained
 accessibility. OD-level flows are always returned.
@@ -386,8 +389,18 @@ constrained_accessibility(
   constraint      = "doubly",
   decay_function  = decay_exponential(0.1),
   demand          = "population",
-  supply          = "jobs",
-  detailed_results = TRUE
+  supply          = "jobs"
+)
+
+# With several decay values, each one is balanced separately
+constrained_accessibility(
+  travel_matrix   = tm_small,
+  land_use_data   = lu_small,
+  travel_cost     = "travel_time",
+  constraint      = "doubly",
+  decay_function  = decay_exponential(c(0.1, 0.5)),
+  demand          = "population",
+  supply          = "jobs"
 )
 \dontshow{\}) # examplesIf}
 }

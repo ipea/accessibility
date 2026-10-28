@@ -48,7 +48,9 @@
 #' group's rows.
 #'
 #' As well, when `fill_missing_ids = TRUE`, ids that are absent from a particular
-#' group's rows are still returned with accessibility equal to 0.
+#' group's rows are still returned with accessibility equal to 0. This doesn't
+#' apply to `constraint = "doubly"`, which ignores `fill_missing_ids` and
+#' returns every origin-destination pair of the ids in each group.
 #'
 #' ## Total Constrained Accessibility
 #'
@@ -169,8 +171,9 @@
 #' ### Requirements:
 #' - Both `demand` and `supply` must be provided.
 #' - Unlike `total` and `singly`, `doubly` requires the sum of demand and supply
-#' to match; otherwise, the model will not converge.
-#' - `active` must be `NULL`. Since supply must match demand, their units are
+#'   to match; otherwise, an error is raised. With `group_by`, the totals must
+#'   match within each group.
+#' - `active` is ignored. Since supply must match demand, their units are
 #'   the same and there is no distinction between 'active' and 'passive' notions.
 #' - `detailed_results` is currently ignored for doubly-constrained
 #'   accessibility. OD-level flows are always returned.
@@ -286,8 +289,18 @@
 #'   constraint      = "doubly",
 #'   decay_function  = decay_exponential(0.1),
 #'   demand          = "population",
-#'   supply          = "jobs",
-#'   detailed_results = TRUE
+#'   supply          = "jobs"
+#' )
+#'
+#' # With several decay values, each one is balanced separately
+#' constrained_accessibility(
+#'   travel_matrix   = tm_small,
+#'   land_use_data   = lu_small,
+#'   travel_cost     = "travel_time",
+#'   constraint      = "doubly",
+#'   decay_function  = decay_exponential(c(0.1, 0.5)),
+#'   demand          = "population",
+#'   supply          = "jobs"
 #' )
 #'
 #' @export

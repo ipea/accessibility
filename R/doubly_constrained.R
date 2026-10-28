@@ -29,8 +29,18 @@ run_standalone_doubly_ipf <- function(
     supply,
     error_threshold,
     improvement_threshold,
-    max_iterations
+    max_iterations,
+    group_label = NULL
 ) {
+
+  # with group_by or several decay values, messages name the group they refer
+  # to, so a failing group can be told apart from the others
+
+  in_group <- if (is.null(group_label)) {
+    character(0)
+  } else {
+    c("i" = "In group {group_label}.")
+  }
 
   # Prepare vectors and impedance matrix
   origins <- unique(data$from_id)
@@ -44,15 +54,23 @@ run_standalone_doubly_ipf <- function(
 
   if (abs(sum(O) - sum(D)) > 1e-6) {
     cli::cli_abort(
-      "For doubly-constrained, the sum of origins must equal the sum of destinations.
-      NA values and ids missing from {.arg land_use_data} count as 0.",
+      c(
+        "For doubly-constrained, the sum of origins must equal the sum of
+        destinations. NA values and ids missing from {.arg land_use_data}
+        count as 0.",
+        in_group
+      ),
       call = NULL
     )
   }
 
   if (sum(O) <= 0) {
     cli::cli_abort(
-      "For doubly-constrained, the total demand and supply must be greater than 0.",
+      c(
+        "For doubly-constrained, the total demand and supply must be greater
+        than 0.",
+        in_group
+      ),
       call = NULL
     )
   }
@@ -126,11 +144,11 @@ run_standalone_doubly_ipf <- function(
       Bj <- Bj_new
 
       stop_reason <- if (iteration_count >= max_iterations) {
-        "Max iterations reached"
+        "max iterations reached"
       } else if (error < error_threshold) {
-        "Error threshold met"
+        "error threshold met"
       } else {
-        "Slow improvement"
+        "slow improvement"
       }
 
       break
@@ -142,9 +160,14 @@ run_standalone_doubly_ipf <- function(
 
   if (error >= error_threshold) {
     cli::cli_warn(
-      "Doubly-constrained balancing did not converge ({stop_reason}
-      after {iteration_count} iterations). Final error is
-      {signif(error, 3)}."
+      c(
+        "Doubly-constrained balancing did not converge ({stop_reason} after
+        {iteration_count} iteration{?s}). Final error is {signif(error, 3)},
+        above {.arg error_threshold} ({error_threshold}), so flows don't fully
+        match the demand and supply totals. Consider increasing
+        {.arg max_iterations} or decreasing {.arg improvement_threshold}.",
+        in_group
+      )
     )
   }
 
@@ -200,14 +223,26 @@ run_grouped_doubly_ipf <- function(
     )
   }
 
+  # drop = TRUE skips unused factor levels and level combinations that don't
+  # occur in the data, which would otherwise be empty groups
+
   grouped_data <- split(
     data,
     by = group_by,
-    keep.by = TRUE
+    keep.by = TRUE,
+    drop = TRUE
   )
 
   results <- data.table::rbindlist(
     lapply(grouped_data, function(dt) {
+
+      group_vals <- dt[1, ..group_by]
+      group_label <- paste0(
+        group_by,
+        " = ",
+        vapply(group_vals, as.character, character(1)),
+        collapse = ", "
+      )
 
       out <- run_standalone_doubly_ipf(
         data = dt,
@@ -216,10 +251,9 @@ run_grouped_doubly_ipf <- function(
         supply = supply,
         error_threshold = error_threshold,
         improvement_threshold = improvement_threshold,
-        max_iterations = max_iterations
+        max_iterations = max_iterations,
+        group_label = group_label
       )
-
-      group_vals <- dt[1, ..group_by]
 
       for (g in group_by) {
         out[, (g) := group_vals[[g]]]
@@ -230,6 +264,10 @@ run_grouped_doubly_ipf <- function(
     }),
     fill = TRUE
   )
+
+  # group columns go right after the ids, as in the other constraints
+
+  data.table::setcolorder(results, c("from_id", "to_id", group_by))
 
   return(results[])
 
@@ -255,11 +293,6 @@ doubly_constrained <- function(travel_matrix,
   checkmate::assert_number(error_threshold, lower = 0)
   checkmate::assert_number(improvement_threshold, lower = 0)
   checkmate::assert_int(max_iterations, lower = 1)
-
-  assert_decay_function(decay_function)
-  assert_group_by(group_by)
-  assert_travel_matrix(travel_matrix, travel_cost, group_by)
-  assert_land_use_data(land_use_data, travel_matrix, opportunity = supply, demand = demand)
 
   # Convert to data.table
   if (!inherits(travel_matrix, "data.table")) {

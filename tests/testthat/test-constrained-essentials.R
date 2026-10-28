@@ -1555,3 +1555,160 @@ test_that(
     )
   }
 )
+
+test_that("doubly-constrained works with factor group_by columns", {
+
+  # unused factor levels ("walk") and level combinations that don't occur
+  # (car/pm, bus/am) must not become empty groups
+
+  tm <- make_tm_3x3()
+  lu <- make_lu_match20()
+
+  tm_modes <- data.table::rbindlist(
+    list(
+      car = data.table::copy(tm)[, period := "am"],
+      bus = data.table::copy(tm)[, travel_time := travel_time * 2][, period := "pm"]
+    ),
+    idcol = "mode"
+  )
+  tm_modes[, mode := factor(mode, levels = c("bus", "car", "walk"))]
+  tm_modes[, period := factor(period)]
+
+  run <- function(travel_matrix, ...) {
+    constrained_accessibility(
+      constraint = "doubly",
+      travel_matrix = travel_matrix,
+      land_use_data = lu,
+      travel_cost = "travel_time",
+      decay_function = exp_decay_01,
+      demand = "population",
+      supply = "jobs",
+      ...
+    )
+  }
+
+  grouped <- run(tm_modes, group_by = c("mode", "period"))
+
+  expect_equal(nrow(grouped), 18)
+  expect_identical(
+    names(grouped)[1:4],
+    c("from_id", "to_id", "mode", "period")
+  )
+  expect_true(is.factor(grouped$mode))
+
+  for (m in c("car", "bus")) {
+    standalone <- run(tm_modes[mode == m, !c("mode", "period")])
+    merged <- merge(
+      grouped[mode == m],
+      standalone,
+      by = c("from_id", "to_id"),
+      suffixes = c("", "_standalone")
+    )
+
+    expect_equal(nrow(merged), 9)
+    expect_equal(merged$flow, merged$flow_standalone)
+  }
+})
+
+test_that("doubly-constrained puts group columns right after the ids", {
+  tm <- make_tm_3x3()
+
+  tm_modes <- data.table::rbindlist(
+    list(car = data.table::copy(tm), bus = data.table::copy(tm)),
+    idcol = "mode"
+  )
+
+  result <- constrained_accessibility(
+    constraint = "doubly",
+    travel_matrix = tm_modes,
+    land_use_data = make_lu_match20(),
+    travel_cost = "travel_time",
+    decay_function = decay_exponential(c(0.1, 0.5)),
+    demand = "population",
+    supply = "jobs",
+    group_by = "mode"
+  )
+
+  expect_identical(
+    names(result),
+    c(
+      "from_id", "to_id", "mode", "decay_function_arg",
+      "flow", "A_i", "B_j", "kappa_doubly", "error"
+    )
+  )
+})
+
+test_that("doubly-constrained warns about land_use_data only once", {
+
+  # NA in both columns of the same id keeps the totals equal (14 = 14)
+
+  lu <- data.table::data.table(
+    id = c("1", "2", "3"),
+    population = c(NA, 10, 4),
+    jobs = c(NA, 6, 8)
+  )
+
+  warnings <- character(0)
+  withCallingHandlers(
+    constrained_accessibility(
+      constraint = "doubly",
+      travel_matrix = make_tm_3x3(),
+      land_use_data = lu,
+      travel_cost = "travel_time",
+      decay_function = exp_decay_01,
+      demand = "population",
+      supply = "jobs"
+    ),
+    warning = function(w) {
+      warnings <<- c(warnings, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+
+  expect_equal(sum(grepl("population", warnings)), 1)
+  expect_equal(sum(grepl("jobs", warnings)), 1)
+})
+
+test_that("doubly-constrained messages name the group they refer to", {
+  tm <- make_tm_3x3()
+
+  tm_modes <- data.table::rbindlist(
+    list(car = data.table::copy(tm), bus = data.table::copy(tm)),
+    idcol = "mode"
+  )
+
+  expect_warning(
+    constrained_accessibility(
+      constraint = "doubly",
+      travel_matrix = tm_modes[mode == "bus"],
+      land_use_data = make_lu_match20(),
+      travel_cost = "travel_time",
+      decay_function = exp_decay_01,
+      demand = "population",
+      supply = "jobs",
+      group_by = "mode",
+      max_iterations = 1
+    ),
+    regexp = "mode[[:space:]]+=[[:space:]]+bus"
+  )
+
+  # "bus" doesn't reach destination 3, so its totals don't match
+  tm_uneven <- data.table::rbindlist(
+    list(car = data.table::copy(tm), bus = data.table::copy(tm)[to_id != "3"]),
+    idcol = "mode"
+  )
+
+  expect_error(
+    constrained_accessibility(
+      constraint = "doubly",
+      travel_matrix = tm_uneven,
+      land_use_data = make_lu_match20(),
+      travel_cost = "travel_time",
+      decay_function = exp_decay_01,
+      demand = "population",
+      supply = "jobs",
+      group_by = "mode"
+    ),
+    regexp = "mode[[:space:]]+=[[:space:]]+bus"
+  )
+})
