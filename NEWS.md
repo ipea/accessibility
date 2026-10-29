@@ -1,4 +1,4 @@
-# accessibility (development version)
+# accessibility 1.6.0
 
 ## New features
 
@@ -6,7 +6,7 @@
   (the default), ids that reach no opportunity are kept with accessibility 0,
   as in `cumulative_cutoff()`.
 
-## Breaking changes
+## Major changes
 
 - Accessibility functions now treat `NA` opportunity, demand and supply
   values, and `travel_matrix` ids missing from `land_use_data`, as 0.

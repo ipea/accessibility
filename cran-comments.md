@@ -1,20 +1,24 @@
-── R CMD check results ──────────────────────────────── accessibility 2.0.0 ────
-Duration: 1m 57.1s
+## Submission
 
-0 errors ✔ | 0 warnings ✔ | 0 notes ✔
+This is a minor release (1.6.0). It fixes several bugs (notably in
+`constrained_accessibility()` with grouped data and multiple decay values,
+and integer overflow with large counts) and includes a few documented
+breaking changes in edge cases (e.g. `NA` opportunities are now treated as 0
+and integer inputs return doubles). See NEWS.md.
 
+## R CMD check results
 
-## New features
+0 errors | 0 warnings | 0 notes
 
-- New function `constrained_accessibility()`, which implements the family of 
-constrained accessibility measures proposed in \url{https://doi.org/10.1371/journal.pone.0335951}
+## Test environments
 
-## Minor changes
+- local: Windows 11, R 4.5.1
+- win-builder: R-devel, R-release (TODO)
+- GitHub Actions: ubuntu-latest (devel, release, oldrel), macOS-latest
+  (release), windows-latest (release) (TODO: confirm green)
 
-- The function `fgt_poverty()` has a new argument `poor_below_threshold`. when
-set to `TRUE` (default,) the observations below the poverty line are considered 
-to be poor. This is the correct approach for primal accessibility measures (e.g.
-cumulative accessibility). If `FALSE`, then observations above the poverty line 
-are considered to be poor. This is the correct approach for dual accessibility 
-measures (e.g. travel time to the closest facility). When set to `FALSE`, FGT 1 
-and 2 do not have an upper bound.
+## Reverse dependencies
+
+We checked the one reverse dependency, r5r (Suggests). It only calls
+`cumulative_cutoff()` in a vignette chunk that is not evaluated, so it is not
+affected by this release.
