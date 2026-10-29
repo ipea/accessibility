@@ -1293,7 +1293,7 @@ test_that("doubly-constrained: warns when balancing doesn't converge", {
       max_iterations = 1,
       detailed_results = TRUE
     ),
-    regexp = "did not converge"
+    regexp = "did[[:space:]]+not[[:space:]]+converge"
   )
 })
 
