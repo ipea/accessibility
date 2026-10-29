@@ -44,14 +44,14 @@
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="development version" id="accessibility-development-version">accessibility (development version)<a class="anchor" aria-label="anchor" href="#accessibility-development-version"></a></h2>
+<h2 class="pkg-version" data-toc-text="1.6.0" id="accessibility-160">accessibility 1.6.0<a class="anchor" aria-label="anchor" href="#accessibility-160"></a></h2>
 <div class="section level3">
-<h3 id="new-features-development-version">New features<a class="anchor" aria-label="anchor" href="#new-features-development-version"></a></h3>
+<h3 id="new-features-1-6-0">New features<a class="anchor" aria-label="anchor" href="#new-features-1-6-0"></a></h3>
 <ul><li>
 <code><a href="../reference/cumulative_interval.html">cumulative_interval()</a></code> has a new argument <code>fill_missing_ids</code>. When <code>TRUE</code> (the default), ids that reach no opportunity are kept with accessibility 0, as in <code><a href="../reference/cumulative_cutoff.html">cumulative_cutoff()</a></code>.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="breaking-changes-development-version">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-development-version"></a></h3>
+<h3 id="major-changes-1-6-0">Major changes<a class="anchor" aria-label="anchor" href="#major-changes-1-6-0"></a></h3>
 <ul><li>Accessibility functions now treat <code>NA</code> opportunity, demand and supply values, and <code>travel_matrix</code> ids missing from <code>land_use_data</code>, as 0. Previously, they could make results <code>NA</code>.</li>
 <li>Integer opportunity, demand, supply and population columns are now converted to doubles, so sums no longer overflow. As a result, <code><a href="../reference/cumulative_cutoff.html">cumulative_cutoff()</a></code> and <code><a href="../reference/gravity.html">gravity()</a></code> (with <code><a href="../reference/decay_binary.html">decay_binary()</a></code>) return doubles instead of integers when opportunities are integers.</li>
 <li>
@@ -62,7 +62,7 @@
 <code>constrained_accessibility(constraint = "doubly")</code> now always returns origin-destination flows and ignores <code>active</code> and <code>detailed_results</code>. Previously, <code>detailed_results = FALSE</code> returned the demand and supply marginals instead (<a href="https://github.com/ipea/accessibility/issues/67" class="external-link">#67</a>).</li>
 </ul></div>
 <div class="section level3">
-<h3 id="bug-fixes-development-version">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
+<h3 id="bug-fixes-1-6-0">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-1-6-0"></a></h3>
 <ul><li>
 <code><a href="../reference/balancing_cost.html">balancing_cost()</a></code>: numeric ids were used as positions to look up population, returning <code>NA</code> or wrong costs; origins balanced only when opportunities exceeded (instead of matched) population; and costs above the last multiple of <code>cost_increment</code> were <code>NA</code>. <code>cost_increment</code> must now be greater than 0.</li>
 <li>
@@ -100,7 +100,7 @@
 <code><a href="../reference/theil_t.html">theil_t()</a></code>: observations with no access are now included and contribute 0 (<code>0 * log(0) = 0</code>), instead of being excluded or making the index <code>NaN</code>. <code>group_by</code> levels where no one has access are kept with <code>NA</code>.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="minor-changes-development-version">Minor changes<a class="anchor" aria-label="anchor" href="#minor-changes-development-version"></a></h3>
+<h3 id="minor-changes-1-6-0">Minor changes<a class="anchor" aria-label="anchor" href="#minor-changes-1-6-0"></a></h3>
 <ul><li>Errors and warnings now use <a href="https://cli.r-lib.org" class="external-link">cli</a>. <a href="https://cli.r-lib.org" class="external-link">cli</a> and <a href="https://rlang.r-lib.org" class="external-link">rlang</a> are new dependencies.</li>
 <li>Accessibility, inequality and poverty functions now raise an error if <code>land_use_data</code> or <code>sociodemographic_data</code> have duplicated ids.</li>
 <li>Accessibility functions:
@@ -131,7 +131,7 @@
 <code><a href="../reference/spatial_availability.html">spatial_availability()</a></code> is about 2 times faster.</li>
 </ul></div>
 <div class="section level3">
-<h3 id="notes-development-version">Notes<a class="anchor" aria-label="anchor" href="#notes-development-version"></a></h3>
+<h3 id="notes-1-6-0">Notes<a class="anchor" aria-label="anchor" href="#notes-1-6-0"></a></h3>
 <ul><li>Updated URLs after the repository moved from <code>ipeaGIT</code> to <code>ipea</code>.</li>
 </ul></div>
 </div>
