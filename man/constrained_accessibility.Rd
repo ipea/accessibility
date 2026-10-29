@@ -96,7 +96,10 @@ the function identifies which combinations would be left out and fills
 their respective accessibility values with 0, which incurs a
 performance penalty.}
 
-\item{detailed_results}{Logical. Whether to return detailed OD-level results.}
+\item{detailed_results}{Logical. Whether to return detailed OD-level
+results for \code{constraint = "total"}- and \code{constraint = "singly"}
+accessibility. Currently ignored for \code{constraint = "doubly"} accessibility,
+which always returns OD-level flows.}
 }
 \value{
 A data frame of the same class as \code{travel_matrix} (\code{data.table},
@@ -117,18 +120,14 @@ the allocated flow (\code{supply} or \code{demand}) and the scaling constant
 origin-destination pair, with the columns \code{from_id}, \code{to_id}, the
 allocation share (\code{kappa_singly} or \code{hatkappa_singly}), the allocated flow
 (\code{supply} or \code{demand}) and the balancing factor (\code{B_j} or \code{A_i}).
-\item \code{constraint = "doubly"}, \code{detailed_results = TRUE}: one row per
-origin-destination pair, with the columns \code{from_id}, \code{to_id}, \code{flow}, the
-balancing factors \code{A_i} and \code{B_j}, \code{kappa_doubly} and the final balancing
-\code{error}.
-\item \code{constraint = "doubly"}, \code{detailed_results = FALSE}: the columns \code{id}
-and \code{flow}, holding the demand of each origin followed by the supply of
-each destination (so an id can appear twice).
+\item \code{constraint = "doubly"}: one row per origin-destination pair, with the
+columns \code{from_id}, \code{to_id}, \code{flow}, the balancing factors \code{A_i} and \code{B_j},
+\code{kappa_doubly} and the final balancing \code{error}. \code{detailed_results} and
+\code{active} are not read.
 }
 
-For \code{constraint = "total"} and \code{"singly"}, detailed results include the
-\code{group_by} columns and, when the decay function has several values,
-\code{decay_function_arg}.
+Detailed results include the \code{group_by} columns and, when the decay
+function has several values, \code{decay_function_arg}.
 }
 \description{
 Calculates accessibility using constraints, as proposed in
@@ -150,7 +149,9 @@ opportunities (or population) associated with the ids that appear in that
 group's rows.
 
 As well, when \code{fill_missing_ids = TRUE}, ids that are absent from a particular
-group's rows are still returned with accessibility equal to 0.
+group's rows are still returned with accessibility equal to 0. This doesn't
+apply to \code{constraint = "doubly"}, which ignores \code{fill_missing_ids} and
+returns every origin-destination pair of the ids in each group.
 \subsection{Total Constrained Accessibility}{
 
 Allocates the system-wide total proportionally based on travel impedance
@@ -289,12 +290,13 @@ travel  impedance.
 \itemize{
 \item Both \code{demand} and \code{supply} must be provided.
 \item Unlike \code{total} and \code{singly}, \code{doubly} requires the sum of demand and supply
-to match; otherwise, the model will not converge.
-\item \code{active} must be \code{NULL}. Since supply must match demand, their units are
+to match; otherwise, an error is raised. When \code{group_by} or multiple decay
+values are used, the totals must match within each independently balanced
+system.
+\item \code{active} is ignored. Since supply must match demand, their units are
 the same and there is no distinction between 'active' and 'passive' notions.
-\item Should be used with \code{detailed_results = TRUE}. With
-\code{detailed_results = FALSE}, it only returns the demand and supply
-marginals, with a warning.
+\item \code{detailed_results} is currently ignored for doubly-constrained
+accessibility. OD-level flows are always returned.
 }
 }
 
@@ -368,7 +370,7 @@ constrained_accessibility(
 )
 
 # Doubly-constrained: returns units of flow (requires both demand and supply
-# (totals that match) and `detailed_results = TRUE`)
+# with matching totals)
 
 # Using a small toy dataset with matching totals.
 tm_small <- data.table::data.table(
@@ -388,8 +390,18 @@ constrained_accessibility(
   constraint      = "doubly",
   decay_function  = decay_exponential(0.1),
   demand          = "population",
-  supply          = "jobs",
-  detailed_results = TRUE
+  supply          = "jobs"
+)
+
+# With several decay values, each one is balanced separately
+constrained_accessibility(
+  travel_matrix   = tm_small,
+  land_use_data   = lu_small,
+  travel_cost     = "travel_time",
+  constraint      = "doubly",
+  decay_function  = decay_exponential(c(0.1, 0.5)),
+  demand          = "population",
+  supply          = "jobs"
 )
 \dontshow{\}) # examplesIf}
 }
