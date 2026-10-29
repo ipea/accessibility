@@ -161,8 +161,11 @@ test_that("returns a dataframe whose class is the same as travel_matrix's", {
     expect_is(result, "data.table")
   }
 
-  result <- suppressWarnings(tester("doubly", travel_matrix = tm_df))
+  # doubly always returns OD flows, so detailed_results makes no difference
+
+  result <- tester("doubly", travel_matrix = tm_df)
   expect_false(inherits(result, "data.table"))
+  expect_identical(tester("doubly"), tester("doubly", detailed_results = TRUE))
 })
 
 test_that("total constraint ignores the side not used by active", {

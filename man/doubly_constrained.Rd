@@ -4,8 +4,8 @@
 \alias{doubly_constrained}
 \title{Doubly constrained accessibility}
 \value{
-A \code{data.table}/\code{data.frame} with either OD-level flows (\code{detailed_results = TRUE})
-or marginals; see Details.
+A \code{data.table}/\code{data.frame} with origin-destination flows, balancing
+factors (\code{A_i}, \code{B_j}), and doubly-constrained weights (\code{kappa_doubly}).
 }
 \description{
 Calculates accessibility using Wilson's doubly-constrained gravity model.
