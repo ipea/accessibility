@@ -1034,7 +1034,7 @@ test_that("singly-constrained (active) fills missing group combinations", {
   )
 })
 
-# ------------------------------ DOUBLY (17 tests)-------------------------------
+# ------------------------------ DOUBLY (19 tests)-------------------------------
 
 test_that("doubly-constrained: OD flows match marginals", {
   tm    <- make_tm_3x3()
@@ -1145,6 +1145,90 @@ test_that("doubly-constrained: results don't depend on row order or sparsity", {
     tolerance = 1e-6
   )
   expect_identical(result[from_id == "1" & to_id == "3"]$flow, 0)
+})
+
+test_that("doubly-constrained: errors when totals mismatch", {
+  lu_bad <- data.table::copy(make_lu_match20())
+  lu_bad[id == "3", jobs := jobs + 1]
+
+  expect_error(
+    constrained_accessibility(
+      constraint = "doubly",
+      travel_matrix = make_tm_3x3(),
+      land_use_data = lu_bad,
+      travel_cost = "travel_time",
+      decay_function = exp_decay_01,
+      demand = "population",
+      supply = "jobs"
+    ),
+    regexp = "sum[[:space:]]+of[[:space:]]+origins[[:space:]]+must"
+  )
+})
+
+test_that("doubly-constrained groups with different ids equal separate runs", {
+
+  # ids 1 and 2 hold 14 people and 14 jobs, so a group that only covers them
+  # still has matching totals
+
+  lu <- data.table::data.table(
+    id = c("1", "2", "3"),
+    population = c(4, 10, 6),
+    jobs = c(6, 8, 6)
+  )
+
+  tm <- make_tm_3x3()
+
+  # "bus" covers only ids 1 and 2 and is twice as slow, "walk" misses 1->2
+
+  subsets <- list(
+    car = data.table::copy(tm),
+    bus = data.table::copy(tm)[
+      from_id != "3" & to_id != "3"
+    ][, travel_time := travel_time * 2],
+    walk = data.table::copy(tm)[!(from_id == "1" & to_id == "2")]
+  )
+  tm_modes <- data.table::rbindlist(subsets, idcol = "mode")
+
+  run <- function(travel_matrix, ...) {
+    constrained_accessibility(
+      constraint = "doubly",
+      travel_matrix = travel_matrix,
+      land_use_data = lu,
+      travel_cost = "travel_time",
+      decay_function = decay_exponential(c(0.1, 0.2)),
+      demand = "population",
+      supply = "jobs",
+      ...
+    )
+  }
+
+  grouped <- run(tm_modes, group_by = "mode")
+
+  for (m in names(subsets)) {
+    standalone <- run(subsets[[m]])
+    merged <- merge(
+      grouped[mode == m],
+      standalone,
+      by = c("from_id", "to_id", "decay_function_arg"),
+      suffixes = c("", "_standalone")
+    )
+
+    expect_equal(nrow(merged), nrow(standalone), info = m)
+    expect_equal(merged$flow, merged$flow_standalone, info = m)
+
+    # each group is balanced to its own totals: column sums equal the supply
+    # of the destinations in the group
+
+    col_sums <- grouped[
+      mode == m,
+      .(flow = sum(flow)),
+      by = .(to_id, decay_function_arg)
+    ]
+    col_sums[, jobs := lu$jobs[match(to_id, lu$id)]]
+    expect_equal(col_sums$flow, col_sums$jobs, info = m)
+  }
+
+  expect_equal(nrow(grouped[mode == "bus"]), 2 * 2 * 2)
 })
 
 test_that("doubly-constrained: errors when totals don't match", {

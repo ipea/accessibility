@@ -35,6 +35,7 @@ run_standalone_doubly_ipf <- function(
 
   # with group_by or several decay values, messages name the group they refer
   # to, so a failing group can be told apart from the others
+
   in_group <- if (is.null(group_label)) {
     character(0)
   } else {
@@ -48,7 +49,9 @@ run_standalone_doubly_ipf <- function(
   O <- land_use_data[[demand]][match(origins, land_use_data$id)]
   D <- land_use_data[[supply]][match(destinations, land_use_data$id)]
 
-  # IDs missing from land_use_data and NA values are treated as 0. This keeps the balancing procedure well-defined and matches the behaviour of merge_by_reference(..., na_as_zero = TRUE).
+  # ids missing from land_use_data and NA values are treated as 0. this keeps
+  # the balancing well-defined and matches merge_by_reference(na_as_zero = TRUE)
+
   O[is.na(O)] <- 0
   D[is.na(D)] <- 0
 
@@ -75,7 +78,10 @@ run_standalone_doubly_ipf <- function(
     )
   }
 
-  # Build the impedance matrix by matching origin and destination IDs. Using explicit ID matching makes the ordering of travel_matrix rows irrelevant and guarantees that impedance values are assigned to the correct origin-destination pair.
+  # the impedance matrix is filled by matching origin and destination ids, so
+  # the row order of travel_matrix doesn't matter and each weight goes to the
+  # right pair. pairs missing from travel_matrix are unreachable (weight 0)
+
   impedance_matrix <- matrix(
     0,
     nrow = length(origins),
@@ -105,7 +111,9 @@ run_standalone_doubly_ipf <- function(
       impedance_matrix %*% (Bj * D)
     )
 
-    # If an origin has a denominator of 0, its balancing factor is set to 0 rather than Inf. This can occur when no reachable destinations have positive impedance-weighted supply.
+    # a null denominator means the origin reaches no destination with
+    # weighted supply, so its factor is 0 (instead of Inf) and it gets no flow
+
     Ai <- data.table::fifelse(
       denominator_i > 0,
       1 / denominator_i,
@@ -119,17 +127,21 @@ run_standalone_doubly_ipf <- function(
       )
     )
 
-    # If a destination has a denominator of 0, its balancing factor is set to 0 rather than Inf.
+    # likewise, a destination that no origin with weighted demand reaches gets
+    # a factor of 0
+
     Bj_new <- data.table::fifelse(
       denominator_j > 0,
       1 / denominator_j,
       0
     )
 
-    # row sums implied by the balancing factors (predicted demand allocated from each origin)
+    # the row and column sums of the flows are calculated from the factors,
+    # without building the flow matrix
+
     flow_from <- Ai * O *
       drop(impedance_matrix %*% (Bj_new * D))
-    # column sums implied by the balancing factors (predicted supply allocated to each destination)
+
     flow_to <- Bj_new * D * denominator_j
 
     error <- (
@@ -179,8 +191,10 @@ run_standalone_doubly_ipf <- function(
     Ai * O,
     Bj * D
   ) * impedance_matrix
-  # kappa_doubly represents the doubly-constrained allocation weight: kappa_ij = A_i * O_i * B_j * f(c_ij).
-  # Flow is then: T_ij = kappa_ij * D_j
+
+  # kappa_doubly is the allocation weight kappa_ij = A_i * O_i * B_j * f(c_ij),
+  # so that the flow is T_ij = kappa_ij * D_j
+
   kappa_matrix <- outer(
     Ai * O,
     Bj
