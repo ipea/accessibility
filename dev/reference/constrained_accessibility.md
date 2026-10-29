@@ -117,6 +117,10 @@ constrained_accessibility(
   results in accessibility estimates grouped by origin and by departure
   time.
 
+  Accessibility is calculated separately for each unique combination of
+  grouping variables. For constrained accessibility measures, each group
+  is treated as an independent land-use-transportation system.
+
 - fill_missing_ids:
 
   A `logical`. When calculating grouped accessibility estimates (i.e.
@@ -166,12 +170,26 @@ and `detailed_results`:
   and `flow`, holding the demand of each origin followed by the supply
   of each destination (so an id can appear twice).
 
-Detailed results don't include the `group_by` columns.
+For `constraint = "total"` and `"singly"`, detailed results include the
+`group_by` columns and, when the decay function has several values,
+`decay_function_arg`.
 
 ## Details
 
 This function covers the family of constrained accessibility measures
 proposed in Soukhov et al. (2025) .
+
+For these measures, each group or decay value is treated as an
+independent land-use-transportation system. This is not a multimodal
+model that splits demand or supply across groups. Instead, each group is
+calculated as if the function were run separately on that group's rows
+of `travel_matrix`. The total allocated within a group is the sum of the
+opportunities (or population) associated with the ids that appear in
+that group's rows.
+
+As well, when `fill_missing_ids = TRUE`, ids that are absent from a
+particular group's rows are still returned with accessibility equal to
+0.
 
 ### Total Constrained Accessibility
 

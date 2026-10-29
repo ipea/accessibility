@@ -79,6 +79,8 @@
 <code>constraint = "total"</code> or <code>"singly"</code> no longer errors when <code>fill_missing_ids = TRUE</code> and <code>group_by</code> leave combinations missing.</li>
 <li>
 <code>constraint = "total"</code> no longer adds an index to the user’s <code>land_use_data</code>.</li>
+<li>
+<code>constraint = "total"</code> and <code>"singly"</code> now treat each <code>group_by</code> combination and each decay value as an independent system. Previously, <code>"total"</code> split the regional total across groups and both blended several decay values into one result. Detailed results now keep the <code>group_by</code> and <code>decay_function_arg</code> columns (<a href="https://github.com/ipea/accessibility/issues/66" class="external-link">#66</a>, <a href="https://github.com/soukhova" class="external-link">@soukhova</a>).</li>
 </ul></li>
 <li>
 <code><a href="../reference/cost_to_closest.html">cost_to_closest()</a></code> no longer returns <code>Inf</code> due to integer overflow with large opportunity counts.</li>

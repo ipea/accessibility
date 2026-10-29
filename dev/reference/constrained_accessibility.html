@@ -165,7 +165,10 @@ indicates the <code>travel_matrix</code> columns that should be used to group th
 accessibility estimates by. For example, if <code>travel_matrix</code> includes a
 departure time column, that specifies the departure time of each entry in
 the data frame, passing <code>"departure_time"</code> to this parameter results in
-accessibility estimates grouped by origin and by departure time.</p></dd>
+accessibility estimates grouped by origin and by departure time.</p>
+<p>Accessibility is calculated separately for each unique combination of
+grouping variables. For constrained accessibility measures, each group is
+treated as an independent land-use-transportation system.</p></dd>
 
 
 <dt id="arg-fill-missing-ids">fill_missing_ids<a class="anchor" aria-label="anchor" href="#arg-fill-missing-ids"></a></dt>
@@ -209,7 +212,9 @@ balancing factors <code>A_i</code> and <code>B_j</code>, <code>kappa_doubly</cod
 <li><p><code>constraint = "doubly"</code>, <code>detailed_results = FALSE</code>: the columns <code>id</code>
 and <code>flow</code>, holding the demand of each origin followed by the supply of
 each destination (so an id can appear twice).</p></li>
-</ul><p>Detailed results don't include the <code>group_by</code> columns.</p>
+</ul><p>For <code>constraint = "total"</code> and <code>"singly"</code>, detailed results include the
+<code>group_by</code> columns and, when the decay function has several values,
+<code>decay_function_arg</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
@@ -217,7 +222,16 @@ each destination (so an id can appear twice).</p></li>
 
 <p>This function covers the family of constrained accessibility measures
 proposed in Soukhov et al. (2025)
-.</p><div class="section">
+.</p>
+<p>For these measures, each group or decay value is
+treated as an independent land-use-transportation system. This is not a multimodal
+model that splits demand or supply across groups. Instead, each group is
+calculated as if the function were run separately on that group's rows of
+<code>travel_matrix</code>. The total allocated within a group is the sum of the
+opportunities (or population) associated with the ids that appear in that
+group's rows.</p>
+<p>As well, when <code>fill_missing_ids = TRUE</code>, ids that are absent from a particular
+group's rows are still returned with accessibility equal to 0.</p><div class="section">
 <h3 id="total-constrained-accessibility">Total Constrained Accessibility<a class="anchor" aria-label="anchor" href="#total-constrained-accessibility"></a></h3>
 
 

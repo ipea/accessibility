@@ -59,6 +59,13 @@
     `fill_missing_ids = TRUE` and `group_by` leave combinations missing.
   - `constraint = "total"` no longer adds an index to the user’s
     `land_use_data`.
+  - `constraint = "total"` and `"singly"` now treat each `group_by`
+    combination and each decay value as an independent system.
+    Previously, `"total"` split the regional total across groups and
+    both blended several decay values into one result. Detailed results
+    now keep the `group_by` and `decay_function_arg` columns
+    ([\#66](https://github.com/ipea/accessibility/issues/66),
+    [@soukhova](https://github.com/soukhova)).
 - [`cost_to_closest()`](https://ipea.github.io/accessibility/dev/reference/cost_to_closest.md)
   no longer returns `Inf` due to integer overflow with large opportunity
   counts.

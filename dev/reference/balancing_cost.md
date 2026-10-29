@@ -81,6 +81,10 @@ balancing_cost(
   results in accessibility estimates grouped by origin and by departure
   time.
 
+  Accessibility is calculated separately for each unique combination of
+  grouping variables. For constrained accessibility measures, each group
+  is treated as an independent land-use-transportation system.
+
 - fill_missing_ids:
 
   A `logical`. Origins that never reach as many opportunities as there

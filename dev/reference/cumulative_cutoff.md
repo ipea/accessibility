@@ -76,6 +76,10 @@ cumulative_cutoff(
   results in accessibility estimates grouped by origin and by departure
   time.
 
+  Accessibility is calculated separately for each unique combination of
+  grouping variables. For constrained accessibility measures, each group
+  is treated as an independent land-use-transportation system.
+
 - active:
 
   A logical. When `TRUE`, the function calculates active accessibility
