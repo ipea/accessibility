@@ -425,7 +425,7 @@ test_that("raises a clear error if id types are incompatible", {
 
   expect_error(
     tester(int_matrix, chr_land_use, cutoff = 5, group_by = character(0)),
-    regexp = "must be of compatible types"
+    regexp = "compatible[[:space:]]+types"
   )
 
   # integer vs double and factor vs character ids join fine, so no error

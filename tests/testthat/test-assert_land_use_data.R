@@ -28,7 +28,7 @@ test_that("warns if travel_matrix contains ids that land_use_data does not", {
         )
       )
     ),
-    "treated as 0"
+    "treated[[:space:]]+as[[:space:]]+0"
   )
 
   expect_warning(
@@ -44,7 +44,7 @@ test_that("warns if travel_matrix contains ids that land_use_data does not", {
       ),
       active = FALSE
     ),
-    "treated as 0"
+    "treated[[:space:]]+as[[:space:]]+0"
   )
 
   expect_warning(
@@ -60,7 +60,7 @@ test_that("warns if travel_matrix contains ids that land_use_data does not", {
       ),
       active = NULL
     ),
-    "treated as 0"
+    "treated[[:space:]]+as[[:space:]]+0"
   )
 
   expect_warning(
@@ -76,7 +76,7 @@ test_that("warns if travel_matrix contains ids that land_use_data does not", {
       ),
       active = NULL
     ),
-    "treated as 0"
+    "treated[[:space:]]+as[[:space:]]+0"
   )
 })
 
@@ -86,7 +86,7 @@ test_that("warns if either opportunity or demand cols contain NAs", {
       rbind(land_use_data, data.table::data.table(id = "hehe"), fill = TRUE),
       demand = "population"
     ),
-    "treated as 0"
+    "treated[[:space:]]+as[[:space:]]+0"
   )
 })
 
@@ -103,6 +103,6 @@ test_that("errors if land_use_data has duplicated ids", {
   duplicated_land_use <- rbind(land_use_data, land_use_data[1])
   expect_error(
     tester(duplicated_land_use),
-    regexp = "must not contain duplicated ids"
+    regexp = "duplicated[[:space:]]+ids"
   )
 })

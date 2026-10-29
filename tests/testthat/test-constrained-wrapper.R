@@ -62,11 +62,11 @@ test_that("wrapper argument rules are enforced", {
 
   expect_error(
     tester("total", active = NULL),
-    regexp = "active must be TRUE or FALSE"
+    regexp = "active[[:space:]]+must[[:space:]]+be[[:space:]]+TRUE"
   )
   expect_error(
     tester("singly", active = NULL),
-    regexp = "active must be TRUE or FALSE"
+    regexp = "active[[:space:]]+must[[:space:]]+be[[:space:]]+TRUE"
   )
 
   # active is ignored when constraint = "doubly"

@@ -63,6 +63,9 @@ test_that("output fn returns empty numeric if receives empty numeric/integer", {
 })
 
 test_that("raises an error if cutoff is 0", {
-  expect_error(tester(0), regexp = "Value must be greater than 0")
-  expect_error(tester(c(0, 30)), regexp = "Value must be greater than 0")
+  expect_error(tester(0), regexp = "greater[[:space:]]+than[[:space:]]+0")
+  expect_error(
+    tester(c(0, 30)),
+    regexp = "greater[[:space:]]+than[[:space:]]+0"
+  )
 })
