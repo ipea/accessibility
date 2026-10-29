@@ -27,6 +27,11 @@
   calculate the correction factor.
 - [`cumulative_interval()`](https://ipea.github.io/accessibility/dev/reference/cumulative_interval.md)
   no longer truncates results to integers (e.g. a median of 26.5).
+- `constrained_accessibility(constraint = "doubly")` now always returns
+  origin-destination flows and ignores `active` and `detailed_results`.
+  Previously, `detailed_results = FALSE` returned the demand and supply
+  marginals instead
+  ([\#67](https://github.com/ipea/accessibility/issues/67)).
 
 ### Bug fixes
 
@@ -59,10 +64,11 @@
     `fill_missing_ids = TRUE` and `group_by` leave combinations missing.
   - `constraint = "total"` no longer adds an index to the user’s
     `land_use_data`.
-  - `constraint = "total"` and `"singly"` now treat each `group_by`
-    combination and each decay value as an independent system.
-    Previously, `"total"` split the regional total across groups and
-    both blended several decay values into one result. Detailed results
+  - `constraint = "total"`, `"singly"` and `"doubly"` now treat each
+    `group_by` combination and each decay value as an independent
+    system. Previously, `"total"` split the regional total across
+    groups, `"doubly"` balanced all groups as a single system, and all
+    three blended several decay values into one result. Detailed results
     now keep the `group_by` and `decay_function_arg` columns
     ([\#66](https://github.com/ipea/accessibility/issues/66),
     [@soukhova](https://github.com/soukhova)).

@@ -135,7 +135,10 @@ constrained_accessibility(
 
 - detailed_results:
 
-  Logical. Whether to return detailed OD-level results.
+  Logical. Whether to return detailed OD-level results for
+  `constraint = "total"`- and `constraint = "singly"` accessibility.
+  Currently ignored for `constraint = "doubly"` accessibility, which
+  always returns OD-level flows.
 
 ## Value
 
@@ -161,18 +164,13 @@ and `detailed_results`:
   allocation share (`kappa_singly` or `hatkappa_singly`), the allocated
   flow (`supply` or `demand`) and the balancing factor (`B_j` or `A_i`).
 
-- `constraint = "doubly"`, `detailed_results = TRUE`: one row per
-  origin-destination pair, with the columns `from_id`, `to_id`, `flow`,
-  the balancing factors `A_i` and `B_j`, `kappa_doubly` and the final
-  balancing `error`.
+- `constraint = "doubly"`: one row per origin-destination pair, with the
+  columns `from_id`, `to_id`, `flow`, the balancing factors `A_i` and
+  `B_j`, `kappa_doubly` and the final balancing `error`.
+  `detailed_results` and `active` are not read.
 
-- `constraint = "doubly"`, `detailed_results = FALSE`: the columns `id`
-  and `flow`, holding the demand of each origin followed by the supply
-  of each destination (so an id can appear twice).
-
-For `constraint = "total"` and `"singly"`, detailed results include the
-`group_by` columns and, when the decay function has several values,
-`decay_function_arg`.
+Detailed results include the `group_by` columns and, when the decay
+function has several values, `decay_function_arg`.
 
 ## Details
 
@@ -189,7 +187,9 @@ that group's rows.
 
 As well, when `fill_missing_ids = TRUE`, ids that are absent from a
 particular group's rows are still returned with accessibility equal to
-0.
+0. This doesn't apply to `constraint = "doubly"`, which ignores
+`fill_missing_ids` and returns every origin-destination pair of the ids
+in each group.
 
 ### Total Constrained Accessibility
 
@@ -326,15 +326,16 @@ marginals while being weighted by travel impedance.
 - Both `demand` and `supply` must be provided.
 
 - Unlike `total` and `singly`, `doubly` requires the sum of demand and
-  supply to match; otherwise, the model will not converge.
+  supply to match; otherwise, an error is raised. When `group_by` or
+  multiple decay values are used, the totals must match within each
+  independently balanced system.
 
-- `active` must be `NULL`. Since supply must match demand, their units
-  are the same and there is no distinction between 'active' and
-  'passive' notions.
+- `active` is ignored. Since supply must match demand, their units are
+  the same and there is no distinction between 'active' and 'passive'
+  notions.
 
-- Should be used with `detailed_results = TRUE`. With
-  `detailed_results = FALSE`, it only returns the demand and supply
-  marginals, with a warning.
+- `detailed_results` is currently ignored for doubly-constrained
+  accessibility. OD-level flows are always returned.
 
 #### Interpretation:
 
@@ -456,7 +457,7 @@ constrained_accessibility(
 #> 898: 89a881aebafffff    0.0000
 
 # Doubly-constrained: returns units of flow (requires both demand and supply
-# (totals that match) and `detailed_results = TRUE`)
+# with matching totals)
 
 # Using a small toy dataset with matching totals.
 tm_small <- data.table::data.table(
@@ -487,8 +488,7 @@ constrained_accessibility(
   constraint      = "doubly",
   decay_function  = decay_exponential(0.1),
   demand          = "population",
-  supply          = "jobs",
-  detailed_results = TRUE
+  supply          = "jobs"
 )
 #>    from_id  to_id       flow       A_i      B_j kappa_doubly        error
 #>     <fctr> <fctr>      <num>     <num>    <num>        <num>        <num>
@@ -501,4 +501,55 @@ constrained_accessibility(
 #> 7:       3      1 2.31964604 0.1737245 1.424797   0.33137801 0.0007282429
 #> 8:       3      2 0.24941474 0.1737245 0.583010   0.04988295 0.0007282429
 #> 9:       3      3 3.43481370 0.1737245 1.119684   0.42935171 0.0007282429
+
+# With several decay values, each one is balanced separately
+constrained_accessibility(
+  travel_matrix   = tm_small,
+  land_use_data   = lu_small,
+  travel_cost     = "travel_time",
+  constraint      = "doubly",
+  decay_function  = decay_exponential(c(0.1, 0.5)),
+  demand          = "population",
+  supply          = "jobs"
+)
+#>     from_id  to_id decay_function_arg         flow          A_i        B_j
+#>      <fctr> <fctr>              <num>        <num>        <num>      <num>
+#>  1:       1      1                0.1 2.526937e+00    0.1721781  1.4247972
+#>  2:       1      2                0.1 9.995405e-02    0.1721781  0.5830100
+#>  3:       1      3                0.1 1.376517e+00    0.1721781  1.1196837
+#>  4:       2      1                0.1 2.153417e+00    0.4336710  1.4247972
+#>  5:       2      2                0.1 4.650631e+00    0.4336710  0.5830100
+#>  6:       2      3                0.1 3.188670e+00    0.4336710  1.1196837
+#>  7:       3      1                0.1 2.319646e+00    0.1737245  1.4247972
+#>  8:       3      2                0.1 2.494147e-01    0.1737245  0.5830100
+#>  9:       3      3                0.1 3.434814e+00    0.1737245  1.1196837
+#> 10:       1      1                0.5 3.938944e+00    0.6091640 34.2736199
+#> 11:       1      2                0.5 2.920245e-08    0.6091640  0.0078356
+#> 12:       1      3                0.5 6.876651e-02    0.6091640  6.3782471
+#> 13:       2      1                0.5 1.390083e+00 1894.0873923 34.2736199
+#> 14:       2      2                0.5 4.999998e+00 1894.0873923  0.0078356
+#> 15:       2      3                0.5 3.601723e+00 1894.0873923  6.3782471
+#> 16:       3      1                0.5 1.670972e+00    2.0987882 34.2736199
+#> 17:       3      2                0.5 1.838574e-06    2.0987882  0.0078356
+#> 18:       3      3                0.5 4.329510e+00    2.0987882  6.3782471
+#>     kappa_doubly        error
+#>            <num>        <num>
+#>  1: 3.609910e-01 0.0007282429
+#>  2: 1.999081e-02 0.0007282429
+#>  3: 1.720646e-01 0.0007282429
+#>  4: 3.076310e-01 0.0007282429
+#>  5: 9.301262e-01 0.0007282429
+#>  6: 3.985837e-01 0.0007282429
+#>  7: 3.313780e-01 0.0007282429
+#>  8: 4.988295e-02 0.0007282429
+#>  9: 4.293517e-01 0.0007282429
+#> 10: 5.627063e-01 0.0008195559
+#> 11: 5.840490e-09 0.0008195559
+#> 12: 8.595813e-03 0.0008195559
+#> 13: 1.985833e-01 0.0008195559
+#> 14: 9.999996e-01 0.0008195559
+#> 15: 4.502154e-01 0.0008195559
+#> 16: 2.387103e-01 0.0008195559
+#> 17: 3.677148e-07 0.0008195559
+#> 18: 5.411888e-01 0.0008195559
 ```

@@ -9,8 +9,8 @@ when `constraint = "doubly"`.
 
 ## Value
 
-A `data.table`/`data.frame` with either OD-level flows
-(`detailed_results = TRUE`) or marginals; see Details.
+A `data.table`/`data.frame` with origin-destination flows, balancing
+factors (`A_i`, `B_j`), and doubly-constrained weights (`kappa_doubly`).
 
 ## Examples
 

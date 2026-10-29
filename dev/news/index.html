@@ -58,6 +58,8 @@
 <code>concentration_index(type = "corrected")</code> now uses the bounds of the whole accessibility distribution, not of each <code>group_by</code> group, to calculate the correction factor.</li>
 <li>
 <code><a href="../reference/cumulative_interval.html">cumulative_interval()</a></code> no longer truncates results to integers (e.g. a median of 26.5).</li>
+<li>
+<code>constrained_accessibility(constraint = "doubly")</code> now always returns origin-destination flows and ignores <code>active</code> and <code>detailed_results</code>. Previously, <code>detailed_results = FALSE</code> returned the demand and supply marginals instead (<a href="https://github.com/ipea/accessibility/issues/67" class="external-link">#67</a>).</li>
 </ul></div>
 <div class="section level3">
 <h3 id="bug-fixes-development-version">Bug fixes<a class="anchor" aria-label="anchor" href="#bug-fixes-development-version"></a></h3>
@@ -80,7 +82,7 @@
 <li>
 <code>constraint = "total"</code> no longer adds an index to the user’s <code>land_use_data</code>.</li>
 <li>
-<code>constraint = "total"</code> and <code>"singly"</code> now treat each <code>group_by</code> combination and each decay value as an independent system. Previously, <code>"total"</code> split the regional total across groups and both blended several decay values into one result. Detailed results now keep the <code>group_by</code> and <code>decay_function_arg</code> columns (<a href="https://github.com/ipea/accessibility/issues/66" class="external-link">#66</a>, <a href="https://github.com/soukhova" class="external-link">@soukhova</a>).</li>
+<code>constraint = "total"</code>, <code>"singly"</code> and <code>"doubly"</code> now treat each <code>group_by</code> combination and each decay value as an independent system. Previously, <code>"total"</code> split the regional total across groups, <code>"doubly"</code> balanced all groups as a single system, and all three blended several decay values into one result. Detailed results now keep the <code>group_by</code> and <code>decay_function_arg</code> columns (<a href="https://github.com/ipea/accessibility/issues/66" class="external-link">#66</a>, <a href="https://github.com/soukhova" class="external-link">@soukhova</a>).</li>
 </ul></li>
 <li>
 <code><a href="../reference/cost_to_closest.html">cost_to_closest()</a></code> no longer returns <code>Inf</code> due to integer overflow with large opportunity counts.</li>
