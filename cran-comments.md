@@ -8,7 +8,10 @@ and integer inputs return doubles). See NEWS.md.
 
 ## R CMD check results
 
-0 errors | 0 warnings | 0 notes
+── R CMD check results ─────────────────────────────────────────────────── accessibility 1.6.0 ────
+Duration: 2m 25.9s
+
+0 errors ✔ | 0 warnings ✔ | 0 notes ✔
 
 ## Test environments
 
@@ -16,6 +19,10 @@ and integer inputs return doubles). See NEWS.md.
 - win-builder: R-devel, R-release (TODO)
 - GitHub Actions: ubuntu-latest (devel, release, oldrel), macOS-latest
   (release), windows-latest (release) (TODO: confirm green)
+
+## Notes
+
+- Package maintainer changed from Daniel Herszenhut to Rafael Pereira
 
 ## Reverse dependencies
 
