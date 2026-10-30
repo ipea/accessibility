@@ -6,8 +6,8 @@ data, it calculates accessibility levels (cumulative, gravity, floating
 catchment area, spatial availability, balancing cost, constrained measures,
 cost to closest), decay functions, and accessibility inequality and poverty
 (Palma, concentration, Gini, Theil T, FGT). Built on `data.table`. Published
-on CRAN; developed by Ipea (github.com/ipea). Maintainer: Daniel Herszenhut; authors
-include Rafael H. M. Pereira and Anastasia Soukhov. License MIT. Docs:
+on CRAN; developed by Ipea (github.com/ipea). Maintainer: Rafael H. M. Pereira (since
+1.6.0); authors include Daniel Herszenhut and Anastasia Soukhov. License MIT. Docs:
 <https://ipea.github.io/accessibility/>.
 
 ---
