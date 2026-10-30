@@ -9,7 +9,7 @@ distribution. This vignette briefly presents these functions.
 
 We first need to calculate the accessibility levels that we are going to
 use in this demonstration. To do so, we use the
-[`cumulative_cutoff()`](https://ipeagit.github.io/accessibility/reference/cumulative_cutoff.md)
+[`cumulative_cutoff()`](https://ipea.github.io/accessibility/reference/cumulative_cutoff.md)
 function and the sample data included in the package.
 
 ``` r
@@ -29,7 +29,7 @@ access <- cumulative_cutoff(
 )
 head(access)
 #>                 id  jobs
-#>             <char> <int>
+#>             <char> <num>
 #> 1: 89a881a5a2bffff 14561
 #> 2: 89a881a5a2fffff 29452
 #> 3: 89a881a5a67ffff 16647
@@ -53,7 +53,7 @@ same information as input, including:
 
 ### Palma Ratio
 
-[`palma_ratio()`](https://ipeagit.github.io/accessibility/reference/palma_ratio.md)
+[`palma_ratio()`](https://ipea.github.io/accessibility/reference/palma_ratio.md)
 calculates the Palma Ratio of a given accessibility distribution.
 Originally defined as the income share of the wealthiest 10% of a
 population divided by the income share of the poorest 40%, this measure
@@ -87,7 +87,7 @@ palma
 
 ### Gini Index
 
-[`gini_index()`](https://ipeagit.github.io/accessibility/reference/gini_index.md)
+[`gini_index()`](https://ipea.github.io/accessibility/reference/gini_index.md)
 calculates the Gini Index of a given accessibility distribution.
 Probably the most frequently used inequality measure in transport
 planning, this index estimates how much a distribution deviates from a
@@ -114,7 +114,7 @@ gini
 
 ### Concentration Index
 
-[`concentration_index()`](https://ipeagit.github.io/accessibility/reference/concentration_index.md)
+[`concentration_index()`](https://ipea.github.io/accessibility/reference/concentration_index.md)
 calculates the Concentration Index (CI) of a given accessibility
 distribution. This indicator estimates the extent to which accessibility
 inequalities are systematically associated with individuals’
@@ -125,7 +125,7 @@ inequalities favor the poor, while positive values indicate a pro-rich
 bias.
 
 Just like
-[`palma_ratio()`](https://ipeagit.github.io/accessibility/reference/palma_ratio.md),
+[`palma_ratio()`](https://ipea.github.io/accessibility/reference/palma_ratio.md),
 this function includes an `income` parameter to indicate which variable
 from the sociodemographic dataset should be used to rank the population
 from the least to the most privileged groups. Unlike the Palma Ratio
@@ -134,7 +134,7 @@ socioeconomic status, such as education level, for example, can be
 passed to this argument, as long as it can be numerically ordered (in
 which higher values denote higher socioeconomic status).
 
-[`concentration_index()`](https://ipeagit.github.io/accessibility/reference/concentration_index.md)
+[`concentration_index()`](https://ipea.github.io/accessibility/reference/concentration_index.md)
 also includes a `type` parameter, used to indicate which Concentration
 Index to calculate. This parameter currently supports two values,
 `"standard"` and `"corrected"`, which respectively identify the standard
@@ -153,12 +153,12 @@ ci <- concentration_index(
 ci
 #>    concentration_index
 #>                  <num>
-#> 1:           0.3346494
+#> 1:           0.3346194
 ```
 
 ### Theil T
 
-[`theil_t()`](https://ipeagit.github.io/accessibility/reference/theil_t.md)
+[`theil_t()`](https://ipea.github.io/accessibility/reference/theil_t.md)
 calculates the Theil T Index of a given accessibility distribution.
 Values range from 0 (when all individuals have exactly the same
 accessibility levels) to the natural log of *n*, in which *n* is the
@@ -172,12 +172,12 @@ a `socioeconomic_groups` parameter to indicate which variable from the
 sociodemographic dataset should be used identify the socioeconomic
 groups used to calculate these components.
 
-Please note that the output
-[`theil_t()`](https://ipeagit.github.io/accessibility/reference/theil_t.md)
+Please note that the output of
+[`theil_t()`](https://ipea.github.io/accessibility/reference/theil_t.md)
 varies based on the value of `socioeconomic_groups`. If `NULL` (the
 default), the between- and within-groups components are not calculated,
 and the function returns a data frame containing only the total
-aggregate inequality for the returned area. If `socioeconomic_groups` is
+aggregate inequality for the study area. If `socioeconomic_groups` is
 not `NULL`, however, the function returns a list containing three
 dataframes: one summarizing the total inequality and the between- and
 within-groups components, one listing the contribution of each group to
@@ -255,25 +255,26 @@ theil_with_groups
 
 ### Foster-Greer-Thorbecke (FGT) poverty measures
 
-[`fgt_poverty()`](https://ipeagit.github.io/accessibility/reference/fgt_poverty.md)
+[`fgt_poverty()`](https://ipea.github.io/accessibility/reference/fgt_poverty.md)
 calculates the FGT metrics, a family of poverty measures originally
-proposed by Foster et al. (1984) that capture the extent and severity of
-poverty within an accessibility distribution. The FGT family is composed
-of three measures that differ based on the $`\alpha`$ parameter used to
-calculate them (either 0, 1 or 2) and which also changes their
-interpretation:
+proposed by Foster et al. (1984) that capture the incidence, depth and
+severity of poverty within an accessibility distribution. The FGT family
+is composed of three measures that differ based on the $`\alpha`$
+parameter used to calculate them (either 0, 1 or 2) and which also
+changes their interpretation:
 
-- with $`\alpha = 0`$ (FGT0) the measure captures the extent of poverty
-  as a simple headcount - i.e. the proportion of people below the
-  poverty line;
-- with $`\alpha = 1`$ (FGT1) the measure, also know as the “poverty gap
-  index”, captures the severity of poverty as the average percentage
-  distance between the poverty line and the accessibility of individuals
-  below the poverty line;
-- with $`\alpha = 2`$ (FGT2) the measure simultaneously captures the
-  extent and the severity of poverty by calculating the number of people
-  below the poverty line weighted by the size of the accessibility
-  shortfall relative to the poverty line.
+- with $`\alpha = 0`$ (FGT0) the measure captures the incidence (or
+  extent) of poverty as a simple headcount - i.e. the proportion of
+  people below the poverty line;
+- with $`\alpha = 1`$ (FGT1) the measure, also known as the “poverty gap
+  index”, captures the depth of poverty as the average shortfall from
+  the poverty line, relative to the poverty line, calculated over the
+  whole population (people above the poverty line have a shortfall of
+  0);
+- with $`\alpha = 2`$ (FGT2) the measure, also known as the “squared
+  poverty gap index”, captures the severity of poverty. By squaring the
+  shortfalls, it gives more weight to the people furthest below the
+  poverty line, which makes it sensitive to inequality among the poor.
 
 This function includes an additional `poverty_line` parameter, used to
 define the poverty line below which individuals are considered to be in
@@ -293,6 +294,54 @@ poverty
 #>         FGT0      FGT1      FGT2
 #>        <num>     <num>     <num>
 #> 1: 0.3923817 0.1776241 0.1010123
+```
+
+By default,
+[`fgt_poverty()`](https://ipea.github.io/accessibility/reference/fgt_poverty.md)
+considers that people with accessibility *below* the poverty line are
+poor, which is the right approach for primal accessibility measures,
+such as the number of accessible jobs. For dual measures, such as the
+travel time to the closest facility calculated with
+[`cost_to_closest()`](https://ipea.github.io/accessibility/reference/cost_to_closest.md),
+higher values indicate worse access, so people *above* the poverty line
+should be considered poor. This is done by setting
+`poor_below_threshold = FALSE`. In this case, FGT1 and FGT2 measure the
+excess travel cost relative to the poverty line, so they are not bounded
+by 1. In the example below, we consider that people who take more than
+20 minutes to reach the closest school are in accessibility poverty.
+Note that
+[`cost_to_closest()`](https://ipea.github.io/accessibility/reference/cost_to_closest.md)
+returns `Inf` for origins that can’t reach any school in the travel
+matrix, which would make FGT1 and FGT2 infinite
+([`fgt_poverty()`](https://ipea.github.io/accessibility/reference/fgt_poverty.md)
+warns about it), so we replace these values by the longest travel time
+in the travel matrix (120 minutes) beforehand.
+
+``` r
+
+time_to_school <- cost_to_closest(
+  travel_matrix,
+  land_use_data,
+  opportunity = "schools",
+  travel_cost = "travel_time"
+)
+
+unreachable <- is.infinite(time_to_school$travel_time)
+time_to_school$travel_time[unreachable] <- 120
+
+poverty_dual <- fgt_poverty(
+  time_to_school,
+  sociodemographic_data = land_use_data,
+  opportunity = "travel_time",
+  population = "population",
+  poverty_line = 20,
+  poor_below_threshold = FALSE
+)
+
+poverty_dual
+#>          FGT0        FGT1       FGT2
+#>         <num>       <num>      <num>
+#> 1: 0.02635896 0.009283491 0.02337055
 ```
 
 ## References

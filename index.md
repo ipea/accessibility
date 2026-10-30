@@ -43,7 +43,7 @@ remotes::install_github("ipea/accessibility")
 ## Usage
 
 This section aims to present a very brief overview of some of the
-packages’ features. Fore more details please read the vignettes:
+package’s features. For more details please read the vignettes:
 
 - [Introduction to **accessibility**: calculating accessibility
   measures](https://ipea.github.io/accessibility/articles/accessibility.html)
@@ -73,7 +73,7 @@ cum_cutoff <- cumulative_cutoff(
 )
 head(cum_cutoff)
 #>                 id  jobs
-#>             <char> <int>
+#>             <char> <num>
 #> 1: 89a881a5a2bffff 14561
 #> 2: 89a881a5a2fffff 29452
 #> 3: 89a881a5a67ffff 16647
@@ -151,8 +151,8 @@ poverty
 
 ## Related work:
 
-- [r5r](https://github.com/ipeaGIT/r5r): Rapid Realistic Routing with R5
-  in R
+- [r5r](https://github.com/ipea/r5r): Rapid Realistic Routing with R5 in
+  R
 - [tracc](https://github.com/jamaps/tracc): Transport accessibility
   measures in Python
 - [access](https://access.readthedocs.io/en/latest/): Spatial Access for

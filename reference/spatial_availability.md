@@ -1,6 +1,6 @@
 # Spatial availability
 
-Calculates spatial availability, an accessibility measured proposed by
+Calculates spatial availability, an accessibility measure proposed by
 Soukhov et al. (2023) that takes into account competition effects. The
 accessibility levels that result from using this measure are
 proportional both to the demand in each origin and to the travel cost it
@@ -40,7 +40,8 @@ spatial_availability(
 
   A data frame. The distribution of opportunities within the study area
   cells. Must contain the columns `id` and any others specified in
-  `opportunity`.
+  `opportunity`. `NA` values, and ids in `travel_matrix` that are
+  missing from this table, are treated as 0.
 
 - opportunity:
 
@@ -63,16 +64,18 @@ spatial_availability(
 
 - decay_function:
 
-  A `fuction` that converts travel cost into an impedance factor used to
-  weight opportunities. This function should take a `numeric` vector and
-  also return a `numeric` vector as output, with the same length as the
-  input. For convenience, the package currently includes the following
-  functions:
-  [`decay_binary()`](https://ipeagit.github.io/accessibility/reference/decay_binary.md),
-  [`decay_exponential()`](https://ipeagit.github.io/accessibility/reference/decay_exponential.md),
-  [`decay_power()`](https://ipeagit.github.io/accessibility/reference/decay_power.md)
+  A `function` that converts travel cost into an impedance factor used
+  to weight opportunities. This function should take a `numeric` vector
+  and also return a `numeric` vector as output, with the same length as
+  the input. For convenience, the package currently includes the
+  following functions:
+  [`decay_binary()`](https://ipea.github.io/accessibility/reference/decay_binary.md),
+  [`decay_exponential()`](https://ipea.github.io/accessibility/reference/decay_exponential.md),
+  [`decay_linear()`](https://ipea.github.io/accessibility/reference/decay_linear.md),
+  [`decay_logistic()`](https://ipea.github.io/accessibility/reference/decay_logistic.md),
+  [`decay_power()`](https://ipea.github.io/accessibility/reference/decay_power.md)
   and
-  [`decay_stepped()`](https://ipeagit.github.io/accessibility/reference/decay_stepped.md).
+  [`decay_stepped()`](https://ipea.github.io/accessibility/reference/decay_stepped.md).
   See the documentation of each decay function for more details.
 
 - alpha:
@@ -92,17 +95,21 @@ spatial_availability(
   results in accessibility estimates grouped by origin and by departure
   time.
 
+  Accessibility is calculated separately for each unique combination of
+  grouping variables. For constrained accessibility measures, each group
+  is treated as an independent land-use-transportation system.
+
 - fill_missing_ids:
 
   A `logical`. When calculating grouped accessibility estimates (i.e.
-  when `by_col` is not `NULL`), some combinations of groups and origins
+  when `group_by` is not empty), some combinations of groups and origins
   may be missing. For example, if a single trip can depart from origin
   `A` at 7:15am and reach destination `B` within 55 minutes, but no
   trips departing from `A` at 7:30am can be completed at all, this
   second combination will not be included in the output. When `TRUE`
   (the default), the function identifies which combinations would be
   left out and fills their respective accessibility values with 0, which
-  incurs in a performance penalty.
+  incurs a performance penalty.
 
 - detailed_results:
 
@@ -115,9 +122,10 @@ spatial_availability(
 
 ## Value
 
-A data frame containing the accessibility estimates for each
-origin/destination (depending if `active` is `TRUE` or `FALSE`) in the
-travel matrix.
+A data frame containing the spatial availability estimates for each
+origin in the travel matrix. When `detailed_results` is `TRUE`, the
+estimates are given for each origin-destination pair instead, alongside
+the balancing factors used to calculate them.
 
 ## References
 
@@ -130,7 +138,7 @@ Accessibility.” *PLOS ONE*, **18**(1), e0278468. ISSN 1932-6203.
 ## See also
 
 Other Constrained accessibility:
-[`constrained_accessibility()`](https://ipeagit.github.io/accessibility/reference/constrained_accessibility.md)
+[`constrained_accessibility()`](https://ipea.github.io/accessibility/reference/constrained_accessibility.md)
 
 ## Examples
 

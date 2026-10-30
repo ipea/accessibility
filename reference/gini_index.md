@@ -31,7 +31,7 @@ gini_index(
 - opportunity:
 
   A string. The name of the column in `accessibility_data` with the
-  accessibility levels to be considerend when calculating inequality
+  accessibility levels to be considered when calculating inequality
   levels.
 
 - population:
@@ -56,10 +56,11 @@ A data frame containing the inequality estimates for the study area.
 
 ## See also
 
-Other inequality:
-[`concentration_index()`](https://ipeagit.github.io/accessibility/reference/concentration_index.md),
-[`palma_ratio()`](https://ipeagit.github.io/accessibility/reference/palma_ratio.md),
-[`theil_t()`](https://ipeagit.github.io/accessibility/reference/theil_t.md)
+Other equity:
+[`concentration_index()`](https://ipea.github.io/accessibility/reference/concentration_index.md),
+[`fgt_poverty()`](https://ipea.github.io/accessibility/reference/fgt_poverty.md),
+[`palma_ratio()`](https://ipea.github.io/accessibility/reference/palma_ratio.md),
+[`theil_t()`](https://ipea.github.io/accessibility/reference/theil_t.md)
 
 ## Examples
 

@@ -29,11 +29,11 @@ vectors, named after the arguments passed to the decay function).
 ## See also
 
 Other decay functions:
-[`decay_binary()`](https://ipeagit.github.io/accessibility/reference/decay_binary.md),
-[`decay_linear()`](https://ipeagit.github.io/accessibility/reference/decay_linear.md),
-[`decay_logistic()`](https://ipeagit.github.io/accessibility/reference/decay_logistic.md),
-[`decay_power()`](https://ipeagit.github.io/accessibility/reference/decay_power.md),
-[`decay_stepped()`](https://ipeagit.github.io/accessibility/reference/decay_stepped.md)
+[`decay_binary()`](https://ipea.github.io/accessibility/reference/decay_binary.md),
+[`decay_linear()`](https://ipea.github.io/accessibility/reference/decay_linear.md),
+[`decay_logistic()`](https://ipea.github.io/accessibility/reference/decay_logistic.md),
+[`decay_power()`](https://ipea.github.io/accessibility/reference/decay_power.md),
+[`decay_stepped()`](https://ipea.github.io/accessibility/reference/decay_stepped.md)
 
 ## Examples
 

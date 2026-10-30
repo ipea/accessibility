@@ -7,7 +7,7 @@ such as distance, time and money."><meta property="og:description" content="Calc
 measure from the floating catchment area (FCA) family. Please see the details
 for the available FCA measures.
 This function is generic over any kind of numeric travel cost,
-such as distance, time and money."><meta property="og:image" content="https://ipeagit.github.io/accessibility/logo.png"></head><body>
+such as distance, time and money."><meta property="og:image" content="https://ipea.github.io/accessibility/logo.png"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -15,7 +15,7 @@ such as distance, time and money."><meta property="og:image" content="https://ip
 
     <a class="navbar-brand me-2" href="../index.html">accessibility</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,7 +33,7 @@ such as distance, time and money."><meta property="og:image" content="https://ip
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/ipeaGIT/accessibility/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/ipea/accessibility/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch"><li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
@@ -48,7 +48,7 @@ such as distance, time and money."><meta property="og:image" content="https://ip
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Floating catchment area accessibility</h1>
-      <small class="dont-index">Source: <a href="https://github.com/ipeaGIT/accessibility/blob/main/R/floating_catchment_area.R" class="external-link"><code>R/floating_catchment_area.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/ipea/accessibility/blob/main/R/floating_catchment_area.R" class="external-link"><code>R/floating_catchment_area.R</code></a></small>
       <div class="d-none name"><code>floating_catchment_area.Rd</code></div>
     </div>
 
@@ -89,7 +89,8 @@ and any others specified in <code>travel_cost</code>.</p></dd>
 <dt id="arg-land-use-data">land_use_data<a class="anchor" aria-label="anchor" href="#arg-land-use-data"></a></dt>
 <dd><p>A data frame. The distribution of opportunities within
 the study area cells. Must contain the columns <code>id</code> and any others
-specified in <code>opportunity</code>.</p></dd>
+specified in <code>opportunity</code>. <code>NA</code> values, and ids in <code>travel_matrix</code> that
+are missing from this table, are treated as 0.</p></dd>
 
 
 <dt id="arg-opportunity">opportunity<a class="anchor" aria-label="anchor" href="#arg-opportunity"></a></dt>
@@ -118,13 +119,14 @@ details.</p></dd>
 
 
 <dt id="arg-decay-function">decay_function<a class="anchor" aria-label="anchor" href="#arg-decay-function"></a></dt>
-<dd><p>A <code>fuction</code> that converts travel cost into an
+<dd><p>A <code>function</code> that converts travel cost into an
 impedance factor used to weight opportunities. This function should take a
 <code>numeric</code> vector and also return a <code>numeric</code> vector as output, with the
 same length as the input. For convenience, the package currently includes
 the following functions: <code><a href="decay_binary.html">decay_binary()</a></code>, <code><a href="decay_exponential.html">decay_exponential()</a></code>,
-<code><a href="decay_power.html">decay_power()</a></code> and <code><a href="decay_stepped.html">decay_stepped()</a></code>. See the documentation of each decay
-function for more details.</p></dd>
+<code><a href="decay_linear.html">decay_linear()</a></code>, <code><a href="decay_logistic.html">decay_logistic()</a></code>, <code><a href="decay_power.html">decay_power()</a></code> and
+<code><a href="decay_stepped.html">decay_stepped()</a></code>. See the documentation of each decay function for more
+details.</p></dd>
 
 
 <dt id="arg-group-by">group_by<a class="anchor" aria-label="anchor" href="#arg-group-by"></a></dt>
@@ -133,26 +135,28 @@ indicates the <code>travel_matrix</code> columns that should be used to group th
 accessibility estimates by. For example, if <code>travel_matrix</code> includes a
 departure time column, that specifies the departure time of each entry in
 the data frame, passing <code>"departure_time"</code> to this parameter results in
-accessibility estimates grouped by origin and by departure time.</p></dd>
+accessibility estimates grouped by origin and by departure time.</p>
+<p>Accessibility is calculated separately for each unique combination of
+grouping variables. For constrained accessibility measures, each group is
+treated as an independent land-use-transportation system.</p></dd>
 
 
 <dt id="arg-fill-missing-ids">fill_missing_ids<a class="anchor" aria-label="anchor" href="#arg-fill-missing-ids"></a></dt>
 <dd><p>A <code>logical</code>. When calculating grouped accessibility
-estimates (i.e. when <code>by_col</code> is not <code>NULL</code>), some combinations of groups
+estimates (i.e. when <code>group_by</code> is not empty), some combinations of groups
 and origins may be missing. For example, if a single trip can depart from
 origin <code>A</code> at 7:15am and reach destination <code>B</code> within 55 minutes, but no
 trips departing from <code>A</code> at 7:30am can be completed at all, this second
 combination will not be included in the output. When <code>TRUE</code> (the default),
 the function identifies which combinations would be left out and fills
-their respective accessibility values with 0, which incurs in a
+their respective accessibility values with 0, which incurs a
 performance penalty.</p></dd>
 
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
-    <p>A data frame containing the accessibility estimates for each
-origin/destination (depending if <code>active</code> is <code>TRUE</code> or <code>FALSE</code>) in the
-travel matrix.</p>
+    <p>A data frame containing the accessibility estimates for each origin
+in the travel matrix.</p>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>

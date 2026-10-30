@@ -1,15 +1,15 @@
 # Decay functions
 
 Some functions of the **accessibility** package, such as
-[`floating_catchment_area()`](https://ipeagit.github.io/accessibility/reference/floating_catchment_area.md)
+[`floating_catchment_area()`](https://ipea.github.io/accessibility/reference/floating_catchment_area.md)
 and
-[`gravity()`](https://ipeagit.github.io/accessibility/reference/gravity.md),
+[`gravity()`](https://ipea.github.io/accessibility/reference/gravity.md),
 use decay functions to continuously discount the weight of opportunities
 as travel costs become larger. For convenience, the package ships with
 some of the most frequently used functions in the accessibility
 literature, which are discussed below. Additionally, users can pass
 custom functions to convert travel costs into weights to be applied to
-the opportunities, which is discussed further down in this the vignette.
+the opportunities, which is discussed further down in this vignette.
 
 ## Currently available decay functions
 
@@ -81,7 +81,7 @@ Where $`t_{ij}`$ is the travel cost between origin *i* and destination
 ### Stepped
 
 Similar to the binary function, but can take an arbitrary number of
-steps. The current implementation assumes that values changes at each
+steps. The current implementation assumes that values change at each
 step, instead of right after it.
 
 ``` math
@@ -153,10 +153,10 @@ output_fn(c(10, 15, 20))
 #> [1] 0.049787068 0.011108997 0.002478752
 ```
 
-[`decay_stepped()`](https://ipeagit.github.io/accessibility/reference/decay_stepped.md),
-as the only decay function that takes more than one argument (both
-`steps` and `weights`) names the output elements after the combination
-of steps and weights:
+[`decay_stepped()`](https://ipea.github.io/accessibility/reference/decay_stepped.md),
+which takes two arguments that can be lists of vectors (both `steps` and
+`weights`), names the output elements after the combination of steps and
+weights:
 
 ``` r
 
@@ -293,7 +293,7 @@ the simple multiplicative inverse of the travel cost, we want to
 multiply this inverse by a given decay parameter. Now we face a
 “problem”: our function would need to take two inputs (the travel cost,
 as above, and the decay parameter to multiply the travel cost), but
-[`gravity()`](https://ipeagit.github.io/accessibility/reference/gravity.md)
+[`gravity()`](https://ipea.github.io/accessibility/reference/gravity.md)
 can only take functions that receive a single input (the travel cost).
 In this case, we resort to the same strategy used in the decay functions
 shipped with the package, we create a function that takes a decay
@@ -320,7 +320,7 @@ my_decay(c(0, 0.5, 1, 2, 5, 10))
 ```
 
 Great, it works! In fact, we can achieve the exact same
-[`gravity()`](https://ipeagit.github.io/accessibility/reference/gravity.md)
+[`gravity()`](https://ipea.github.io/accessibility/reference/gravity.md)
 result shown above if we use `my_second_decay(1)`, instead of
 `my_decay`:
 
@@ -356,16 +356,18 @@ function.
 decay_power(1)
 #> function (travel_cost) 
 #> {
-#>     weights_list <- lapply(decay_value, function(x) {
-#>         weights <- travel_cost^(-x)
-#>         weights[weights > 1] <- 1
-#>         weights
+#>     weights_list <- weigh_unique_costs(travel_cost, function(cost) {
+#>         lapply(decay_value, function(x) {
+#>             weights <- cost^(-x)
+#>             weights[weights > 1] <- 1
+#>             weights
+#>         })
 #>     })
 #>     names(weights_list) <- decay_value
 #>     return(weights_list)
 #> }
-#> <bytecode: 0x56114471fb80>
-#> <environment: 0x5611495c96c0>
+#> <bytecode: 0x56170fe48858>
+#> <environment: 0x561714a2d120>
 ```
 
 What if we want our custom function to take many decay parameters as
@@ -410,7 +412,7 @@ my_second_decay(2)(c(0, 0.5, 1, 2, 5, 10))
 
 This new custom decay function is a bit more complex than the previous
 two, yet much more powerful. We can use it in conjunction with
-[`gravity()`](https://ipeagit.github.io/accessibility/reference/gravity.md)
+[`gravity()`](https://ipea.github.io/accessibility/reference/gravity.md)
 (and the other accessibility functions that take decay functions as
 input as well) to calculate the accessibility with multiple decay
 parameters in a single call:

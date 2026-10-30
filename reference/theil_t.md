@@ -5,7 +5,7 @@ Values range from 0 (when all individuals have exactly the same
 accessibility levels) to the natural log of *n*, in which *n* is the
 number of individuals in the accessibility dataset. If the individuals
 can be classified into mutually exclusive and completely exhaustive
-groups, the index can be decomposed into a between-groups inequaliy
+groups, the index can be decomposed into a between-groups inequality
 component and a within-groups component.
 
 ## Usage
@@ -38,7 +38,7 @@ theil_t(
 - opportunity:
 
   A string. The name of the column in `accessibility_data` with the
-  accessibility levels to be considerend when calculating inequality
+  accessibility levels to be considered when calculating inequality
   levels.
 
 - population:
@@ -74,12 +74,20 @@ within-groups components, one listing the contribution of each group to
 the between-groups component and another listing the contribution of
 each group to the within-groups component.
 
+## Details
+
+Observations with no access contribute 0 to the index, following the
+usual convention that `0 * log(0) = 0`. If no one has access to any
+opportunity (i.e. the average accessibility is 0), the index is
+undefined and `NA` is returned.
+
 ## See also
 
-Other inequality:
-[`concentration_index()`](https://ipeagit.github.io/accessibility/reference/concentration_index.md),
-[`gini_index()`](https://ipeagit.github.io/accessibility/reference/gini_index.md),
-[`palma_ratio()`](https://ipeagit.github.io/accessibility/reference/palma_ratio.md)
+Other equity:
+[`concentration_index()`](https://ipea.github.io/accessibility/reference/concentration_index.md),
+[`fgt_poverty()`](https://ipea.github.io/accessibility/reference/fgt_poverty.md),
+[`gini_index()`](https://ipea.github.io/accessibility/reference/gini_index.md),
+[`palma_ratio()`](https://ipea.github.io/accessibility/reference/palma_ratio.md)
 
 ## Examples
 

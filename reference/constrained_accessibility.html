@@ -7,7 +7,7 @@ constraint cases. Please see the Details section for more information."><meta pr
 Soukhov et al. (2025)
 . Accessibility is
 conceptualised as potential spatial interaction. This function covers three
-constraint cases. Please see the Details section for more information."><meta property="og:image" content="https://ipeagit.github.io/accessibility/logo.png"></head><body>
+constraint cases. Please see the Details section for more information."><meta property="og:image" content="https://ipea.github.io/accessibility/logo.png"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -15,7 +15,7 @@ constraint cases. Please see the Details section for more information."><meta pr
 
     <a class="navbar-brand me-2" href="../index.html">accessibility</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,7 +33,7 @@ constraint cases. Please see the Details section for more information."><meta pr
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/ipeaGIT/accessibility/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/ipea/accessibility/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch"><li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
@@ -48,7 +48,7 @@ constraint cases. Please see the Details section for more information."><meta pr
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Constrained accessibility</h1>
-      <small class="dont-index">Source: <a href="https://github.com/ipeaGIT/accessibility/blob/main/R/constrained_accessibility.R" class="external-link"><code>R/constrained_accessibility.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/ipea/accessibility/blob/main/R/constrained_accessibility.R" class="external-link"><code>R/constrained_accessibility.R</code></a></small>
       <div class="d-none name"><code>constrained_accessibility.Rd</code></div>
     </div>
 
@@ -94,7 +94,8 @@ and any others specified in <code>travel_cost</code>.</p></dd>
 <dt id="arg-land-use-data">land_use_data<a class="anchor" aria-label="anchor" href="#arg-land-use-data"></a></dt>
 <dd><p>A data frame. The distribution of opportunities within
 the study area cells. Must contain the columns <code>id</code> and any others
-specified in <code>opportunity</code>.</p></dd>
+specified in <code>opportunity</code>. <code>NA</code> values, and ids in <code>travel_matrix</code> that
+are missing from this table, are treated as 0.</p></dd>
 
 
 <dt id="arg-travel-cost">travel_cost<a class="anchor" aria-label="anchor" href="#arg-travel-cost"></a></dt>
@@ -122,13 +123,14 @@ Details section for more information.</p></dd>
 
 
 <dt id="arg-decay-function">decay_function<a class="anchor" aria-label="anchor" href="#arg-decay-function"></a></dt>
-<dd><p>A <code>fuction</code> that converts travel cost into an
+<dd><p>A <code>function</code> that converts travel cost into an
 impedance factor used to weight opportunities. This function should take a
 <code>numeric</code> vector and also return a <code>numeric</code> vector as output, with the
 same length as the input. For convenience, the package currently includes
 the following functions: <code><a href="decay_binary.html">decay_binary()</a></code>, <code><a href="decay_exponential.html">decay_exponential()</a></code>,
-<code><a href="decay_power.html">decay_power()</a></code> and <code><a href="decay_stepped.html">decay_stepped()</a></code>. See the documentation of each decay
-function for more details.</p></dd>
+<code><a href="decay_linear.html">decay_linear()</a></code>, <code><a href="decay_logistic.html">decay_logistic()</a></code>, <code><a href="decay_power.html">decay_power()</a></code> and
+<code><a href="decay_stepped.html">decay_stepped()</a></code>. See the documentation of each decay function for more
+details.</p></dd>
 
 
 <dt id="arg-active">active<a class="anchor" aria-label="anchor" href="#arg-active"></a></dt>
@@ -163,44 +165,88 @@ indicates the <code>travel_matrix</code> columns that should be used to group th
 accessibility estimates by. For example, if <code>travel_matrix</code> includes a
 departure time column, that specifies the departure time of each entry in
 the data frame, passing <code>"departure_time"</code> to this parameter results in
-accessibility estimates grouped by origin and by departure time.</p></dd>
+accessibility estimates grouped by origin and by departure time.</p>
+<p>Accessibility is calculated separately for each unique combination of
+grouping variables. For constrained accessibility measures, each group is
+treated as an independent land-use-transportation system.</p></dd>
 
 
 <dt id="arg-fill-missing-ids">fill_missing_ids<a class="anchor" aria-label="anchor" href="#arg-fill-missing-ids"></a></dt>
 <dd><p>A <code>logical</code>. When calculating grouped accessibility
-estimates (i.e. when <code>by_col</code> is not <code>NULL</code>), some combinations of groups
+estimates (i.e. when <code>group_by</code> is not empty), some combinations of groups
 and origins may be missing. For example, if a single trip can depart from
 origin <code>A</code> at 7:15am and reach destination <code>B</code> within 55 minutes, but no
 trips departing from <code>A</code> at 7:30am can be completed at all, this second
 combination will not be included in the output. When <code>TRUE</code> (the default),
 the function identifies which combinations would be left out and fills
-their respective accessibility values with 0, which incurs in a
+their respective accessibility values with 0, which incurs a
 performance penalty.</p></dd>
 
 
 <dt id="arg-detailed-results">detailed_results<a class="anchor" aria-label="anchor" href="#arg-detailed-results"></a></dt>
-<dd><p>Logical. Whether to return detailed OD-level results.</p></dd>
+<dd><p>Logical. Whether to return detailed OD-level
+results for <code>constraint = "total"</code>- and <code>constraint = "singly"</code>
+accessibility. Currently ignored for <code>constraint = "doubly"</code> accessibility,
+which always returns OD-level flows.</p></dd>
 
 </dl></div>
+    <div class="section level2">
+    <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
+    <p>A data frame of the same class as <code>travel_matrix</code> (<code>data.table</code>,
+<code>data.frame</code> or <code>tibble</code>). Its columns depend on <code>constraint</code>, <code>active</code>
+and <code>detailed_results</code>:</p><ul><li><p><code>constraint = "total"</code> or <code>"singly"</code>, <code>detailed_results = FALSE</code>: one
+row per origin (<code>from_id</code>, when <code>active = TRUE</code>) or destination (<code>to_id</code>,
+when <code>active = FALSE</code>), plus the <code>group_by</code> columns. Accessibility is in a
+column named <code>supply</code> (active) or <code>demand</code> (passive).</p></li>
+<li><p><code>constraint = "total"</code>, <code>detailed_results = TRUE</code>: one row per
+origin-destination pair, with the columns <code>from_id</code>, <code>to_id</code>, the weighted
+opportunities (<code>weighted_supply</code> or <code>weighted_demand</code>), the share of the
+regional total allocated to the pair (<code>kappa_total</code> or <code>hatkappa_total</code>),
+the allocated flow (<code>supply</code> or <code>demand</code>) and the scaling constant
+(<code>K_total</code> or <code>hatK_total</code>).</p></li>
+<li><p><code>constraint = "singly"</code>, <code>detailed_results = TRUE</code>: one row per
+origin-destination pair, with the columns <code>from_id</code>, <code>to_id</code>, the
+allocation share (<code>kappa_singly</code> or <code>hatkappa_singly</code>), the allocated flow
+(<code>supply</code> or <code>demand</code>) and the balancing factor (<code>B_j</code> or <code>A_i</code>).</p></li>
+<li><p><code>constraint = "doubly"</code>: one row per origin-destination pair, with the
+columns <code>from_id</code>, <code>to_id</code>, <code>flow</code>, the balancing factors <code>A_i</code> and <code>B_j</code>,
+<code>kappa_doubly</code> and the final balancing <code>error</code>. <code>detailed_results</code> and
+<code>active</code> are not read.</p></li>
+</ul><p>Detailed results include the <code>group_by</code> columns and, when the decay
+function has several values, <code>decay_function_arg</code>.</p>
+    </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
 
 
 <p>This function covers the family of constrained accessibility measures
 proposed in Soukhov et al. (2025)
-.</p><div class="section">
+.</p>
+<p>For these measures, each group or decay value is
+treated as an independent land-use-transportation system. This is not a multimodal
+model that splits demand or supply across groups. Instead, each group is
+calculated as if the function were run separately on that group's rows of
+<code>travel_matrix</code>. The total allocated within a group is the sum of the
+opportunities (or population) associated with the ids that appear in that
+group's rows.</p>
+<p>As well, when <code>fill_missing_ids = TRUE</code>, ids that are absent from a particular
+group's rows are still returned with accessibility equal to 0. This doesn't
+apply to <code>constraint = "doubly"</code>, which ignores <code>fill_missing_ids</code> and
+returns every origin-destination pair of the ids in each group.</p><div class="section">
 <h3 id="total-constrained-accessibility">Total Constrained Accessibility<a class="anchor" aria-label="anchor" href="#total-constrained-accessibility"></a></h3>
 
 
 <p>Allocates the system-wide total proportionally based on travel impedance
 between origins and destinations. This measure uses the logic of a
-total ~(or 'unconstrained' by Wilson's terms)~ constraint.</p>
+total (or 'unconstrained' by Wilson's terms) constraint.</p>
 <p>Use this measure when the total quantity of <strong>supply</strong> OR <strong>demand</strong> in the
 system is known and representing accessibility as a proportion of this total
 is meaningful.</p><div class="section">
 <h4 id="requirement-">Requirement:<a class="anchor" aria-label="anchor" href="#requirement-"></a></h4>
 
-<ul><li><p>Either <code>demand</code> or <code>supply</code> must be provided (cannot provide both).</p></li>
+<ul><li><p><code>supply</code> must be provided when <code>active = TRUE</code>, and <code>demand</code> when
+<code>active = FALSE</code>. The other argument is ignored, so the same call can be
+used with <code>constraint = "singly"</code>, which requires both.</p></li>
 </ul></div>
 
 <div class="section">
@@ -320,10 +366,13 @@ travel  impedance.</p><div class="section">
 
 <ul><li><p>Both <code>demand</code> and <code>supply</code> must be provided.</p></li>
 <li><p>Unlike <code>total</code> and <code>singly</code>, <code>doubly</code> requires the sum of demand and supply
-to match; otherwise, the model will not converge.</p></li>
-<li><p><code>active</code> must be <code>NULL</code>. Since supply must match demand, their units are
+to match; otherwise, an error is raised. When <code>group_by</code> or multiple decay
+values are used, the totals must match within each independently balanced
+system.</p></li>
+<li><p><code>active</code> is ignored. Since supply must match demand, their units are
 the same and there is no distinction between 'active' and 'passive' notions.</p></li>
-<li><p>Only accepts<code>detailed_results = TRUE</code>.</p></li>
+<li><p><code>detailed_results</code> is currently ignored for doubly-constrained
+accessibility. OD-level flows are always returned.</p></li>
 </ul></div>
 
 <div class="section">
@@ -349,11 +398,15 @@ demand and supply?"</p></li>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
-    <p>Soukhov A, Pereira RH, Higgins CD, Páez A (2025).
+    <p>Soukhov A, Pereira RHM, Higgins CD, Páez A (2025).
 “A family of accessibility measures derived from spatial interaction principles.”
-<em>PLoS One</em>, <b>20</b>(11), e0335951.<br><br> Wilson AG (1971).
+<em>PLoS One</em>, <b>20</b>(11), e0335951.
+<a href="https://doi.org/10.1371/journal.pone.0335951" class="external-link">doi:10.1371/journal.pone.0335951</a>
+.<br><br> Wilson AG (1971).
 “A family of spatial interaction models, and associated developments.”
-<em>Environment and Planning A</em>, <b>3</b>(1), 1–32.</p>
+<em>Environment and Planning A</em>, <b>3</b>(1), 1–32.
+<a href="https://doi.org/10.1068/a030001" class="external-link">doi:10.1068/a030001</a>
+.</p>
     </div>
     <div class="section level2">
     <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
@@ -450,7 +503,7 @@ demand and supply?"</p></li>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 898: 89a881aebafffff    0.0000</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Doubly-constrained: returns units of flow (requires both demand and supply</span></span></span>
-<span class="r-in"><span><span class="co"># (totals that match) and `detailed_results = TRUE`)</span></span></span>
+<span class="r-in"><span><span class="co"># with matching totals)</span></span></span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Using a small toy dataset with matching totals.</span></span></span>
 <span class="r-in"><span><span class="va">tm_small</span> <span class="op">&lt;-</span> <span class="fu">data.table</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/data.table/man/data.table.html" class="external-link">data.table</a></span><span class="op">(</span></span></span>
@@ -481,21 +534,70 @@ demand and supply?"</p></li>
 <span class="r-in"><span>  constraint      <span class="op">=</span> <span class="st">"doubly"</span>,</span></span>
 <span class="r-in"><span>  decay_function  <span class="op">=</span> <span class="fu"><a href="decay_exponential.html">decay_exponential</a></span><span class="op">(</span><span class="fl">0.1</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  demand          <span class="op">=</span> <span class="st">"population"</span>,</span></span>
-<span class="r-in"><span>  supply          <span class="op">=</span> <span class="st">"jobs"</span>,</span></span>
-<span class="r-in"><span>  detailed_results <span class="op">=</span> <span class="cn">TRUE</span></span></span>
+<span class="r-in"><span>  supply          <span class="op">=</span> <span class="st">"jobs"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    from_id  to_id       flow       A_i      B_j kappa_doubly        error</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>     &lt;fctr&gt; &lt;fctr&gt;      &lt;num&gt;     &lt;num&gt;    &lt;num&gt;        &lt;num&gt;        &lt;num&gt;</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1:       1      1 2.52693730 0.1721781 1.424797   0.36099104 0.0007282441</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2:       1      2 0.09995405 0.1721781 0.583010   0.01999081 0.0007282441</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3:       1      3 1.37651660 0.1721781 1.119684   0.17206457 0.0007282441</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 4:       2      1 2.15341665 0.4336710 1.424797   0.30763095 0.0007282441</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 5:       2      2 4.65063122 0.4336710 0.583010   0.93012624 0.0007282441</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 6:       2      3 3.18866969 0.4336710 1.119684   0.39858371 0.0007282441</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 7:       3      1 2.31964604 0.1737245 1.424797   0.33137801 0.0007282441</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 8:       3      2 0.24941474 0.1737245 0.583010   0.04988295 0.0007282441</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 9:       3      3 3.43481370 0.1737245 1.119684   0.42935171 0.0007282441</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1:       1      1 2.52693731 0.1721781 1.424797   0.36099104 0.0007282429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2:       1      2 0.09995405 0.1721781 0.583010   0.01999081 0.0007282429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3:       1      3 1.37651660 0.1721781 1.119684   0.17206457 0.0007282429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 4:       2      1 2.15341665 0.4336710 1.424797   0.30763095 0.0007282429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 5:       2      2 4.65063122 0.4336710 0.583010   0.93012624 0.0007282429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 6:       2      3 3.18866970 0.4336710 1.119684   0.39858371 0.0007282429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 7:       3      1 2.31964604 0.1737245 1.424797   0.33137801 0.0007282429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 8:       3      2 0.24941474 0.1737245 0.583010   0.04988295 0.0007282429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 9:       3      3 3.43481370 0.1737245 1.119684   0.42935171 0.0007282429</span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># With several decay values, each one is balanced separately</span></span></span>
+<span class="r-in"><span><span class="fu">constrained_accessibility</span><span class="op">(</span></span></span>
+<span class="r-in"><span>  travel_matrix   <span class="op">=</span> <span class="va">tm_small</span>,</span></span>
+<span class="r-in"><span>  land_use_data   <span class="op">=</span> <span class="va">lu_small</span>,</span></span>
+<span class="r-in"><span>  travel_cost     <span class="op">=</span> <span class="st">"travel_time"</span>,</span></span>
+<span class="r-in"><span>  constraint      <span class="op">=</span> <span class="st">"doubly"</span>,</span></span>
+<span class="r-in"><span>  decay_function  <span class="op">=</span> <span class="fu"><a href="decay_exponential.html">decay_exponential</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  demand          <span class="op">=</span> <span class="st">"population"</span>,</span></span>
+<span class="r-in"><span>  supply          <span class="op">=</span> <span class="st">"jobs"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     from_id  to_id decay_function_arg         flow          A_i        B_j</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>      &lt;fctr&gt; &lt;fctr&gt;              &lt;num&gt;        &lt;num&gt;        &lt;num&gt;      &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1:       1      1                0.1 2.526937e+00    0.1721781  1.4247972</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2:       1      2                0.1 9.995405e-02    0.1721781  0.5830100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3:       1      3                0.1 1.376517e+00    0.1721781  1.1196837</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4:       2      1                0.1 2.153417e+00    0.4336710  1.4247972</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5:       2      2                0.1 4.650631e+00    0.4336710  0.5830100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6:       2      3                0.1 3.188670e+00    0.4336710  1.1196837</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7:       3      1                0.1 2.319646e+00    0.1737245  1.4247972</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8:       3      2                0.1 2.494147e-01    0.1737245  0.5830100</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9:       3      3                0.1 3.434814e+00    0.1737245  1.1196837</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10:       1      1                0.5 3.938944e+00    0.6091640 34.2736199</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11:       1      2                0.5 2.920245e-08    0.6091640  0.0078356</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12:       1      3                0.5 6.876651e-02    0.6091640  6.3782471</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13:       2      1                0.5 1.390083e+00 1894.0873923 34.2736199</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14:       2      2                0.5 4.999998e+00 1894.0873923  0.0078356</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15:       2      3                0.5 3.601723e+00 1894.0873923  6.3782471</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16:       3      1                0.5 1.670972e+00    2.0987882 34.2736199</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17:       3      2                0.5 1.838574e-06    2.0987882  0.0078356</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18:       3      3                0.5 4.329510e+00    2.0987882  6.3782471</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>     kappa_doubly        error</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>            &lt;num&gt;        &lt;num&gt;</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  1: 3.609910e-01 0.0007282429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  2: 1.999081e-02 0.0007282429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  3: 1.720646e-01 0.0007282429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  4: 3.076310e-01 0.0007282429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  5: 9.301262e-01 0.0007282429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  6: 3.985837e-01 0.0007282429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  7: 3.313780e-01 0.0007282429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  8: 4.988295e-02 0.0007282429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  9: 4.293517e-01 0.0007282429</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 10: 5.627063e-01 0.0008195559</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 11: 5.840490e-09 0.0008195559</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 12: 8.595813e-03 0.0008195559</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 13: 1.985833e-01 0.0008195559</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 14: 9.999996e-01 0.0008195559</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 15: 4.502154e-01 0.0008195559</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 16: 2.387103e-01 0.0008195559</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 17: 3.677148e-07 0.0008195559</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 18: 5.411888e-01 0.0008195559</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

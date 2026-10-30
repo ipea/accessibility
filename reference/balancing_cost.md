@@ -36,7 +36,8 @@ balancing_cost(
 
   A data frame. The distribution of opportunities within the study area
   cells. Must contain the columns `id` and any others specified in
-  `opportunity`.
+  `opportunity`. `NA` values, and ids in `travel_matrix` that are
+  missing from this table, are treated as 0.
 
 - opportunity:
 
@@ -61,14 +62,14 @@ balancing_cost(
 
   A number. The cost increment that should be used when defining the
   travel cost distribution from which the potential balancing costs will
-  be picked. For example, an increment of 1 tends to suitable for travel
-  time distributions, meaning that the function will first check if any
-  origins reach their balancing cost with a travel time of 0 minutes,
-  then 1 minute, 2 minutes, 3, 4, ..., etc. A increment of 1 might be
-  too big for a distribution of monetary costs, on the other hand, which
-  could possibly benefit from a smaller increment of 0.05, for example,
-  resulting in the function looking for balancing costs first at a cost
-  of 0, then 0.05, 0.10, ..., etc. Defaults to 1.
+  be picked. For example, an increment of 1 tends to be suitable for
+  travel time distributions, meaning that the function will first check
+  if any origins reach their balancing cost with a travel time of 0
+  minutes, then 1 minute, 2 minutes, 3, 4, ..., etc. An increment of 1
+  might be too big for a distribution of monetary costs, on the other
+  hand, which could possibly benefit from a smaller increment of 0.05,
+  for example, resulting in the function looking for balancing costs
+  first at a cost of 0, then 0.05, 0.10, ..., etc. Defaults to 1.
 
 - group_by:
 
@@ -80,28 +81,26 @@ balancing_cost(
   results in accessibility estimates grouped by origin and by departure
   time.
 
+  Accessibility is calculated separately for each unique combination of
+  grouping variables. For constrained accessibility measures, each group
+  is treated as an independent land-use-transportation system.
+
 - fill_missing_ids:
 
-  A `logical`. When calculating grouped accessibility estimates (i.e.
-  when `by_col` is not `NULL`), some combinations of groups and origins
-  may be missing. For example, if a single trip can depart from origin
-  `A` at 7:15am and reach destination `B` within 55 minutes, but no
-  trips departing from `A` at 7:30am can be completed at all, this
-  second combination will not be included in the output. When `TRUE`
-  (the default), the function identifies which combinations would be
-  left out and fills their respective accessibility values with 0, which
-  incurs in a performance penalty.
+  A `logical`. Origins that never reach as many opportunities as there
+  are people residing in them, as well as (when `group_by` is not empty)
+  combinations of groups and origins missing from the travel matrix,
+  would not be included in the output. When `TRUE` (the default), the
+  function identifies which combinations would be left out and fills
+  their respective balancing costs with `NA`, which incurs a performance
+  penalty.
 
 ## Value
 
-A data frame containing the accessibility estimates for each
-origin/destination (depending if `active` is `TRUE` or `FALSE`) in the
+A data frame containing the balancing cost of each origin in the travel
+matrix. Origins with a `NA` balancing cost never reach as many
+opportunities as there are people residing in them, given the specified
 travel matrix.
-
-A data frame containing the accessibility estimates for each origin in
-the travel matrix. Origins marked with a `NA` balancing cost never reach
-as many opportunities as there is people residing in them, given the
-specified travel matrix.
 
 ## References
 
@@ -110,6 +109,12 @@ Time: Using a New Accessibility Measure in Rio de Janeiro.” *Journal of
 Transport Geography*, **90**, 102924. ISSN 09666923.
 [doi:10.1016/j.jtrangeo.2020.102924](https://doi.org/10.1016/j.jtrangeo.2020.102924)
 .
+
+## See also
+
+Other accessibility measures:
+[`cost_to_closest()`](https://ipea.github.io/accessibility/reference/cost_to_closest.md),
+[`gravity()`](https://ipea.github.io/accessibility/reference/gravity.md)
 
 ## Examples
 
@@ -126,7 +131,6 @@ bc <- balancing_cost(
   demand = "population"
 )
 head(bc)
-#> Key: <id>
 #>                 id travel_time
 #>             <char>       <num>
 #> 1: 89a881a5a2bffff          15

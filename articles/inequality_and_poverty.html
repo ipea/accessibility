@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">accessibility</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,7 +44,7 @@
 <li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json">
 </form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/ipeaGIT/accessibility/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/ipea/accessibility/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch">
@@ -68,7 +68,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Calculating accessibility inequality and poverty</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/ipeaGIT/accessibility/blob/main/vignettes/inequality_and_poverty.Rmd" class="external-link"><code>vignettes/inequality_and_poverty.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/ipea/accessibility/blob/main/vignettes/inequality_and_poverty.Rmd" class="external-link"><code>vignettes/inequality_and_poverty.Rmd</code></a></small>
       <div class="d-none name"><code>inequality_and_poverty.Rmd</code></div>
     </div>
 
@@ -87,7 +87,7 @@ to use in this demonstration. To do so, we use the
 <code><a href="../reference/cumulative_cutoff.html">cumulative_cutoff()</a></code> function and the sample data included
 in the package.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ipeaGIT/accessibility" class="external-link">accessibility</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ipea/accessibility" class="external-link">accessibility</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">data_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span><span class="st">"extdata"</span>, package <span class="op">=</span> <span class="st">"accessibility"</span><span class="op">)</span></span>
 <span><span class="va">travel_matrix</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">data_dir</span>, <span class="st">"travel_matrix.rds"</span><span class="op">)</span><span class="op">)</span></span>
@@ -102,7 +102,7 @@ in the package.</p>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">access</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                 id  jobs</span></span>
-<span><span class="co">#&gt;             &lt;char&gt; &lt;int&gt;</span></span>
+<span><span class="co">#&gt;             &lt;char&gt; &lt;num&gt;</span></span>
 <span><span class="co">#&gt; 1: 89a881a5a2bffff 14561</span></span>
 <span><span class="co">#&gt; 2: 89a881a5a2fffff 29452</span></span>
 <span><span class="co">#&gt; 3: 89a881a5a67ffff 16647</span></span>
@@ -213,7 +213,7 @@ relative CI and the corrected CI, proposed by <span class="citation">Erreygers (
 <span><span class="va">ci</span></span>
 <span><span class="co">#&gt;    concentration_index</span></span>
 <span><span class="co">#&gt;                  &lt;num&gt;</span></span>
-<span><span class="co">#&gt; 1:           0.3346494</span></span></code></pre></div>
+<span><span class="co">#&gt; 1:           0.3346194</span></span></code></pre></div>
 </div>
 <div class="section level3">
 <h3 id="theil-t">Theil T<a class="anchor" aria-label="anchor" href="#theil-t"></a>
@@ -230,11 +230,11 @@ between- and a within-groups inequality component. The function includes
 a <code>socioeconomic_groups</code> parameter to indicate which variable
 from the sociodemographic dataset should be used identify the
 socioeconomic groups used to calculate these components.</p>
-<p>Please note that the output <code><a href="../reference/theil_t.html">theil_t()</a></code> varies based on
+<p>Please note that the output of <code><a href="../reference/theil_t.html">theil_t()</a></code> varies based on
 the value of <code>socioeconomic_groups</code>. If <code>NULL</code>
 (the default), the between- and within-groups components are not
 calculated, and the function returns a data frame containing only the
-total aggregate inequality for the returned area. If
+total aggregate inequality for the study area. If
 <code>socioeconomic_groups</code> is not <code>NULL</code>, however, the
 function returns a list containing three dataframes: one summarizing the
 total inequality and the between- and within-groups components, one
@@ -312,29 +312,30 @@ component. Both behaviors are shown below.</p>
 </h3>
 <p><code><a href="../reference/fgt_poverty.html">fgt_poverty()</a></code> calculates the FGT metrics, a family of
 poverty measures originally proposed by <span class="citation">Foster et
-al. (1984)</span> that capture the extent and severity of poverty within
-an accessibility distribution. The FGT family is composed of three
-measures that differ based on the
+al. (1984)</span> that capture the incidence, depth and severity of
+poverty within an accessibility distribution. The FGT family is composed
+of three measures that differ based on the
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>α</mi><annotation encoding="application/x-tex">\alpha</annotation></semantics></math>
 parameter used to calculate them (either 0, 1 or 2) and which also
 changes their interpretation:</p>
 <ul>
 <li>with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>=</mo><mn>0</mn></mrow><annotation encoding="application/x-tex">\alpha = 0</annotation></semantics></math>
-(FGT0) the measure captures the extent of poverty as a simple headcount
-- i.e. the proportion of people below the poverty line;</li>
-<li>with
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\alpha = 1</annotation></semantics></math>
-(FGT1) the measure, also know as the “poverty gap index”, captures the
-severity of poverty as the average percentage distance between the
-poverty line and the accessibility of individuals below the poverty
+(FGT0) the measure captures the incidence (or extent) of poverty as a
+simple headcount - i.e. the proportion of people below the poverty
 line;</li>
 <li>with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>=</mo><mn>1</mn></mrow><annotation encoding="application/x-tex">\alpha = 1</annotation></semantics></math>
+(FGT1) the measure, also known as the “poverty gap index”, captures the
+depth of poverty as the average shortfall from the poverty line,
+relative to the poverty line, calculated over the whole population
+(people above the poverty line have a shortfall of 0);</li>
+<li>with
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>α</mi><mo>=</mo><mn>2</mn></mrow><annotation encoding="application/x-tex">\alpha = 2</annotation></semantics></math>
-(FGT2) the measure simultaneously captures the extent and the severity
-of poverty by calculating the number of people below the poverty line
-weighted by the size of the accessibility shortfall relative to the
-poverty line.</li>
+(FGT2) the measure, also known as the “squared poverty gap index”,
+captures the severity of poverty. By squaring the shortfalls, it gives
+more weight to the people furthest below the poverty line, which makes
+it sensitive to inequality among the poor.</li>
 </ul>
 <p>This function includes an additional <code>poverty_line</code>
 parameter, used to define the poverty line below which individuals are
@@ -352,6 +353,47 @@ considered to be in accessibility poverty.</p>
 <span><span class="co">#&gt;         FGT0      FGT1      FGT2</span></span>
 <span><span class="co">#&gt;        &lt;num&gt;     &lt;num&gt;     &lt;num&gt;</span></span>
 <span><span class="co">#&gt; 1: 0.3923817 0.1776241 0.1010123</span></span></code></pre></div>
+<p>By default, <code><a href="../reference/fgt_poverty.html">fgt_poverty()</a></code> considers that people with
+accessibility <em>below</em> the poverty line are poor, which is the
+right approach for primal accessibility measures, such as the number of
+accessible jobs. For dual measures, such as the travel time to the
+closest facility calculated with <code><a href="../reference/cost_to_closest.html">cost_to_closest()</a></code>, higher
+values indicate worse access, so people <em>above</em> the poverty line
+should be considered poor. This is done by setting
+<code>poor_below_threshold = FALSE</code>. In this case, FGT1 and FGT2
+measure the excess travel cost relative to the poverty line, so they are
+not bounded by 1. In the example below, we consider that people who take
+more than 20 minutes to reach the closest school are in accessibility
+poverty. Note that <code><a href="../reference/cost_to_closest.html">cost_to_closest()</a></code> returns
+<code>Inf</code> for origins that can’t reach any school in the travel
+matrix, which would make FGT1 and FGT2 infinite
+(<code><a href="../reference/fgt_poverty.html">fgt_poverty()</a></code> warns about it), so we replace these values
+by the longest travel time in the travel matrix (120 minutes)
+beforehand.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">time_to_school</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/cost_to_closest.html">cost_to_closest</a></span><span class="op">(</span></span>
+<span>  <span class="va">travel_matrix</span>,</span>
+<span>  <span class="va">land_use_data</span>,</span>
+<span>  opportunity <span class="op">=</span> <span class="st">"schools"</span>,</span>
+<span>  travel_cost <span class="op">=</span> <span class="st">"travel_time"</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">unreachable</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/is.finite.html" class="external-link">is.infinite</a></span><span class="op">(</span><span class="va">time_to_school</span><span class="op">$</span><span class="va">travel_time</span><span class="op">)</span></span>
+<span><span class="va">time_to_school</span><span class="op">$</span><span class="va">travel_time</span><span class="op">[</span><span class="va">unreachable</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fl">120</span></span>
+<span></span>
+<span><span class="va">poverty_dual</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/fgt_poverty.html">fgt_poverty</a></span><span class="op">(</span></span>
+<span>  <span class="va">time_to_school</span>,</span>
+<span>  sociodemographic_data <span class="op">=</span> <span class="va">land_use_data</span>,</span>
+<span>  opportunity <span class="op">=</span> <span class="st">"travel_time"</span>,</span>
+<span>  population <span class="op">=</span> <span class="st">"population"</span>,</span>
+<span>  poverty_line <span class="op">=</span> <span class="fl">20</span>,</span>
+<span>  poor_below_threshold <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">poverty_dual</span></span>
+<span><span class="co">#&gt;          FGT0        FGT1       FGT2</span></span>
+<span><span class="co">#&gt;         &lt;num&gt;       &lt;num&gt;      &lt;num&gt;</span></span>
+<span><span class="co">#&gt; 1: 0.02635896 0.009283491 0.02337055</span></span></code></pre></div>
 </div>
 </div>
 <div class="section level2">

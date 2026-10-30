@@ -13,7 +13,7 @@ extent and severity of poverty within an accessibility distribution. The FGT
 family is composed of three measures that differ based on the \(\alpha\)
 parameter used to calculate them (either 0, 1 or 2) and which also changes
 their interpretation. Please see the details section for more information on
-the interpretation of the measures."><meta property="og:image" content="https://ipeagit.github.io/accessibility/logo.png"></head><body>
+the interpretation of the measures."><meta property="og:image" content="https://ipea.github.io/accessibility/logo.png"></head><body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
 
 
@@ -21,7 +21,7 @@ the interpretation of the measures."><meta property="og:image" content="https://
 
     <a class="navbar-brand me-2" href="../index.html">accessibility</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.5.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">1.6.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -39,7 +39,7 @@ the interpretation of the measures."><meta property="og:image" content="https://
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/ipeaGIT/accessibility/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/ipea/accessibility/" aria-label="GitHub"><span class="fa fab fa-github fa-lg"></span></a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-lightswitch" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true" aria-label="Light switch"><span class="fa fa-sun"></span></button>
   <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-lightswitch"><li><button class="dropdown-item" data-bs-theme-value="light"><span class="fa fa-sun"></span> Light</button></li>
@@ -54,7 +54,7 @@ the interpretation of the measures."><meta property="og:image" content="https://
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
       <img src="../logo.png" class="logo" alt=""><h1>Foster-Greer-Thorbecke (FGT) poverty measures</h1>
-      <small class="dont-index">Source: <a href="https://github.com/ipeaGIT/accessibility/blob/main/R/fgt_poverty.R" class="external-link"><code>R/fgt_poverty.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/ipea/accessibility/blob/main/R/fgt_poverty.R" class="external-link"><code>R/fgt_poverty.R</code></a></small>
       <div class="d-none name"><code>fgt_poverty.Rd</code></div>
     </div>
 
@@ -100,7 +100,7 @@ Must contain the columns <code>id</code> and any others specified in <code>popul
 
 <dt id="arg-opportunity">opportunity<a class="anchor" aria-label="anchor" href="#arg-opportunity"></a></dt>
 <dd><p>A string. The name of the column in <code>accessibility_data</code>
-with the accessibility levels to be considerend when calculating
+with the accessibility levels to be considered when calculating
 accessibility poverty.</p></dd>
 
 
@@ -116,9 +116,9 @@ considered to be in accessibility poverty.</p></dd>
 
 
 <dt id="arg-poor-below-threshold">poor_below_threshold<a class="anchor" aria-label="anchor" href="#arg-poor-below-threshold"></a></dt>
-<dd><p>Logic. If <code>TRUE</code> (default,) the observations below
+<dd><p>A logical. If <code>TRUE</code> (default) the observations below
 the poverty line are considered to be poor. This is the correct approach
-for primal accessibility measures (e.g.cumulative accessibility). If
+for primal accessibility measures (e.g. cumulative accessibility). If
 <code>FALSE</code>, then observations above the poverty line are considered to be
 poor. This is the correct approach for dual accessibility measures (e.g.
 travel time to the closest facility). When set to <code>FALSE</code>, FGT 1 and 2
@@ -143,20 +143,34 @@ FGT2) for the study area.</p>
     <h2 id="interpretation-of-fgt-measures">Interpretation of FGT measures<a class="anchor" aria-label="anchor" href="#interpretation-of-fgt-measures"></a></h2>
 
 
-<p>The interpretation of each FGT measure depends on the \(\alpha\) parameter
-used to calculate it:</p><ul><li><p>with \(\alpha = 0\) (FGT0) the measure captures the <em>extent</em> of poverty
-as a simple headcount - i.e. the proportion of people below the poverty line;</p></li>
-<li><p>with \(\alpha = 1\) (FGT1) the measure, also know as the "poverty gap
-index", captures the <em>severity</em> of poverty as the average percentage distance
-between the poverty line and the accessibility of individuals below the
-poverty line;</p></li>
-<li><p>with \(\alpha = 2\) (FGT2) the measure simultaneously captures the
-<em>extent</em> and the <em>severity</em> of poverty by calculating the number of people
-below the poverty line weighted by the size of the accessibility shortfall
-relative to the poverty line.</p></li>
-</ul><p>FGT values range from 0 to 1. A value of 0 indicates that every individual is
-above the poverty line. When every individual is below the poverty line,
-however, FGT0 value is 1 and FGT1 and FGT2 values approach 1.</p>
+<p>With a poverty line \(z\), the FGT measures are calculated as the
+population-weighted average of \(g_i^\alpha\), in which \(g_i\) is the
+normalised shortfall of each observation \(i\) with accessibility
+\(y_i\): \(g_i = (z - y_i) / z\) if \(y_i &lt; z\) and 0 otherwise. When
+<code>poor_below_threshold</code> is <code>FALSE</code>, \(g_i\) is instead the normalised
+excess \((y_i - z) / z\) if \(y_i &gt; z\), and 0 otherwise. The
+interpretation of each measure depends on the \(\alpha\) parameter:</p><ul><li><p>with \(\alpha = 0\) (FGT0) the measure captures the <em>incidence</em> (or
+extent) of poverty as a simple headcount - i.e. the proportion of people in
+poverty;</p></li>
+<li><p>with \(\alpha = 1\) (FGT1) the measure, also known as the "poverty gap
+index", captures the <em>depth</em> (or intensity) of poverty as the average
+normalised shortfall from the poverty line, calculated over the whole
+population (people not in poverty have a shortfall of 0);</p></li>
+<li><p>with \(\alpha = 2\) (FGT2) the measure, also known as the "squared
+poverty gap index", captures the <em>severity</em> of poverty. Squaring the
+shortfalls gives more weight to the people furthest from the poverty line,
+which makes the measure sensitive to inequality among the poor.</p></li>
+</ul><p>A value of 0 indicates that no one is in poverty. When <code>poor_below_threshold</code>
+is <code>TRUE</code>, FGT values range from 0 to 1: FGT0 is 1 when everyone is below the
+poverty line, and FGT1 and FGT2 are 1 only when everyone has an
+accessibility of 0. When <code>poor_below_threshold</code> is <code>FALSE</code>, FGT0 still ranges
+from 0 to 1, but FGT1 and FGT2 have no upper bound: they can be greater than
+1 (e.g. when travel costs are more than twice the poverty line) and are
+<code>Inf</code> if any accessibility value is <code>Inf</code>. This happens, for example, with
+the travel costs of origins that can't reach the required opportunities, as
+returned by <code><a href="cost_to_closest.html">cost_to_closest()</a></code>. The function raises a warning in this case,
+and these values should be replaced by a maximum travel cost (e.g. the
+highest cost in the travel matrix) before calculating the FGT measures.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
@@ -167,6 +181,14 @@ ISSN 0012-9682.
 <a href="https://doi.org/10.2307/1913475" class="external-link">doi:10.2307/1913475</a>
 .
 1913475.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="see-also">See also<a class="anchor" aria-label="anchor" href="#see-also"></a></h2>
+    <div class="dont-index"><p>Other equity:
+<code><a href="concentration_index.html">concentration_index()</a></code>,
+<code><a href="gini_index.html">gini_index()</a></code>,
+<code><a href="palma_ratio.html">palma_ratio()</a></code>,
+<code><a href="theil_t.html">theil_t()</a></code></p></div>
     </div>
 
     <div class="section level2">
