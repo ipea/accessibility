@@ -2,6 +2,8 @@
 
 ## accessibility 1.6.0
 
+CRAN release: 2026-10-30
+
 ### New features
 
 - [`cumulative_interval()`](https://ipea.github.io/accessibility/reference/cumulative_interval.md)
